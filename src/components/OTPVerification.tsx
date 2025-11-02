@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Mail } from 'lucide-react';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const OTPVerification: React.FC = () => {
   const [email, setEmail] = useState('');
