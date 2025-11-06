@@ -1,0 +1,11 @@
+.color-bends-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    min-height: 100vh;
+    pointer-events: none; /* allow UI on top while still interactive via window listeners */
+  }
+  

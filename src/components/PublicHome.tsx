@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { BookOpen, Download, FileText, Search, Filter, Eye } from 'lucide-react';
 import axios from 'axios';
 import FilePreviewModal from './FilePreviewModal';
+import GooeyNav from './Gooeyeffect';
+import logoImg from '../assets/logo (2).png';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -26,6 +28,7 @@ const PublicHome: React.FC = () => {
   const [filteredPapers, setFilteredPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchField, setSearchField] = useState<'all' | 'title' | 'description' | 'course' | 'uploader'>('all');
 
   // Filters
   const [filters, setFilters] = useState({
@@ -51,7 +54,7 @@ const PublicHome: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [searchQuery, filters, papers]);
+  }, [searchQuery, searchField, filters, papers]);
 
   const fetchPublicPapers = async () => {
     try {
@@ -70,13 +73,18 @@ const PublicHome: React.FC = () => {
     // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(
-        (paper) =>
+      filtered = filtered.filter((paper) => {
+        if (searchField === 'title') return paper.title.toLowerCase().includes(query);
+        if (searchField === 'description') return (paper.description || '').toLowerCase().includes(query);
+        if (searchField === 'course') return (paper.course_code || '').toLowerCase().includes(query);
+        if (searchField === 'uploader') return (paper.uploader_name || '').toLowerCase().includes(query);
+        return (
           paper.title.toLowerCase().includes(query) ||
-          paper.description?.toLowerCase().includes(query) ||
-          paper.course_code?.toLowerCase().includes(query) ||
-          paper.uploader_name?.toLowerCase().includes(query)
+          (paper.description || '').toLowerCase().includes(query) ||
+          (paper.course_code || '').toLowerCase().includes(query) ||
+          (paper.uploader_name || '').toLowerCase().includes(query)
       );
+      });
     }
 
     // Course filter
@@ -133,9 +141,7 @@ const PublicHome: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="bg-blue-600 p-3 rounded-lg">
-                <BookOpen className="text-white w-8 h-8" />
-              </div>
+              <img src={logoImg} alt="Paper Portal Logo" className="h-24 w-auto object-contain" />
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Paper Portal</h1>
                 <p className="text-gray-600 dark:text-gray-400">Browse Approved Academic Papers</p>
@@ -172,6 +178,28 @@ const PublicHome: React.FC = () => {
           className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8"
         >
           <div className="space-y-6">
+            {/* Gooey Search Field Tabs */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                <Search className="inline w-4 h-4 mr-2" />
+                Search In
+              </label>
+              <GooeyNav
+                items={[
+                  { label: 'All', href: '#' },
+                  { label: 'Title', href: '#' },
+                  { label: 'Description', href: '#' },
+                  { label: 'Course', href: '#' },
+                  { label: 'Uploader', href: '#' }
+                ]}
+                initialActiveIndex={0}
+                onChange={(idx) => {
+                  const map = ['all', 'title', 'description', 'course', 'uploader'] as const;
+                  setSearchField(map[idx]);
+                }}
+              />
+            </div>
+
             {/* Search Bar */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -180,7 +208,7 @@ const PublicHome: React.FC = () => {
               </label>
               <input
                 type="text"
-                placeholder="Search by title, author, description, or course..."
+                placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
@@ -193,20 +221,20 @@ const PublicHome: React.FC = () => {
                 <Filter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                 <label className="font-semibold text-gray-700 dark:text-gray-300">Filters</label>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <select
-                  value={filters.paper_type}
-                  onChange={(e) => handleFilterChange('paper_type', e.target.value)}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">All Paper Types</option>
-                  {paperTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </option>
-                  ))}
-                </select>
 
+              {/* Gooey Paper Type Tabs */}
+              <div className="mb-4">
+                <GooeyNav
+                  items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
+                  initialActiveIndex={0}
+                  onChange={(idx, item) => {
+                    const val = idx === 0 ? '' : item.label.toLowerCase();
+                    handleFilterChange('paper_type', val);
+                  }}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <select
                   value={filters.year}
                   onChange={(e) => handleFilterChange('year', e.target.value)}

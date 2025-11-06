@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import OTPVerification from './components/OTPVerification';
 import AdminLogin from './components/AdminLogin';
 import StudentDashboard from './components/StudentDashboard';
+import Profile from './components/Profile';
 import AdminDashboard from './components/AdminDashboard';
 import PublicHome from './components/PublicHome';
 import ThemeToggle from './components/ThemeToggle';
@@ -55,6 +56,16 @@ function AppContent() {
             element={
               user && !user.is_admin ? (
                 <StudentDashboard />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              user && !user.is_admin ? (
+                <Profile />
               ) : (
                 <Navigate to="/login" />
               )
