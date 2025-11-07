@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Download, FileText, Eye, User, Shield } from 'lucide-react';
+import { Download, Eye, User, Shield } from 'lucide-react';
 
 interface PaperCardProps {
   paper: {
