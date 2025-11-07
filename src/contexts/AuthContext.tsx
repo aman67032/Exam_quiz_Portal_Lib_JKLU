@@ -9,6 +9,8 @@ interface User {
   email: string;
   name: string;
   is_admin: boolean;
+  id_verified?: boolean;
+  photo_path?: string;
 }
 
 interface AuthContextType {

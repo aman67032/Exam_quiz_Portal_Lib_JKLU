@@ -22,12 +22,12 @@ const Profile: React.FC = () => {
   const [idFile, setIdFile] = useState<File | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [extra, setExtra] = useState({
-    age: localStorage.getItem('profile.age') || '',
-    year: localStorage.getItem('profile.year') || '',
-    university: localStorage.getItem('profile.university') || '',
-    department: localStorage.getItem('profile.department') || '',
-    rollno: localStorage.getItem('profile.rollno') || '',
-    studentId: localStorage.getItem('profile.studentId') || ''
+    age: '',
+    year: '',
+    university: '',
+    department: '',
+    rollno: '',
+    studentId: ''
   });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' | 'info' });
@@ -40,7 +40,16 @@ const Profile: React.FC = () => {
         const res = await axios.get(`${API_BASE_URL}/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setMe(res.data);
+        const data = res.data as any;
+        setMe(data);
+        setExtra({
+          age: data.age ? String(data.age) : '',
+          year: data.year || '',
+          university: data.university || '',
+          department: data.department || '',
+          rollno: data.roll_no || '',
+          studentId: data.student_id || ''
+        });
       } catch (e: any) {
         setToast({ show: true, message: 'Failed to load profile', type: 'error' });
       } finally {
@@ -53,38 +62,44 @@ const Profile: React.FC = () => {
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') =>
     setToast({ show: true, message, type });
 
-  const fileToDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
+  // reserved utility for potential image previews
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ID card optional for saving other fields, but required for verification
-    // Demo flow: Mark as verified on the client. Backend endpoint can be wired later.
+    // Save profile to backend
     setSaving(true);
     try {
-      // Save extra fields locally
-      Object.entries(extra).forEach(([k, v]) => localStorage.setItem(`profile.${k}`, String(v)));
+      await axios.put(`${API_BASE_URL}/profile`, {
+        age: extra.age ? Number(extra.age) : undefined,
+        year: extra.year || undefined,
+        university: extra.university || undefined,
+        department: extra.department || undefined,
+        roll_no: extra.rollno || undefined,
+        student_id: extra.studentId || undefined,
+      }, { headers: { Authorization: `Bearer ${token}` }});
 
-      // Save profile photo if chosen
       if (photoFile) {
-        const dataUrl = await fileToDataUrl(photoFile);
-        localStorage.setItem('profile.photo', dataUrl);
+        const fd = new FormData();
+        fd.append('file', photoFile);
+        await axios.post(`${API_BASE_URL}/profile/photo`, fd, { headers: { Authorization: `Bearer ${token}` }});
       }
 
+      let updated: any = null;
       if (idFile) {
-        const idData = await fileToDataUrl(idFile);
-        localStorage.setItem('profile.idcard', idData);
-        localStorage.setItem('idVerified', 'yes');
-        localStorage.setItem('idFileName', idFile.name);
+        const fd = new FormData();
+        fd.append('file', idFile);
+        const res = await axios.post(`${API_BASE_URL}/profile/id-card`, fd, { headers: { Authorization: `Bearer ${token}` }});
+        updated = res.data;
+      } else {
+        const res = await axios.get(`${API_BASE_URL}/me`, { headers: { Authorization: `Bearer ${token}` }});
+        updated = res.data;
       }
 
-      showToast(idFile ? 'Profile and ID saved. You are verified.' : 'Profile saved.', 'success');
+      // Sync local flags for compatibility
+      localStorage.setItem('idVerified', updated.id_verified ? 'yes' : 'no');
+      if (updated.photo_path) localStorage.setItem('profile.photo.path', updated.photo_path);
+
+      showToast(idFile ? 'Profile and ID submitted. Awaiting admin verification.' : 'Profile saved.', 'success');
     } catch (e: any) {
       showToast('Failed to save ID card', 'error');
     } finally {

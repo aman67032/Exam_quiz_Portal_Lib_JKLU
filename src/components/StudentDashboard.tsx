@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Filter, LogOut, User, Download, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,7 +6,10 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
-import ColorBends from './color_band_bg';
+import { lazy, Suspense } from 'react';
+
+// Lazy load heavy background component
+const ColorBends = lazy(() => import('./color_band_bg'));
 
 interface Course {
   id: number;
@@ -64,12 +67,7 @@ const StudentDashboard: React.FC = () => {
 
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    fetchCourses();
-    fetchPapers();
-  }, []);
-
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/courses`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -78,9 +76,9 @@ const StudentDashboard: React.FC = () => {
     } catch (error: any) {
       console.error('Error fetching courses:', error.response?.data || error.message);
     }
-  };
+  }, [token]);
 
-  const fetchPapers = async () => {
+  const fetchPapers = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -96,7 +94,15 @@ const StudentDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, token]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, [fetchCourses]);
+
+  useEffect(() => {
+    fetchPapers();
+  }, [fetchPapers]);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
     setToast({ show: true, message, type });
@@ -105,7 +111,7 @@ const StudentDashboard: React.FC = () => {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     // Require ID verification before uploads
-    if (localStorage.getItem('idVerified') !== 'yes') {
+    if (!(user as any)?.id_verified && localStorage.getItem('idVerified') !== 'yes') {
       showToast('Please upload your ID card in Profile to enable uploads', 'error');
       navigate('/profile');
       return;
@@ -165,22 +171,18 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters((prev: typeof filters) => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchPapers();
-  }, [filters]);
-
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case 'approved': return 'text-emerald-600 bg-emerald-500/20 border-emerald-500/30';
       case 'rejected': return 'text-red-500 bg-red-500/20 border-red-500/30';
       default: return 'text-amber-500 bg-amber-500/20 border-amber-500/30';
     }
-  };
+  }, []);
 
   const handleDownload = async (paperId: number, fileName: string) => {
     try {
@@ -201,23 +203,30 @@ const StudentDashboard: React.FC = () => {
     }
   };
 
+  // Responsive tuning for small screens - memoized to prevent recalculation
+  const isSmallScreen = useMemo(() => {
+    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+  }, []);
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Background */}
       <div className="fixed inset-0 z-[1] pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
-        <ColorBends
-          colors={["#ff5c7a", "#8a5cff", "#00ffd1"]}
-          rotation={30}
-          speed={0.3}
-          scale={1.2}
-          frequency={1.4}
-          warpStrength={1.2}
-          mouseInfluence={0.8}
-          parallax={0.6}
-          noise={0.08}
-          transparent={true}
-          style={{ width: '100%', height: '100%', display: 'block' }}
-        />
+        <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-pink-50 to-purple-50 dark:from-gray-900 dark:to-gray-800" />}>
+          <ColorBends
+            colors={["#ff5c7a", "#8a5cff", "#00ffd1"]}
+            rotation={30}
+            speed={isSmallScreen ? 0.15 : 0.3}
+            scale={isSmallScreen ? 1.5 : 1.2}
+            frequency={isSmallScreen ? 1.1 : 1.4}
+            warpStrength={isSmallScreen ? 0.9 : 1.2}
+            mouseInfluence={isSmallScreen ? 0.5 : 0.8}
+            parallax={isSmallScreen ? 0.35 : 0.6}
+            noise={0.06}
+            transparent={true}
+            style={{ width: '100%', height: '100%', display: 'block' }}
+          />
+        </Suspense>
       </div>
       
       {/* Subtle Overlay under content but above page base */}
@@ -239,19 +248,19 @@ const StudentDashboard: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           className="sticky top-0 z-50 backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 border-b border-white/20 dark:border-gray-700/30 shadow-lg shadow-purple-500/10"
         >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-20">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 py-3">
               {/* Logo and Title */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center space-x-4"
+                className="flex items-center space-x-3 sm:space-x-4"
               >
                 <div className="relative">
                   <img 
                     src={logoImg} 
                     alt="Paper Portal Logo" 
-                    className="h-16 w-auto object-contain drop-shadow-lg"
+                    className="h-12 sm:h-16 w-auto object-contain drop-shadow-lg"
                   />
                   <motion.div
                     animate={{ 
@@ -271,7 +280,7 @@ const StudentDashboard: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="text-3xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent"
+                    className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent"
                   >
                     Paper Portal
                   </motion.h1>
@@ -286,29 +295,32 @@ const StudentDashboard: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center space-x-3"
+                className="flex items-center gap-2 sm:gap-3 flex-wrap"
               >
                 <Link
-                  to="/profile"
-                  className="px-4 py-2.5 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg text-sm font-semibold text-gray-800 dark:text-gray-100 hover:shadow-purple-500/20"
+                  to="/"
+                  className="px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 hover:shadow-purple-500/20"
                 >
-                  {String(user?.id ?? 'Profile')}
+                  Home
                 </Link>
-                <div className="flex items-center space-x-2 px-4 py-2.5 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg">
+                <Link
+                  to="/profile"
+                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-purple-500/20 max-w-[60vw] sm:max-w-none"
+                >
                   {localStorage.getItem('profile.photo') ? (
-                    <img src={localStorage.getItem('profile.photo') || ''} className="h-7 w-7 rounded-full object-cover ring-2 ring-purple-400/40" />
+                    <img src={localStorage.getItem('profile.photo') || ''} className="h-6 sm:h-7 w-6 sm:w-7 rounded-full object-cover ring-2 ring-purple-400/40" />
                   ) : (
                     <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full">
                       <User className="h-3.5 w-3.5 text-white" />
                     </div>
                   )}
-                  <span className="text-sm font-semibold text-gray-800 dark:text-gray-100">{user?.name}</span>
-                </div>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{user?.name}</span>
+                </Link>
                 <motion.button
                   onClick={logout}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="flex items-center space-x-2 px-5 py-2.5 text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl transition-all duration-200 font-medium shadow-lg hover:shadow-xl backdrop-blur-sm"
+                  className="flex items-center space-x-2 px-3 sm:px-5 py-2 text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl transition-all duration-200 font-medium text-xs sm:text-sm shadow-lg hover:shadow-xl backdrop-blur-sm"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
@@ -534,7 +546,7 @@ const StudentDashboard: React.FC = () => {
                         {papers.length}
                       </span>
                     </h2>
-                    <div className="flex items-center space-x-2 px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50">
+                  <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50 text-xs sm:text-sm">
                       <Filter className="h-4 w-4 text-purple-500" />
                       <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</span>
                     </div>
@@ -614,7 +626,7 @@ const StudentDashboard: React.FC = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400">Start by uploading your first paper!</p>
                     </div>
                   ) : (
-                    <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(168, 85, 247, 0.3) transparent' }}>
+                    <div className="space-y-4 max-h-[55vh] md:max-h-[600px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(168, 85, 247, 0.3) transparent' }}>
                       {papers.map((paper, index) => (
                         <motion.div
                           key={paper.id}

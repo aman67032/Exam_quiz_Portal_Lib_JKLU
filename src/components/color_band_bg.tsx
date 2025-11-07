@@ -137,6 +137,10 @@ export default function ColorBends({
   const pointerTargetRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerCurrentRef = useRef<THREE.Vector2>(new THREE.Vector2(0, 0));
   const pointerSmoothRef = useRef<number>(8);
+  const lastFrameTimeRef = useRef<number>(0);
+  const targetFPS = 60;
+  const frameInterval = 1000 / targetFPS;
+  const isVisibleRef = useRef<boolean>(true);
 
   useEffect(() => {
     const container = containerRef.current!;
@@ -175,11 +179,16 @@ export default function ColorBends({
     const renderer = new THREE.WebGLRenderer({
       antialias: false,
       powerPreference: 'high-performance',
-      alpha: true
+      alpha: true,
+      preserveDrawingBuffer: false, // Prevent ReadPixels stalls
+      stencil: false,
+      depth: false
     });
     rendererRef.current = renderer;
     (renderer as any).outputColorSpace = (THREE as any).SRGBColorSpace;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    // Reduce pixel ratio to prevent GPU stalls, especially on mobile
+    const maxPixelRatio = window.devicePixelRatio > 1.5 ? 1.5 : Math.min(window.devicePixelRatio || 1, 1.5);
+    renderer.setPixelRatio(maxPixelRatio);
     renderer.setClearColor(0x000000, transparent ? 0 : 1);
     renderer.domElement.style.width = '100%';
     renderer.domElement.style.height = '100%';
@@ -205,12 +214,24 @@ export default function ColorBends({
       (window as Window).addEventListener('resize', handleResize);
     }
 
-    const loop = () => {
-      const dt = clock.getDelta();
-      const elapsed = clock.elapsedTime;
-      material.uniforms.uTime.value = elapsed;
+    const loop = (currentTime: number = performance.now()) => {
+      if (!isVisibleRef.current) {
+        rafRef.current = requestAnimationFrame(() => loop(performance.now()));
+        return;
+      }
 
-      const deg = (rotationRef.current % 360) + autoRotateRef.current * elapsed;
+      const elapsed = currentTime - lastFrameTimeRef.current;
+      if (elapsed < frameInterval) {
+        rafRef.current = requestAnimationFrame(() => loop(performance.now()));
+        return;
+      }
+
+      lastFrameTimeRef.current = currentTime - (elapsed % frameInterval);
+      const dt = clock.getDelta();
+      const elapsedTime = clock.elapsedTime;
+      material.uniforms.uTime.value = elapsedTime;
+
+      const deg = (rotationRef.current % 360) + autoRotateRef.current * elapsedTime;
       const rad = (deg * Math.PI) / 180;
       const c = Math.cos(rad);
       const s = Math.sin(rad);
@@ -222,14 +243,31 @@ export default function ColorBends({
       cur.lerp(tgt, amt);
       (material.uniforms.uPointer.value as THREE.Vector2).copy(cur);
       renderer.render(scene, camera);
-      rafRef.current = requestAnimationFrame(loop);
+      rafRef.current = requestAnimationFrame(() => loop(performance.now()));
     };
-    rafRef.current = requestAnimationFrame(loop);
+    rafRef.current = requestAnimationFrame(() => loop(performance.now()));
+
+    // Visibility detection to pause rendering when not visible
+    const visibilityObserver = new IntersectionObserver(
+      (entries) => {
+        isVisibleRef.current = entries[0].isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    visibilityObserver.observe(container);
+
+    // Page visibility API for tab switching
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden && container.getBoundingClientRect().top < window.innerHeight;
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
       else (window as Window).removeEventListener('resize', handleResize);
+      visibilityObserver.disconnect();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       geometry.dispose();
       material.dispose();
       renderer.dispose();
