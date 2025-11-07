@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Download, FileText, Search, Filter, Eye, User, LogOut, GraduationCap, Upload, Shield } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload } from 'lucide-react';
 import axios from 'axios';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -74,10 +74,6 @@ const PublicHome: React.FC = () => {
     fetchPublicPapers();
   }, [fetchPublicPapers]);
 
-  useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
-
   const applyFilters = useCallback(() => {
     let filtered = papers;
 
@@ -116,6 +112,10 @@ const PublicHome: React.FC = () => {
     setFilteredPapers(filtered);
   }, [papers, debouncedSearchQuery, searchField, filters]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
   // Responsive background tuning - memoized to prevent recalculation
   const isSmallScreen = useMemo(() => {
     return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
@@ -153,7 +153,7 @@ const PublicHome: React.FC = () => {
       console.error('Download error:', error);
       alert('Failed to download paper');
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
