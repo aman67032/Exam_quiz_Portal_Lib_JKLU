@@ -94,7 +94,7 @@ const PublicHome: React.FC = () => {
           (paper.description || '').toLowerCase().includes(query) ||
           (paper.course_code || '').toLowerCase().includes(query) ||
           (paper.uploader_name || '').toLowerCase().includes(query)
-      );
+        );
       });
     }
 
@@ -154,11 +154,6 @@ const PublicHome: React.FC = () => {
       alert('Failed to download paper');
     }
   };
-
-  // Responsive background tuning - memoized to prevent recalculation
-  const isSmallScreen = useMemo(() => {
-    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
-  }, []);
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
@@ -488,8 +483,7 @@ const PublicHome: React.FC = () => {
                 />
               ))}
             </div>
-          </div>
-        )}
+          )}
 
           {/* Results Summary */}
           {!loading && filteredPapers.length > 0 && (
