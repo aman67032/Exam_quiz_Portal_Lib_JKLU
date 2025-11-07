@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
 interface FilePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -28,7 +30,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const handleDownload = async () => {
     try {
       const response = await fetch(
-        `http://localhost:8000/papers/${paperId}/download`,
+        `${API_BASE_URL}/papers/${paperId}/download`,
         {
           headers: { Authorization: `Bearer ${token}` }
         }
@@ -105,14 +107,14 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 </div>
               ) : isImage ? (
                 <img
-                  src={`http://localhost:8000/uploads/${filePath.split('/').pop()}`}
+                  src={`${API_BASE_URL}/uploads/${filePath.split('/').pop()}`}
                   alt={fileName}
                   className="max-w-full max-h-full object-contain rounded-lg"
                   onError={() => setPreviewError(true)}
                 />
               ) : isPdf ? (
                 <iframe
-                  src={`http://localhost:8000/uploads/${filePath.split('/').pop()}#toolbar=0`}
+                  src={`${API_BASE_URL}/uploads/${filePath.split('/').pop()}#toolbar=0`}
                   className="w-full h-full rounded-lg"
                   title={fileName}
                   onError={() => setPreviewError(true)}

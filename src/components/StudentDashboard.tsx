@@ -33,7 +33,7 @@ interface Paper {
   course_name?: string;
 }
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const StudentDashboard: React.FC = () => {
   const { user, logout } = useAuth();
