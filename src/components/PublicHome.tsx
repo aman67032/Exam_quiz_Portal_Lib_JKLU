@@ -320,8 +320,8 @@ const PublicHome: React.FC = () => {
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                >
+                  <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                   </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Verified Content</div>
@@ -338,8 +338,8 @@ const PublicHome: React.FC = () => {
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    <Search className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                >
+                  <Search className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                   </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Smart Search</div>
@@ -356,8 +356,8 @@ const PublicHome: React.FC = () => {
                   <motion.div
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                  >
-                    <Upload className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                >
+                  <Upload className="w-6 h-6 text-pink-600 dark:text-pink-400" />
                   </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Easy Upload</div>
