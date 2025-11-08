@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { User, Mail, IdCard, CheckCircle2, Upload, AlertCircle, ArrowLeft } from 'lucide-react';
+import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 
@@ -450,6 +450,7 @@ const Profile: React.FC = () => {
             </motion.button>
           </form>
         </motion.div>
+        ) : null}
       </main>
     </div>
   );

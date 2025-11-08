@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, XCircle, Upload, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Shield, Database, Activity, Book } from 'lucide-react';
+import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Database, Activity, Book } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FilePreviewModal from './FilePreviewModal';
