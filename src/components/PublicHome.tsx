@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload } from 'lucide-react';
-import axios from 'axios';
+import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
 import Squares from './square_bg';
@@ -15,7 +15,6 @@ import { lazy, Suspense } from 'react';
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 interface Paper {
   id: number;
@@ -61,7 +60,7 @@ const PublicHome: React.FC = () => {
 
   const fetchPublicPapers = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/papers/public/all`);
+      const response = await API.getPublicPapers();
       setPapers(response.data);
     } catch (error) {
       console.error('Error fetching papers:', error);
@@ -136,11 +135,8 @@ const PublicHome: React.FC = () => {
 
   const handleDownload = useCallback(async (paperId: number, fileName: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/papers/${paperId}/download`);
-
-      if (!response.ok) throw new Error('Download failed');
-
-      const blob = await response.blob();
+      const response = await API.downloadPaper(paperId);
+      const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

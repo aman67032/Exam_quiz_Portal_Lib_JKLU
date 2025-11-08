@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Upload, FileText, Filter, LogOut, User, Download, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { API } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
@@ -32,8 +32,6 @@ interface Paper {
   course_code?: string;
   course_name?: string;
 }
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
 const StudentDashboard: React.FC = () => {
   const { user, logout } = useAuth();
@@ -65,36 +63,30 @@ const StudentDashboard: React.FC = () => {
     semester: ''
   });
 
-  const token = localStorage.getItem('token');
-
   const fetchCourses = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/courses`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await API.getCourses();
       setCourses(response.data);
     } catch (error: any) {
-      console.error('Error fetching courses:', error.response?.data || error.message);
+      console.error('Error fetching courses:', error.message);
     }
-  }, [token]);
+  }, []);
 
   const fetchPapers = useCallback(async () => {
     try {
-      const params = new URLSearchParams();
+      const params: any = {};
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        if (value) params[key] = value;
       });
 
-      const response = await axios.get(`${API_BASE_URL}/papers?${params}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await API.getPapers(params);
       setPapers(response.data);
     } catch (error: any) {
-      console.error('Error fetching papers:', error.response?.data || error.message);
+      console.error('Error fetching papers:', error.message);
     } finally {
       setLoading(false);
     }
-  }, [filters, token]);
+  }, [filters]);
 
   useEffect(() => {
     fetchCourses();
@@ -144,12 +136,7 @@ const StudentDashboard: React.FC = () => {
     formData.append('semester', uploadForm.semester);
 
     try {
-      await axios.post(`${API_BASE_URL}/papers/upload`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      await API.uploadPaper(formData);
       showToast('Paper uploaded successfully!', 'success');
       setSelectedFile(null);
       setUploadForm({
@@ -186,8 +173,7 @@ const StudentDashboard: React.FC = () => {
 
   const handleDownload = async (paperId: number, fileName: string) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/papers/${paperId}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await API.downloadPaper(paperId, {
         responseType: 'blob'
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));

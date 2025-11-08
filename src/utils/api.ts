@@ -184,6 +184,13 @@ export const API = {
     return apiClient.get(`/papers/${id}`);
   },
 
+  downloadPaper: (id: number, config?: { responseType?: 'blob' }) => {
+    return apiClient.get(`/papers/${id}/download`, {
+      responseType: 'blob',
+      ...config
+    });
+  },
+
   reviewPaper: (id: number, status: string, rejection_reason?: string) => {
     return apiClient.patch(`/papers/${id}/review`, {
       status,
@@ -193,12 +200,6 @@ export const API = {
 
   deletePaper: (id: number) => {
     return apiClient.delete(`/papers/${id}`);
-  },
-
-  downloadPaper: (id: number) => {
-    return apiClient.get(`/papers/${id}/download`, {
-      responseType: 'blob'
-    });
   },
 
   previewPaper: (id: number) => {
