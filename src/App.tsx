@@ -7,6 +7,8 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 
 // Lazy load heavy components for code splitting
+const Login = lazy(() => import('./components/Login'));
+const Register = lazy(() => import('./components/Register'));
 const OTPVerification = lazy(() => import('./components/OTPVerification'));
 const AdminLogin = lazy(() => import('./components/AdminLogin'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
@@ -45,7 +47,17 @@ function AppContent() {
                 user ? (
                   <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
                 ) : (
-                  <OTPVerification />
+                  <Login />
+                )
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
+                ) : (
+                  <Register />
                 )
               }
             />

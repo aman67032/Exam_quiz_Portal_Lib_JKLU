@@ -15,8 +15,10 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, name: string, password: string) => Promise<void>;
+  login: (email: string, password: string, otp: string) => Promise<void>;
+  register: (email: string, name: string, password: string, confirmPassword: string) => Promise<void>;
+  verifyRegistrationOTP: (email: string, otp: string) => Promise<void>;
+  sendOTP: (email: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -60,14 +62,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, otp: string) => {
     try {
-      const params = new URLSearchParams();
-      params.append('username', email);
-      params.append('password', password);
-
-      const response = await axios.post(`${API_BASE_URL}/login`, params, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      const response = await axios.post(`${API_BASE_URL}/login`, {
+        email,
+        password,
+        otp
       });
 
       const token = response.data.access_token;
@@ -85,18 +85,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, name: string, password: string) => {
+  const register = async (email: string, name: string, password: string, confirmPassword: string) => {
     try {
       await axios.post(`${API_BASE_URL}/register`, {
         email,
         name,
-        password
+        password,
+        confirm_password: confirmPassword
+      });
+      // Registration step 1 complete - OTP sent, but don't auto-login yet
+    } catch (error: any) {
+      const message = error.response?.data?.detail || 'Registration failed';
+      throw new Error(message);
+    }
+  };
+
+  const verifyRegistrationOTP = async (email: string, otp: string) => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/register/verify-otp`, {
+        email,
+        otp
       });
 
-      // Auto login after registration
-      await login(email, password);
-    } catch (error) {
-      throw new Error('Registration failed');
+      const token = response.data.access_token;
+      localStorage.setItem('token', token);
+
+      // Get user info
+      const userResponse = await axios.get(`${API_BASE_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setUser(userResponse.data);
+    } catch (error: any) {
+      const message = error.response?.data?.detail || 'OTP verification failed';
+      throw new Error(message);
+    }
+  };
+
+  const sendOTP = async (email: string) => {
+    try {
+      await axios.post(`${API_BASE_URL}/send-otp`, { email });
+    } catch (error: any) {
+      const message = error.response?.data?.detail || 'Failed to send OTP';
+      throw new Error(message);
     }
   };
 
@@ -109,6 +140,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     login,
     register,
+    verifyRegistrationOTP,
+    sendOTP,
     logout,
     loading
   };

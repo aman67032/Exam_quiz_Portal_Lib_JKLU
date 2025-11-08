@@ -39,21 +39,74 @@ export const API = {
   client: apiClient,
   
   // Auth endpoints
-  login: (username: string, password: string) => {
+  login: (email: string, password: string, otp: string) => {
+    return apiClient.post('/login', { email, password, otp });
+  },
+
+  sendOTP: (email: string) => {
+    return apiClient.post('/send-otp', { email });
+  },
+
+  verifyOTP: (email: string, otp: string) => {
+    return apiClient.post('/verify-otp', { email, otp });
+  },
+
+  register: (email: string, name: string, password: string, confirmPassword: string) => {
+    return apiClient.post('/register', { 
+      email, 
+      name, 
+      password, 
+      confirm_password: confirmPassword 
+    });
+  },
+
+  verifyRegistrationOTP: (email: string, otp: string) => {
+    return apiClient.post('/register/verify-otp', { email, otp });
+  },
+
+  adminLogin: (email: string, password: string) => {
     const params = new URLSearchParams();
-    params.append('username', username);
+    params.append('username', email);
     params.append('password', password);
-    return axios.post(`${API_BASE_URL}/login`, params, {
+    return axios.post(`${API_BASE_URL}/admin-login`, params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
   },
 
-  register: (email: string, name: string, password: string) => {
-    return apiClient.post('/register', { email, name, password });
+  createAdmin: (email: string, name: string, password: string) => {
+    return apiClient.post('/create-admin', { email, name, password });
   },
 
   getCurrentUser: () => {
     return apiClient.get('/me');
+  },
+
+  // Profile endpoints
+  updateProfile: (data: {
+    age?: number;
+    year?: string;
+    university?: string;
+    department?: string;
+    roll_no?: string;
+    student_id?: string;
+  }) => {
+    return apiClient.put('/profile', data);
+  },
+
+  uploadProfilePhoto: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/profile/photo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  uploadIdCard: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/profile/id-card', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
 
   // Courses
@@ -75,6 +128,14 @@ export const API = {
 
   deleteCourse: (id: number) => {
     return apiClient.delete(`/courses/${id}`);
+  },
+
+  checkOrCreateCourse: (code: string, name: string) => {
+    return apiClient.post(`/courses/check-or-create?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`);
+  },
+
+  createCourseForPaper: (code: string, name: string) => {
+    return apiClient.post(`/courses/admin/create-with-paper?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`);
   },
 
   // Papers
@@ -104,6 +165,21 @@ export const API = {
     return apiClient.get('/papers/pending');
   },
 
+  getPublicPapers: (filters?: {
+    course_id?: number;
+    paper_type?: string;
+    year?: number;
+    semester?: string;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, String(value));
+      });
+    }
+    return apiClient.get(`/papers/public/all?${params}`);
+  },
+
   getPaper: (id: number) => {
     return apiClient.get(`/papers/${id}`);
   },
@@ -120,12 +196,45 @@ export const API = {
   },
 
   downloadPaper: (id: number) => {
-    return apiClient.get(`/papers/${id}/download`);
+    return apiClient.get(`/papers/${id}/download`, {
+      responseType: 'blob'
+    });
+  },
+
+  previewPaper: (id: number) => {
+    return apiClient.get(`/papers/${id}/preview`);
+  },
+
+  editPaper: (id: number, data: {
+    course_id?: string;
+    paper_type?: string;
+    year?: string;
+    semester?: string;
+  }) => {
+    const formData = new FormData();
+    if (data.course_id) formData.append('course_id', data.course_id);
+    if (data.paper_type) formData.append('paper_type', data.paper_type);
+    if (data.year) formData.append('year', data.year);
+    if (data.semester) formData.append('semester', data.semester);
+    return apiClient.put(`/papers/${id}/edit`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
   },
 
   // Admin
   getDashboardStats: () => {
     return apiClient.get('/admin/dashboard');
+  },
+
+  getVerificationRequests: () => {
+    return apiClient.get('/admin/verification-requests');
+  },
+
+  verifyUser: (userId: number, approve: boolean, reason?: string) => {
+    return apiClient.post(`/admin/verify-user/${userId}`, {
+      approve,
+      reason
+    });
   },
 };
 
