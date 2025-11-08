@@ -81,6 +81,20 @@ export const API = {
     return apiClient.get('/me');
   },
 
+  // Forgot Password
+  forgotPassword: (email: string) => {
+    return apiClient.post('/forgot-password', { email });
+  },
+
+  resetPassword: (email: string, otp: string, newPassword: string, confirmPassword: string) => {
+    return apiClient.post('/reset-password', {
+      email,
+      otp,
+      new_password: newPassword,
+      confirm_password: confirmPassword
+    });
+  },
+
   // Profile endpoints
   updateProfile: (data: {
     age?: number;

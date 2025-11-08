@@ -244,36 +244,52 @@ const Login: React.FC = () => {
             </form>
           )}
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="mt-6 text-center"
-          >
-            <p className="text-gray-600 dark:text-gray-400">
-              {step === 'credentials' ? (
-                <>
-                  Don't have an account?{' '}
+              {step === 'credentials' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-center"
+                >
                   <Link
-                    to="/register"
-                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                    to="/forgot-password"
+                    className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
                   >
-                    Sign up
+                    Forgot Password?
                   </Link>
-                </>
-              ) : (
-                <>
-                  Need a new OTP?{' '}
-                  <button
-                    onClick={handleBackToCredentials}
-                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                  >
-                    Request again
-                  </button>
-                </>
+                </motion.div>
               )}
-            </p>
-          </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
+                className="mt-6 text-center"
+              >
+                <p className="text-gray-600 dark:text-gray-400">
+                  {step === 'credentials' ? (
+                    <>
+                      Don't have an account?{' '}
+                      <Link
+                        to="/register"
+                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                      >
+                        Sign up
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      Need a new OTP?{' '}
+                      <button
+                        onClick={handleBackToCredentials}
+                        className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+                      >
+                        Request again
+                      </button>
+                    </>
+                  )}
+                </p>
+              </motion.div>
         </div>
       </motion.div>
     </div>

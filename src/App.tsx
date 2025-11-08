@@ -10,6 +10,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 const AdminLogin = lazy(() => import('./components/AdminLogin'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 const Profile = lazy(() => import('./components/Profile'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
@@ -67,6 +68,16 @@ function AppContent() {
                   <Navigate to="/admin" />
                 ) : (
                   <AdminLogin />
+                )
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
+                ) : (
+                  <ForgotPassword />
                 )
               }
             />
