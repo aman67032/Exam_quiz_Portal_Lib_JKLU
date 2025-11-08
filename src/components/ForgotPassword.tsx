@@ -24,11 +24,23 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
 
     try {
-      await API.forgotPassword(email);
-      setOtpSent(true);
-      setStep('otp');
+      const response = await API.forgotPassword(email);
+      // Check if response indicates success
+      if (response.data?.success || response.data?.message) {
+        setOtpSent(true);
+        setStep('otp');
+      } else {
+        setError('Failed to send OTP. Please try again.');
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to send OTP. Please check your email.');
+      // Check if it's a network error or actual error
+      if (err.response?.status === 404) {
+        setError('Email not found. Please check your email address.');
+      } else if (err.response?.status >= 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError(err.message || 'Failed to send OTP. Please check your email and try again.');
+      }
     } finally {
       setLoading(false);
     }

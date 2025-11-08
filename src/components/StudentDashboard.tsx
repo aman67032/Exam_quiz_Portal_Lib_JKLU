@@ -128,11 +128,24 @@ const StudentDashboard: React.FC = () => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
-    formData.append('course_id', uploadForm.course_id || uploadForm.courseText);
+    
+    // Send course_id if selected from dropdown, otherwise send course_code
+    if (uploadForm.course_id) {
+      formData.append('course_id', uploadForm.course_id);
+    } else if (uploadForm.courseText) {
+      formData.append('course_code', uploadForm.courseText);
+    }
+    
     formData.append('title', uploadForm.title);
     formData.append('description', uploadForm.description);
     formData.append('paper_type', uploadForm.paper_type);
-    formData.append('year', uploadForm.year || uploadForm.yearText);
+    
+    // Convert year to integer if provided
+    const yearValue = uploadForm.year || uploadForm.yearText;
+    if (yearValue) {
+      formData.append('year', yearValue.toString());
+    }
+    
     formData.append('semester', uploadForm.semester);
 
     try {
