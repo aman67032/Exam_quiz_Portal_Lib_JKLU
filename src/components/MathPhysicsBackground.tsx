@@ -68,7 +68,7 @@ const MathPhysicsBackground: React.FC = () => {
     // Generate random positions for equations
     const generateEquations = () => {
       const newEquations: Equation[] = [];
-      const numEquations = 25; // Number of equations to display
+      const numEquations = 40; // Increased number of equations
 
       for (let i = 0; i < numEquations; i++) {
         newEquations.push({
@@ -90,7 +90,7 @@ const MathPhysicsBackground: React.FC = () => {
       {equations.map((eq, index) => (
         <motion.div
           key={index}
-          className="absolute text-gray-400 dark:text-gray-600 text-xs sm:text-sm md:text-base font-mono select-none whitespace-nowrap"
+          className="absolute text-gray-500 dark:text-gray-400 text-sm sm:text-base md:text-lg font-mono select-none whitespace-nowrap"
           style={{
             left: `${eq.x}%`,
             top: `${eq.y}%`,
@@ -102,7 +102,7 @@ const MathPhysicsBackground: React.FC = () => {
             scale: 0.8 + Math.random() * 0.4,
           }}
           animate={{
-            opacity: [0, 0.2, 0.2, 0],
+            opacity: [0, 0.4, 0.4, 0],
             y: [100, -100],
             rotate: [-8 + Math.random() * 16, 8 + Math.random() * 16],
             scale: [0.8 + Math.random() * 0.4, 1 + Math.random() * 0.2],
@@ -119,24 +119,24 @@ const MathPhysicsBackground: React.FC = () => {
       ))}
       
       {/* Additional static equations for more density */}
-      <div className="absolute inset-0" style={{ opacity: 0.08 }}>
-        {Array.from({ length: 20 }).map((_, i) => {
+      <div className="absolute inset-0">
+        {Array.from({ length: 35 }).map((_, i) => {
           const randomEq = equationList[Math.floor(Math.random() * equationList.length)];
           return (
             <motion.div
               key={`static-${i}`}
-              className="absolute text-gray-300 dark:text-gray-700 text-xs sm:text-sm font-mono select-none whitespace-nowrap"
+              className="absolute text-gray-400 dark:text-gray-500 text-sm sm:text-base font-mono select-none whitespace-nowrap"
               style={{
-                left: `${5 + (i * 4.5)}%`,
-                top: `${3 + (i % 4) * 25}%`,
+                left: `${3 + (i * 2.8)}%`,
+                top: `${2 + (i % 5) * 20}%`,
               }}
               initial={{
                 rotate: -12 + Math.random() * 24,
-                opacity: 0.1,
+                opacity: 0.25,
               }}
               animate={{
                 rotate: [-12 + Math.random() * 24, 12 + Math.random() * 24],
-                opacity: [0.08, 0.12, 0.08],
+                opacity: [0.2, 0.3, 0.2],
               }}
               transition={{
                 duration: 20 + Math.random() * 10,
@@ -151,22 +151,22 @@ const MathPhysicsBackground: React.FC = () => {
       </div>
       
       {/* Exam-related decorative elements */}
-      <div className="absolute inset-0 dark:opacity-30" style={{ opacity: 0.05 }}>
+      <div className="absolute inset-0">
         {['EXAM', 'TEST', 'QUIZ', 'FINAL'].map((text, i) => (
           <motion.div
             key={`exam-${i}`}
-            className="absolute text-gray-400 dark:text-gray-700 text-6xl md:text-8xl font-bold select-none"
+            className="absolute text-gray-300 dark:text-gray-600 text-7xl md:text-9xl font-bold select-none"
             style={{
-              left: `${15 + i * 20}%`,
-              top: `${20 + (i % 2) * 50}%`,
+              left: `${10 + i * 22}%`,
+              top: `${15 + (i % 2) * 55}%`,
             }}
             initial={{
               rotate: -15 + i * 10,
-              opacity: 0.05,
+              opacity: 0.15,
             }}
             animate={{
               rotate: [-15 + i * 10, -10 + i * 10],
-              opacity: [0.03, 0.07, 0.03],
+              opacity: [0.12, 0.18, 0.12],
             }}
             transition={{
               duration: 15 + i * 2,
