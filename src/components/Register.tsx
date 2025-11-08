@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, Shield } from 'lucide-react';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -18,6 +16,7 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  const { register, verifyRegistrationOTP } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -37,16 +36,11 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      await axios.post(`${API_BASE_URL}/register`, {
-        email,
-        name,
-        password,
-        confirm_password: confirmPassword
-      });
+      await register(email, name, password, confirmPassword);
       setSuccess(true);
       setStep('otp');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Registration failed. Email may already be in use.');
+      setError(err.message || 'Registration failed. Email may already be in use.');
     } finally {
       setLoading(false);
     }
@@ -58,23 +52,10 @@ const Register: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/register/verify-otp`, {
-        email,
-        otp
-      });
-
-      const token = response.data.access_token;
-      localStorage.setItem('token', token);
-
-      // Get user info
-      const userResponse = await axios.get(`${API_BASE_URL}/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
+      await verifyRegistrationOTP(email, otp);
       navigate('/dashboard');
-      window.location.reload(); // Reload to update auth state
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'OTP verification failed. Please try again.');
+      setError(err.message || 'OTP verification failed. Please try again.');
     } finally {
       setLoading(false);
     }

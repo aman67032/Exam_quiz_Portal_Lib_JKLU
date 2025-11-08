@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
-import axios from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -16,6 +14,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
+  const { sendOTP, login } = useAuth();
   const navigate = useNavigate();
 
   const handleSendOTP = async (e: React.FormEvent) => {
@@ -24,13 +23,11 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      // First verify password by attempting login (but we'll catch the OTP error)
-      // Actually, we need to send OTP first, then verify password + OTP together
-      await axios.post(`${API_BASE_URL}/send-otp`, { email });
+      await sendOTP(email);
       setOtpSent(true);
       setStep('otp');
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to send OTP. Please check your email.');
+      setError(err.message || 'Failed to send OTP. Please check your email.');
     } finally {
       setLoading(false);
     }
@@ -42,25 +39,10 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/login`, {
-        email,
-        password,
-        otp
-      });
-
-      const token = response.data.access_token;
-      localStorage.setItem('token', token);
-
-      // Get user info
-      const userResponse = await axios.get(`${API_BASE_URL}/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // Store user in context would be handled by AuthContext, but for now we'll navigate
+      await login(email, password, otp);
       navigate('/dashboard');
-      window.location.reload(); // Reload to update auth state
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials and OTP.');
+      setError(err.message || 'Login failed. Please check your credentials and OTP.');
     } finally {
       setLoading(false);
     }
@@ -182,6 +164,18 @@ const Login: React.FC = () => {
             </form>
           ) : (
             <form onSubmit={handleLogin} className="space-y-6">
+              {otpSent && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3"
+                >
+                  <p className="text-green-600 dark:text-green-400 text-sm">
+                    OTP sent to {email}. Please check your email.
+                  </p>
+                </motion.div>
+              )}
+
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
