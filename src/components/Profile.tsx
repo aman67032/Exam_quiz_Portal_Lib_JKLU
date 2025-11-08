@@ -13,6 +13,15 @@ type Me = {
   email: string;
   is_admin: boolean;
   created_at?: string;
+  age?: number;
+  year?: string;
+  university?: string;
+  department?: string;
+  roll_no?: string;
+  student_id?: string;
+  photo_path?: string;
+  id_card_path?: string;
+  id_verified?: boolean;
 };
 
 const Profile: React.FC = () => {
@@ -90,7 +99,14 @@ const Profile: React.FC = () => {
         fd.append('file', idFile);
         const res = await axios.post(`${API_BASE_URL}/profile/id-card`, fd, { headers: { Authorization: `Bearer ${token}` }});
         updated = res.data;
-      } else {
+      }
+      
+      if (photoFile) {
+        // If we uploaded a photo, fetch updated profile
+        const res = await axios.get(`${API_BASE_URL}/me`, { headers: { Authorization: `Bearer ${token}` }});
+        updated = res.data;
+      } else if (!idFile) {
+        // If no files uploaded, just refresh
         const res = await axios.get(`${API_BASE_URL}/me`, { headers: { Authorization: `Bearer ${token}` }});
         updated = res.data;
       }
@@ -99,9 +115,24 @@ const Profile: React.FC = () => {
       localStorage.setItem('idVerified', updated.id_verified ? 'yes' : 'no');
       if (updated.photo_path) localStorage.setItem('profile.photo.path', updated.photo_path);
 
+      // Refresh profile data
+      setMe(updated);
+      setExtra({
+        age: updated.age ? String(updated.age) : '',
+        year: updated.year || '',
+        university: updated.university || '',
+        department: updated.department || '',
+        rollno: updated.roll_no || '',
+        studentId: updated.student_id || ''
+      });
+
+      // Clear file inputs
+      setIdFile(null);
+      setPhotoFile(null);
+
       showToast(idFile ? 'Profile and ID submitted. Awaiting admin verification.' : 'Profile saved.', 'success');
     } catch (e: any) {
-      showToast('Failed to save ID card', 'error');
+      showToast('Failed to save profile', 'error');
     } finally {
       setSaving(false);
     }
@@ -127,26 +158,226 @@ const Profile: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid md:grid-cols-2 gap-6">
-          {/* Profile card */}
-          <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <User className="h-5 w-5 text-purple-500" /> Your details
-            </h2>
-            {loading ? (
-              <div className="text-sm text-gray-500 dark:text-gray-400">Loading...</div>
-            ) : me ? (
+      <main className="max-w-6xl mx-auto px-4 py-8">
+        {loading ? (
+          <div className="text-center text-gray-500 dark:text-gray-400 py-12">Loading profile...</div>
+        ) : me && me.id_verified ? (
+          // Beautiful verified profile view
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            className="grid lg:grid-cols-3 gap-6"
+          >
+            {/* Left Side - Photo and ID Card */}
+            <div className="lg:col-span-1 space-y-4">
+              {/* Profile Photo */}
+              <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                  <User className="h-4 w-4 text-purple-500" /> Profile Photo
+                </h3>
+                {me.photo_path ? (
+                  <div className="relative">
+                    <img 
+                      src={`${API_BASE_URL}/uploads/${me.photo_path.replace(/^.*[\\\/]/, '')}`} 
+                      alt="Profile" 
+                      className="w-full rounded-xl object-cover shadow-lg ring-2 ring-purple-400/40"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-64 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl flex items-center justify-center">
+                    <User className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+
+              {/* ID Card */}
+              <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 flex items-center gap-2">
+                  <IdCard className="h-4 w-4 text-emerald-500" /> ID Card
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 ml-auto" />
+                </h3>
+                {me.id_card_path ? (
+                  <div className="relative">
+                    {me.id_card_path.toLowerCase().endsWith('.pdf') ? (
+                      <div className="w-full h-64 bg-gradient-to-br from-emerald-100 to-cyan-100 dark:from-emerald-900/20 dark:to-cyan-900/20 rounded-xl flex flex-col items-center justify-center">
+                        <IdCard className="h-16 w-16 text-emerald-500 mb-2" />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">PDF Document</p>
+                        <a 
+                          href={`${API_BASE_URL}/uploads/${me.id_card_path.replace(/^.*[\\\/]/, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                        >
+                          View PDF
+                        </a>
+                      </div>
+                    ) : (
+                      <img 
+                        src={`${API_BASE_URL}/uploads/${me.id_card_path.replace(/^.*[\\\/]/, '')}`} 
+                        alt="ID Card" 
+                        className="w-full rounded-xl object-cover shadow-lg ring-2 ring-emerald-400/40"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-full h-64 bg-gradient-to-br from-emerald-100 to-cyan-100 dark:from-emerald-900/20 dark:to-cyan-900/20 rounded-xl flex items-center justify-center">
+                    <IdCard className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Side - Profile Details */}
+            <div className="lg:col-span-2">
+              <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
+                      <User className="h-6 w-6 text-white" />
+                    </div>
+                    Profile Details
+                  </h2>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-full">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-sm font-semibold">Verified</span>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Basic Information</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                        <User className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Full Name</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{me.name}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                        <Mail className="h-5 w-5 text-purple-500 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{me.email}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Academic Information */}
+                  {(extra.age || extra.year || extra.university || extra.department || extra.rollno || extra.studentId) && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Academic Information</h3>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {extra.age && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">A</span>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Age</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.age}</p>
+                            </div>
+                          </div>
+                        )}
+                        {extra.year && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">Y</span>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Year</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.year}</p>
+                            </div>
+                          </div>
+                        )}
+                        {extra.university && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl md:col-span-2">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">U</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">University</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.university}</p>
+                            </div>
+                          </div>
+                        )}
+                        {extra.department && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl md:col-span-2">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">D</span>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Department</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.department}</p>
+                            </div>
+                          </div>
+                        )}
+                        {extra.rollno && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">R</span>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Roll Number</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.rollno}</p>
+                            </div>
+                          </div>
+                        )}
+                        {extra.studentId && (
+                          <div className="flex items-center gap-3 p-3 bg-white/50 dark:bg-gray-700/50 rounded-xl">
+                            <div className="h-5 w-5 flex items-center justify-center bg-purple-500/20 rounded text-purple-500 flex-shrink-0">
+                              <span className="text-xs font-bold">ID</span>
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">Student ID</p>
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{extra.studentId}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : me ? (
+          // Unverified or default view
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="grid md:grid-cols-2 gap-6">
+            {/* Profile card */}
+            <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <User className="h-5 w-5 text-purple-500" /> Your details
+              </h2>
               <div className="space-y-4 text-sm">
                 <div className="flex items-center gap-4">
-                  <img src={localStorage.getItem('profile.photo') || ''} alt="avatar" className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-400/40" onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none';}} />
-                  <div className="text-xs text-gray-500">{localStorage.getItem('profile.photo') ? 'Profile photo' : 'No photo uploaded'}</div>
+                  {me.photo_path ? (
+                    <img 
+                      src={`${API_BASE_URL}/uploads/${me.photo_path.replace(/^.*[\\\/]/, '')}`} 
+                      alt="avatar" 
+                      className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-400/40" 
+                      onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }} 
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center">
+                      <User className="h-8 w-8 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-500">{me.photo_path ? 'Profile photo' : 'No photo uploaded'}</div>
                 </div>
                 <div className="flex items-center gap-2 text-gray-800 dark:text-gray-100"><User className="h-4 w-4 text-purple-500" /> {me.name}</div>
                 <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300"><Mail className="h-4 w-4 text-purple-500" /> {me.email}</div>
                 <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <CheckCircle2 className={`h-4 w-4 ${localStorage.getItem('idVerified') === 'yes' ? 'text-emerald-500' : 'text-amber-500'}`} />
-                  ID verification: {localStorage.getItem('idVerified') === 'yes' ? 'Verified' : 'Not verified'}
+                  <CheckCircle2 className={`h-4 w-4 ${me.id_verified ? 'text-emerald-500' : 'text-amber-500'}`} />
+                  ID verification: {me.id_verified ? 'Verified' : 'Not verified'}
                 </div>
                 <div className="grid grid-cols-2 gap-3 text-gray-700 dark:text-gray-300">
                   <div><span className="font-semibold">Age:</span> {extra.age || '-'}</div>
@@ -156,14 +387,8 @@ const Profile: React.FC = () => {
                   <div><span className="font-semibold">Roll No:</span> {extra.rollno || '-'}</div>
                   <div><span className="font-semibold">Student ID:</span> {extra.studentId || '-'}</div>
                 </div>
-                {localStorage.getItem('idFileName') && (
-                  <div className="text-xs text-gray-500">File: {localStorage.getItem('idFileName')}</div>
-                )}
               </div>
-            ) : (
-              <div className="flex items-center gap-2 text-red-500"><AlertCircle className="h-4 w-4" /> Failed to load user</div>
-            )}
-          </div>
+            </div>
 
           {/* Edit & upload card */}
           <form onSubmit={handleSave} className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 space-y-4">
@@ -216,9 +441,9 @@ const Profile: React.FC = () => {
             </div>
             <motion.button
               type="submit"
-              disabled={saving || !idFile}
-              whileHover={{ scale: saving || !idFile ? 1 : 1.02 }}
-              whileTap={{ scale: saving || !idFile ? 1 : 0.98 }}
+              disabled={saving}
+              whileHover={{ scale: saving ? 1 : 1.02 }}
+              whileTap={{ scale: saving ? 1 : 0.98 }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 disabled:opacity-50"
             >
               <Upload className="h-4 w-4" /> {saving ? 'Saving...' : 'Save profile'}
