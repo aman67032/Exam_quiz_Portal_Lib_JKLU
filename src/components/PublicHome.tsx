@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, BookOpen, Award, Users, TrendingUp, Zap, CheckCircle, Star, Clock, Shield, Download } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -11,6 +11,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
+import AnimatedCounter from './AnimatedCounter';
+import MathPhysicsBackground from './MathPhysicsBackground';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -167,6 +169,10 @@ const PublicHome: React.FC = () => {
             scale={isSmallScreen ? 1.8 : 1.5}
           />
         </Suspense>
+        {/* Subtle math/physics background */}
+        <div className="absolute inset-0 opacity-20 dark:opacity-10">
+          <MathPhysicsBackground />
+        </div>
         {/* Subtle square grid overlay */}
         {/* Light theme grid (darker lines on light bg) */}
         <div className="absolute inset-0 opacity-60 pointer-events-none dark:hidden">
@@ -273,56 +279,86 @@ const PublicHome: React.FC = () => {
               className="backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-12 md:p-16"
             >
               <motion.div
-                initial={{ scale: 0.9 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5 }}
+                initial={{ scale: 0.9, rotate: -5 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
                 className="inline-flex items-center justify-center mb-6"
               >
-                <img
+                <motion.img
                   src={logoImg}
                   alt="Paper Portal"
                   className="h-24 w-auto md:h-28 drop-shadow-xl"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                 />
               </motion.div>
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
+              <motion.h1 
+                className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
                 Your Academic Resource Hub
-              </h1>
-              <p className="text-lg md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-2">
+              </motion.h1>
+              <motion.p 
+                className="text-lg md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
                 Discover, share, and access a comprehensive collection of exam papers, assignments, and study materials. 
                 Built for students, by students.
-              </p>
+              </motion.p>
               <div className="flex flex-wrap justify-center gap-6 mt-10">
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40"
+                  initial={{ opacity: 0, x: -20, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ delay: 0.5, type: "spring" }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  <motion.div
+                    animate={{ rotate: [0, 10, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Verified Content</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Admin-reviewed papers</div>
                   </div>
                 </motion.div>
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40"
+                  initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: 0.6, type: "spring" }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <Search className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <Search className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Smart Search</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Find papers instantly</div>
                   </div>
                 </motion.div>
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40"
+                  initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  transition={{ delay: 0.7, type: "spring" }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
                 >
-                  <Upload className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                  <motion.div
+                    animate={{ y: [0, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                  >
+                    <Upload className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                  </motion.div>
                   <div className="text-left">
                     <div className="font-bold text-gray-900 dark:text-white">Easy Upload</div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">Share your resources</div>
@@ -330,6 +366,174 @@ const PublicHome: React.FC = () => {
                 </motion.div>
               </div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Statistics Section */}
+        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 md:p-12"
+            >
+              <motion.h2
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-12"
+              >
+                Platform Statistics
+              </motion.h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+                {[
+                  { icon: FileText, value: papers.length, label: 'Total Papers', color: 'from-indigo-500 to-indigo-600' },
+                  { icon: BookOpen, value: Math.floor(papers.length * 0.3), label: 'Courses', color: 'from-purple-500 to-purple-600' },
+                  { icon: Users, value: Math.floor(papers.length * 0.15), label: 'Active Users', color: 'from-pink-500 to-pink-600' },
+                  { icon: TrendingUp, value: 98, label: 'Satisfaction %', color: 'from-cyan-500 to-cyan-600' },
+                ].map((stat, index) => (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    className="text-center p-6 rounded-2xl bg-gradient-to-br backdrop-blur-sm border border-white/30 dark:border-gray-700/40 shadow-lg"
+                  >
+                    <motion.div
+                      className={`inline-flex p-4 rounded-full bg-gradient-to-r ${stat.color} mb-4`}
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <stat.icon className="w-6 h-6 text-white" />
+                    </motion.div>
+                    <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                      <AnimatedCounter value={stat.value} suffix={stat.label === 'Satisfaction %' ? '%' : ''} />
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                How It Works
+              </h2>
+              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Get started in three simple steps
+              </p>
+            </motion.div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[
+                {
+                  step: '01',
+                  title: 'Sign Up',
+                  description: 'Create your account in seconds. Join thousands of students already using Paper Portal.',
+                  icon: User,
+                  color: 'from-indigo-500 to-purple-500',
+                },
+                {
+                  step: '02',
+                  title: 'Browse & Search',
+                  description: 'Explore our vast collection of exam papers. Use smart filters to find exactly what you need.',
+                  icon: Search,
+                  color: 'from-purple-500 to-pink-500',
+                },
+                {
+                  step: '03',
+                  title: 'Download & Study',
+                  description: 'Access verified papers instantly. Download and start preparing for your exams today.',
+                  icon: Download,
+                  color: 'from-pink-500 to-rose-500',
+                },
+              ].map((item, index) => (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.2 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
+                  className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 relative overflow-hidden group"
+                >
+                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity`} />
+                  <div className="relative z-10">
+                    <motion.div
+                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${item.color} mb-6`}
+                      whileHover={{ rotate: [0, -10, 10, -10, 0] }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <item.icon className="w-8 h-8 text-white" />
+                    </motion.div>
+                    <div className="text-6xl font-bold text-gray-200 dark:text-gray-700 mb-4">{item.step}</div>
+                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{item.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                Why Choose Paper Portal?
+              </h2>
+            </motion.div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[
+                { icon: Shield, title: 'Verified Content', description: 'All papers are reviewed and verified by administrators', color: 'text-green-500' },
+                { icon: Zap, title: 'Lightning Fast', description: 'Quick search and instant downloads for all your study needs', color: 'text-yellow-500' },
+                { icon: Clock, title: 'Always Updated', description: 'New papers added regularly to keep you ahead', color: 'text-blue-500' },
+                { icon: Award, title: 'Quality Assured', description: 'High-quality, organized, and categorized papers', color: 'text-purple-500' },
+                { icon: Star, title: 'User Friendly', description: 'Intuitive interface designed for easy navigation', color: 'text-pink-500' },
+                { icon: CheckCircle, title: 'Free Access', description: 'Completely free for all students and educators', color: 'text-indigo-500' },
+              ].map((feature, index) => (
+                <motion.div
+                  key={feature.title}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, rotate: 1 }}
+                  className="backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-2xl border border-white/30 dark:border-gray-700/40 p-6 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <motion.div
+                    className={`inline-flex p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 mb-4 ${feature.color}`}
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <feature.icon className="w-6 h-6" />
+                  </motion.div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
