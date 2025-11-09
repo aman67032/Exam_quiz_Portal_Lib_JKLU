@@ -6,6 +6,7 @@ import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
 import Squares from './square_bg';
 import PaperCard from './PaperCard';
+import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -56,6 +57,17 @@ const PublicHome: React.FC = () => {
     filePath: '',
     paperId: 0
   });
+
+  // Toast Notification
+  const [toast, setToast] = useState({ 
+    show: false, 
+    message: '', 
+    type: 'success' as 'success' | 'error' | 'info' 
+  });
+
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ show: true, message, type });
+  }, []);
 
   const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
   const years = ['2025', '2024', '2023', '2022'];
@@ -117,9 +129,19 @@ const PublicHome: React.FC = () => {
     applyFilters();
   }, [applyFilters]);
 
-  // Responsive background tuning - memoized to prevent recalculation
-  const isSmallScreen = useMemo(() => {
-    return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
+  // Responsive background tuning - dynamic hook that responds to window resize
+  const [isSmallScreen, setIsSmallScreen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 640;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth <= 640);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const handleFilterChange = useCallback((key: string, value: string) => {
@@ -147,11 +169,13 @@ const PublicHome: React.FC = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+      showToast('Paper downloaded successfully!', 'success');
+    } catch (error: any) {
       console.error('Download error:', error);
-      alert('Failed to download paper');
+      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to download paper. Please try again.';
+      showToast(errorMessage, 'error');
     }
-  }, []);
+  }, [showToast]);
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
@@ -200,48 +224,56 @@ const PublicHome: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10">
+        {/* Toast Notification */}
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={toast.show}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg"
         >
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 sm:py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center space-x-3 sm:space-x-4">
-                <img src={logoImg} alt="Paper Portal Logo" className="h-12 sm:h-16 w-auto object-contain" />
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Paper Portal</h1>
-                  <p className="hidden xs:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">Academic Resource Hub</p>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-shrink-0">
+                <img src={logoImg} alt="Paper Portal Logo" className="h-10 sm:h-16 w-auto object-contain flex-shrink-0" />
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">Paper Portal</h1>
+                  <p className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">Academic Resource Hub</p>
                 </div>
               </div>
-              <div className="flex items-center sm:justify-end gap-2 sm:gap-3 flex-wrap w-full sm:w-auto">
+              <div className="flex items-center sm:justify-end gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto">
                 {user ? (
                   <>
                     <Link
                       to={user.is_admin ? '/admin' : '/dashboard'}
-                      className="px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap"
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-shrink-0"
                     >
                       {user.is_admin ? 'Admin' : 'Dashboard'}
                     </Link>
                     <Link
                       to="/profile"
-                      className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-white/30 dark:border-gray-700/40 text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 shadow-md hover:shadow-lg transition-all max-w-[60vw] sm:max-w-none"
+                      className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-white/30 dark:border-gray-700/40 text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 shadow-md hover:shadow-lg transition-all min-w-0 flex-1 sm:flex-initial"
                     >
                       {localStorage.getItem('profile.photo') ? (
-                        <img src={localStorage.getItem('profile.photo') || ''} className="h-6 sm:h-7 w-6 sm:w-7 rounded-full object-cover" />
+                        <img src={localStorage.getItem('profile.photo') || ''} className="h-5 w-5 sm:h-7 sm:w-7 rounded-full object-cover flex-shrink-0" />
                       ) : (
-                        <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full">
-                          <User className="h-3.5 w-3.5 text-white" />
+                        <div className="p-1 sm:p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex-shrink-0">
+                          <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />
                         </div>
                       )}
-                      <span className="truncate">{user.name}</span>
+                      <span className="truncate text-xs sm:text-sm">{user.name}</span>
                     </Link>
                     <button
                       onClick={logout}
-                      className="px-3 sm:px-4 py-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 text-xs sm:text-sm font-medium flex items-center gap-2 shadow-md transition-all whitespace-nowrap"
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 bg-red-500/90 text-white rounded-lg hover:bg-red-600 text-xs sm:text-sm font-medium flex items-center gap-1.5 sm:gap-2 shadow-md transition-all whitespace-nowrap flex-shrink-0"
                     >
-                      <LogOut className="h-4 w-4" /> Logout
+                      <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> <span className="hidden xs:inline">Logout</span>
                     </button>
                   </>
                 ) : (
@@ -250,7 +282,7 @@ const PublicHome: React.FC = () => {
                       href="/login"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-4 sm:px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg"
+                      className="px-3 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-1 sm:flex-initial text-center"
                     >
                       Student Login
                     </motion.a>
@@ -258,7 +290,7 @@ const PublicHome: React.FC = () => {
                       href="/admin-login"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="px-4 sm:px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-xs sm:text-sm shadow-lg"
+                      className="px-3 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-1 sm:flex-initial text-center"
                     >
                       Admin Login
                     </motion.a>
@@ -270,30 +302,30 @@ const PublicHome: React.FC = () => {
         </motion.header>
 
         {/* Hero Section */}
-        <section className="relative py-14 sm:py-20 px-3 sm:px-6 lg:px-8">
+        <section className="relative py-8 sm:py-14 md:py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-12 md:p-16"
+              className="backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12 lg:p-16"
             >
               <motion.div
                 initial={{ scale: 0.9, rotate: -5 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
-                className="inline-flex items-center justify-center mb-6"
+                className="inline-flex items-center justify-center mb-4 sm:mb-6"
               >
                 <motion.img
                   src={logoImg}
                   alt="Paper Portal"
-                  className="h-24 w-auto md:h-28 drop-shadow-xl"
+                  className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto drop-shadow-xl"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 />
               </motion.div>
               <motion.h1 
-                className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -301,7 +333,7 @@ const PublicHome: React.FC = () => {
                 Your Academic Resource Hub
               </motion.h1>
               <motion.p 
-                className="text-lg md:text-2xl text-gray-700 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed px-2"
+                className="text-sm sm:text-base md:text-lg lg:text-2xl text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
@@ -309,23 +341,23 @@ const PublicHome: React.FC = () => {
                 Discover, share, and access a comprehensive collection of exam papers, assignments, and study materials. 
                 Built for students, by students.
               </motion.p>
-              <div className="flex flex-wrap justify-center gap-6 mt-10">
+              <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6 mt-6 sm:mt-10">
                 <motion.div
                   initial={{ opacity: 0, x: -20, scale: 0.9 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ delay: 0.5, type: "spring" }}
                   whileHover={{ scale: 1.05, y: -5 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
+                  className="flex items-center gap-2 sm:gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto"
                 >
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <GraduationCap className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                  >
+                    <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                   </motion.div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">Verified Content</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Admin-reviewed papers</div>
+                  <div className="text-left min-w-0">
+                    <div className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">Verified Content</div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Admin-reviewed papers</div>
                   </div>
                 </motion.div>
                 <motion.div
@@ -333,17 +365,17 @@ const PublicHome: React.FC = () => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ delay: 0.6, type: "spring" }}
                   whileHover={{ scale: 1.05, y: -5 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
+                  className="flex items-center gap-2 sm:gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto"
                 >
                   <motion.div
                     animate={{ scale: [1, 1.2, 1] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Search className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  >
+                    <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   </motion.div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">Smart Search</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Find papers instantly</div>
+                  <div className="text-left min-w-0">
+                    <div className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">Smart Search</div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Find papers instantly</div>
                   </div>
                 </motion.div>
                 <motion.div
@@ -351,17 +383,17 @@ const PublicHome: React.FC = () => {
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   transition={{ delay: 0.7, type: "spring" }}
                   whileHover={{ scale: 1.05, y: -5 }}
-                  className="flex items-center gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-6 py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow"
+                  className="flex items-center gap-2 sm:gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto"
                 >
                   <motion.div
                     animate={{ y: [0, -5, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Upload className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+                  >
+                    <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400 flex-shrink-0" />
                   </motion.div>
-                  <div className="text-left">
-                    <div className="font-bold text-gray-900 dark:text-white">Easy Upload</div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">Share your resources</div>
+                  <div className="text-left min-w-0">
+                    <div className="font-bold text-sm sm:text-base text-gray-900 dark:text-white">Easy Upload</div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Share your resources</div>
                   </div>
                 </motion.div>
               </div>
@@ -370,24 +402,24 @@ const PublicHome: React.FC = () => {
         </section>
 
         {/* Statistics Section */}
-        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
+        <section className="relative py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 md:p-12"
+              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12"
             >
               <motion.h2
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-12"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-8 sm:mb-12"
               >
                 Platform Statistics
               </motion.h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
                 {[
                   { icon: FileText, value: papers.length, label: 'Total Papers', color: 'from-indigo-500 to-indigo-600' },
                   { icon: BookOpen, value: Math.floor(papers.length * 0.3), label: 'Courses', color: 'from-purple-500 to-purple-600' },
@@ -401,19 +433,19 @@ const PublicHome: React.FC = () => {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                     whileHover={{ scale: 1.05, y: -5 }}
-                    className="text-center p-6 rounded-2xl bg-gradient-to-br backdrop-blur-sm border border-white/30 dark:border-gray-700/40 shadow-lg"
+                    className="text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br backdrop-blur-sm border border-white/30 dark:border-gray-700/40 shadow-lg"
                   >
                     <motion.div
-                      className={`inline-flex p-4 rounded-full bg-gradient-to-r ${stat.color} mb-4`}
+                      className={`inline-flex p-2.5 sm:p-4 rounded-full bg-gradient-to-r ${stat.color} mb-3 sm:mb-4`}
                       whileHover={{ rotate: 360 }}
                       transition={{ duration: 0.6 }}
                     >
-                      <stat.icon className="w-6 h-6 text-white" />
+                      <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                     </motion.div>
-                    <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                       <AnimatedCounter value={stat.value} suffix={stat.label === 'Satisfaction %' ? '%' : ''} />
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
+                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
                   </motion.div>
                 ))}
               </div>
@@ -422,23 +454,23 @@ const PublicHome: React.FC = () => {
         </section>
 
         {/* How It Works Section */}
-        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
+        <section className="relative py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-12"
+              className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 px-2">
                 How It Works
               </h2>
-              <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-2">
                 Get started in three simple steps
               </p>
             </motion.div>
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
               {[
                 {
                   step: '01',
@@ -469,20 +501,20 @@ const PublicHome: React.FC = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.2 }}
                   whileHover={{ y: -10, scale: 1.02 }}
-                  className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 relative overflow-hidden group"
+                  className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 relative overflow-hidden group"
                 >
-                  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity`} />
+                  <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity`} />
                   <div className="relative z-10">
                     <motion.div
-                      className={`inline-flex p-4 rounded-2xl bg-gradient-to-r ${item.color} mb-6`}
+                      className={`inline-flex p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-gradient-to-r ${item.color} mb-4 sm:mb-6`}
                       whileHover={{ rotate: [0, -10, 10, -10, 0] }}
                       transition={{ duration: 0.5 }}
                     >
-                      <item.icon className="w-8 h-8 text-white" />
+                      <item.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </motion.div>
-                    <div className="text-6xl font-bold text-gray-200 dark:text-gray-700 mb-4">{item.step}</div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">{item.title}</h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
+                    <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-200 dark:text-gray-700 mb-3 sm:mb-4">{item.step}</div>
+                    <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">{item.title}</h3>
+                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
                   </div>
                 </motion.div>
               ))}
@@ -491,13 +523,13 @@ const PublicHome: React.FC = () => {
         </section>
 
         {/* Search and Documents Section */}
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-12 sm:pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-20">
           {/* Search and Filters */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-8 sm:mb-12"
+            className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8 md:mb-12"
           >
           <div className="space-y-4 sm:space-y-6">
             {/* Gooey Search Field Tabs */}
@@ -591,41 +623,41 @@ const PublicHome: React.FC = () => {
         </motion.div>
 
           {/* Papers Grid */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <motion.h2
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-3"
+              className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2 sm:gap-3"
             >
-              <FileText className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-              Browse Documents
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+              <span>Browse Documents</span>
             </motion.h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Explore our collection of verified academic papers and study materials
             </p>
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-20">
+            <div className="flex justify-center items-center py-12 sm:py-20">
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                className="w-16 h-16 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400 rounded-full"
+                className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400 rounded-full"
               />
             </div>
           ) : filteredPapers.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-16 text-center"
+              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 sm:p-12 md:p-16 text-center"
             >
-              <FileText className="w-20 h-20 text-gray-300 dark:text-gray-600 mx-auto mb-6" />
-              <p className="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No papers found</p>
-              <p className="text-gray-500 dark:text-gray-500">Try adjusting your search or filter criteria</p>
+              <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4 sm:mb-6" />
+              <p className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">No papers found</p>
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-500">Try adjusting your search or filter criteria</p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {filteredPapers.map((paper, index) => (
                 <PaperCard
                   key={paper.id}
@@ -644,9 +676,9 @@ const PublicHome: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}
-              className="mt-10 text-center backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-lg py-6 px-8"
+              className="mt-6 sm:mt-10 text-center backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-xl sm:rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-lg py-4 sm:py-6 px-4 sm:px-8"
             >
-              <p className="text-gray-700 dark:text-gray-300">
+              <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">
                 Showing <span className="font-bold text-indigo-600 dark:text-indigo-400">{filteredPapers.length}</span> of{' '}
                 <span className="font-bold text-gray-900 dark:text-white">{papers.length}</span> papers
               </p>

@@ -42,18 +42,19 @@ const Toast: React.FC<ToastProps> = ({ message, type, isVisible, onClose, durati
           animate={{ opacity: 1, y: 0, x: '-50%' }}
           exit={{ opacity: 0, y: -50, x: '-50%' }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="fixed top-4 left-1/2 z-50 max-w-md w-full px-4"
+          className="fixed top-4 left-1/2 z-[100] max-w-md w-full px-4 sm:px-6"
         >
-          <div className={`rounded-lg shadow-xl border-2 p-4 flex items-center justify-between ${colors[type]}`}>
-            <div className="flex items-center space-x-3">
-              <Icon className="w-5 h-5 flex-shrink-0" />
-              <p className="font-medium">{message}</p>
+          <div className={`rounded-lg sm:rounded-xl shadow-xl border-2 p-3 sm:p-4 flex items-center justify-between ${colors[type]}`}>
+            <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <p className="font-medium text-sm sm:text-base truncate flex-1">{message}</p>
             </div>
             <button
               onClick={onClose}
-              className="ml-4 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors"
+              className="ml-2 sm:ml-4 p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded transition-colors flex-shrink-0"
+              aria-label="Close notification"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </motion.div>

@@ -68,7 +68,7 @@ const getImageUrl = (filePath: string | undefined): string => {
   // Remove 'uploads/' prefix if present in filename
   fileName = fileName.replace(/^uploads[\\\/]/, '');
   
-  // If path already contains 'uploads/', use it directly
+  // If path already contains 'uploads/', extract everything after it
   if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
     // Extract everything after 'uploads/' or 'uploads\'
     const match = filePath.match(/uploads[\\\/](.+)$/);
@@ -77,7 +77,7 @@ const getImageUrl = (filePath: string | undefined): string => {
     }
   }
   
-  // Construct URL
+  // Construct URL using backend endpoint: /uploads/{filename:path}
   return `${API_BASE_URL}/uploads/${fileName}`;
 };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
+import Toast from './Toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -50,6 +51,16 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   token
 }) => {
   const [previewError, setPreviewError] = useState(false);
+  const [toast, setToast] = useState({ 
+    show: false, 
+    message: '', 
+    type: 'success' as 'success' | 'error' | 'info' 
+  });
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ show: true, message, type });
+  };
+
   const fileExtension = fileName.split('.').pop()?.toLowerCase();
   const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension || '');
   const isPdf = fileExtension === 'pdf';
@@ -70,7 +81,8 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ detail: 'Download failed' }));
         console.error('Download failed:', errorData);
-        alert(`Download failed: ${errorData.detail || 'File not found'}`);
+        const errorMessage = errorData.detail || 'File not found. Please try again.';
+        showToast(errorMessage, 'error');
         setPreviewError(true);
         return;
       }
@@ -84,23 +96,34 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      showToast('File downloaded successfully!', 'success');
     } catch (error: any) {
       console.error('Download error:', error);
-      alert(`Download failed: ${error.message || 'Network error'}`);
+      const errorMessage = error?.message || 'Network error. Please check your connection and try again.';
+      showToast(errorMessage, 'error');
       setPreviewError(true);
     }
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={onClose}
-        >
+    <>
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={onClose}
+          >
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -212,6 +235,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 };
 
