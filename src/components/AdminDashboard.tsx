@@ -38,11 +38,27 @@ interface Course {
   description?: string;
 }
 
+interface VerificationRequest {
+  id: number;
+  name: string;
+  email: string;
+  photo_path?: string;
+  id_card_path?: string;
+  age?: number;
+  year?: string;
+  university?: string;
+  department?: string;
+  roll_no?: string;
+  student_id?: string;
+  id_verified: boolean;
+}
+
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
   const [pendingPapers, setPendingPapers] = useState<Paper[]>([]);
+  const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -54,6 +70,12 @@ const AdminDashboard: React.FC = () => {
     fileName: '',
     filePath: '',
     paperId: 0
+  });
+
+  // Verification Request Modal State
+  const [verificationModal, setVerificationModal] = useState({
+    isOpen: false,
+    user: null as VerificationRequest | null
   });
 
   // Course form
@@ -136,11 +158,14 @@ const AdminDashboard: React.FC = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [statsRes, papersRes, coursesRes] = await Promise.all([
+      const [statsRes, papersRes, verificationRes, coursesRes] = await Promise.all([
         axios.get(`${API_BASE_URL}/admin/dashboard`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API_BASE_URL}/papers/pending`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API_BASE_URL}/admin/verification-requests`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API_BASE_URL}/courses`, {
@@ -150,6 +175,7 @@ const AdminDashboard: React.FC = () => {
 
       setStats(statsRes.data);
       setPendingPapers(papersRes.data);
+      setVerificationRequests(verificationRes.data);
       setCourses(coursesRes.data);
     } catch (err) {
       showMessage('error', 'Failed to fetch data');
@@ -247,6 +273,23 @@ const AdminDashboard: React.FC = () => {
       fetchDashboardData();
     } catch (err) {
       showMessage('error', 'Failed to delete course');
+    }
+  };
+
+  const verifyUser = async (userId: number, approve: boolean, reason?: string) => {
+    try {
+      await axios.post(`${API_BASE_URL}/admin/verify-user/${userId}`, {
+        approve,
+        reason
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      showMessage('success', `User ${approve ? 'verified' : 'rejected'} successfully`);
+      setVerificationModal({ isOpen: false, user: null });
+      fetchDashboardData();
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to verify user');
     }
   };
 
@@ -428,7 +471,7 @@ const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {/* Pending Papers Tab */}
+          {/* Pending Review Tab - ID Verification Requests */}
           {activeTab === 'pending' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -436,18 +479,18 @@ const AdminDashboard: React.FC = () => {
               transition={{ delay: 0.3 }}
             >
               <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
-                PENDING_REVIEW [{pendingPapers.length}]
+                PENDING_REVIEW [{verificationRequests.length}]
               </h2>
-              {pendingPapers.length === 0 ? (
+              {verificationRequests.length === 0 ? (
                 <div className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-12 text-center">
                   <Terminal className="h-16 w-16 text-green-400/50 mx-auto mb-4" />
-                  <p className="text-green-400/70 font-mono">NO_PENDING_PAPERS_FOUND</p>
+                  <p className="text-green-400/70 font-mono">NO_PENDING_VERIFICATION_REQUESTS</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {pendingPapers.map((paper, index) => (
+                  {verificationRequests.map((request, index) => (
                     <motion.div
-                      key={paper.id}
+                      key={request.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
@@ -455,74 +498,33 @@ const AdminDashboard: React.FC = () => {
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-green-400 font-mono mb-2">{paper.title}</h3>
+                          <h3 className="text-xl font-bold text-green-400 font-mono mb-2">{request.name}</h3>
                           <div className="text-sm text-green-400/70 font-mono mb-1">
-                            <span className="text-cyan-400">COURSE:</span> {paper.course_code} - {paper.course_name}
+                            <span className="text-cyan-400">EMAIL:</span> {request.email}
                           </div>
-                          <div className="text-sm text-green-400/50 font-mono">
-                            <span className="text-cyan-400">UPLOADED_BY:</span> {paper.uploader_name} ({paper.uploader_email})
-                          </div>
+                          {(request.university || request.department || request.roll_no) && (
+                            <div className="text-sm text-green-400/50 font-mono">
+                              {request.university && <><span className="text-cyan-400">UNIVERSITY:</span> {request.university} | </>}
+                              {request.department && <><span className="text-cyan-400">DEPT:</span> {request.department} | </>}
+                              {request.roll_no && <><span className="text-cyan-400">ROLL:</span> {request.roll_no}</>}
+                            </div>
+                          )}
                         </div>
-                        <span className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-mono rounded-lg">
-                          {paper.paper_type.toUpperCase()}
+                        <span className="px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-mono rounded-lg">
+                          PENDING_VERIFICATION
                         </span>
                       </div>
 
-                      {paper.description && (
-                        <p className="text-green-400/60 mb-4 font-mono text-sm">{paper.description}</p>
-                      )}
-
-                      <div className="flex items-center justify-between pt-4 border-t border-green-500/20">
-                        <div className="text-sm text-green-400/50 font-mono">
-                          {paper.year && `YEAR: ${paper.year}`}
-                          {paper.semester && ` | SEMESTER: ${paper.semester}`}
-                        </div>
-                        <div className="flex space-x-2">
-                          <motion.button
-                            onClick={() => setPreviewModal({
-                              isOpen: true,
-                              fileName: paper.file_name,
-                              filePath: paper.file_path || '',
-                              paperId: paper.id
-                            })}
-                            className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
-                            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <Eye size={18} />
-                            <span>VIEW</span>
-                          </motion.button>
-                          <motion.button
-                            onClick={() => openEditModal(paper)}
-                            className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 rounded-lg font-mono transition-all"
-                            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(168, 85, 247, 0.5)' }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <Edit2 size={18} />
-                            <span>EDIT</span>
-                          </motion.button>
-                          <motion.button
-                            onClick={() => reviewPaper(paper.id, 'approved')}
-                            className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 rounded-lg font-mono transition-all"
-                            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <CheckCircle size={18} />
-                            <span>APPROVE</span>
-                          </motion.button>
-                          <motion.button
-                            onClick={() => {
-                              const reason = prompt('Enter rejection reason:');
-                              if (reason) reviewPaper(paper.id, 'rejected', reason);
-                            }}
-                            className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
-                            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            <XCircle size={18} />
-                            <span>REJECT</span>
-                          </motion.button>
-                        </div>
+                      <div className="flex items-center justify-end pt-4 border-t border-green-500/20">
+                        <motion.button
+                          onClick={() => setVerificationModal({ isOpen: true, user: request })}
+                          className="flex items-center space-x-2 px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
+                          whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Eye size={18} />
+                          <span>REVIEW_REQUEST</span>
+                        </motion.button>
                       </div>
                     </motion.div>
                   ))}
@@ -679,6 +681,203 @@ const AdminDashboard: React.FC = () => {
           paperId={previewModal.paperId}
           token={token || ''}
         />
+
+        {/* Verification Request Modal */}
+        {verificationModal.isOpen && verificationModal.user && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+            onClick={() => setVerificationModal({ isOpen: false, user: null })}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-black/95 backdrop-blur-xl border-2 border-green-500/50 rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-4xl w-full my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-green-400 font-mono">
+                  VERIFICATION_REQUEST: {verificationModal.user.name}
+                </h2>
+                <motion.button
+                  onClick={() => setVerificationModal({ isOpen: false, user: null })}
+                  className="text-red-400 hover:text-red-300 font-mono"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <XCircle size={24} />
+                </motion.button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                {/* Profile Photo */}
+                <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-4">
+                  <h3 className="text-sm font-mono text-green-400/70 mb-3 uppercase">PROFILE_PHOTO</h3>
+                  {verificationModal.user.photo_path ? (
+                    <img
+                      src={`${API_BASE_URL}/uploads/${verificationModal.user.photo_path.replace(/^.*[\\\/]/, '')}`}
+                      alt="Profile"
+                      className="w-full rounded-lg object-cover border-2 border-green-500/30"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-64 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
+                      <User className="h-16 w-16 text-green-400/50" />
+                    </div>
+                  )}
+                </div>
+
+                {/* ID Card */}
+                <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-4">
+                  <h3 className="text-sm font-mono text-green-400/70 mb-3 uppercase">ID_CARD</h3>
+                  {verificationModal.user.id_card_path ? (
+                    verificationModal.user.id_card_path.toLowerCase().endsWith('.pdf') ? (
+                      <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-green-500/30">
+                        <Eye className="h-16 w-16 text-green-400/50 mb-2" />
+                        <p className="text-sm text-green-400/70 font-mono mb-2">PDF_DOCUMENT</p>
+                        <a
+                          href={`${API_BASE_URL}/uploads/${verificationModal.user.id_card_path.replace(/^.*[\\\/]/, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline"
+                        >
+                          VIEW_PDF
+                        </a>
+                      </div>
+                    ) : (
+                      <img
+                        src={`${API_BASE_URL}/uploads/${verificationModal.user.id_card_path.replace(/^.*[\\\/]/, '')}`}
+                        alt="ID Card"
+                        className="w-full rounded-lg object-cover border-2 border-green-500/30"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    )
+                  ) : (
+                    <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
+                      <Eye className="h-16 w-16 text-green-400/50" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* User Information */}
+              <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-green-400 font-mono mb-4">USER_INFORMATION</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                    <User className="h-5 w-5 text-green-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-green-400/50 font-mono uppercase">NAME</p>
+                      <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                    <User className="h-5 w-5 text-cyan-400 flex-shrink-0" />
+                    <div>
+                      <p className="text-xs text-green-400/50 font-mono uppercase">EMAIL</p>
+                      <p className="text-sm font-semibold text-cyan-400 font-mono">{verificationModal.user.email}</p>
+                    </div>
+                  </div>
+                  {verificationModal.user.age && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">A</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-400/50 font-mono uppercase">AGE</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.age}</p>
+                      </div>
+                    </div>
+                  )}
+                  {verificationModal.user.year && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">Y</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-400/50 font-mono uppercase">YEAR</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.year}</p>
+                      </div>
+                    </div>
+                  )}
+                  {verificationModal.user.university && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20 md:col-span-2">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">U</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-green-400/50 font-mono uppercase">UNIVERSITY</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.university}</p>
+                      </div>
+                    </div>
+                  )}
+                  {verificationModal.user.department && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20 md:col-span-2">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">D</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs text-green-400/50 font-mono uppercase">DEPARTMENT</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.department}</p>
+                      </div>
+                    </div>
+                  )}
+                  {verificationModal.user.roll_no && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">R</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-400/50 font-mono uppercase">ROLL_NUMBER</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.roll_no}</p>
+                      </div>
+                    </div>
+                  )}
+                  {verificationModal.user.student_id && (
+                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
+                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                        <span className="text-xs font-bold">ID</span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-green-400/50 font-mono uppercase">STUDENT_ID</p>
+                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.student_id}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex space-x-4 justify-end pt-4 border-t border-green-500/20">
+                <motion.button
+                  onClick={() => {
+                    const reason = prompt('Enter rejection reason (optional):');
+                    verifyUser(verificationModal.user!.id, false, reason || undefined);
+                  }}
+                  className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
+                  whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  REJECT
+                </motion.button>
+                <motion.button
+                  onClick={() => verifyUser(verificationModal.user!.id, true)}
+                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                  whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  ACCEPT_VERIFICATION
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
 
         {/* Edit Paper Modal */}
         {editPaperModal.isOpen && editPaperModal.paper && (
