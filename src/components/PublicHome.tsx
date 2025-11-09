@@ -181,45 +181,145 @@ const PublicHome: React.FC = () => {
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
-        <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800" />}>
-          <ColorBends
-            colors={['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#06b6d4']}
-            speed={isSmallScreen ? 0.09 : 0.15}
-            frequency={isSmallScreen ? 1.0 : 1.2}
-            warpStrength={isSmallScreen ? 0.8 : 1.2}
-            mouseInfluence={isSmallScreen ? 0.5 : 0.8}
-            parallax={isSmallScreen ? 0.35 : 0.6}
-            transparent={true}
-            scale={isSmallScreen ? 1.8 : 1.5}
-          />
-        </Suspense>
-        {/* Subtle math/physics background */}
-        <div className="absolute inset-0 opacity-20 dark:opacity-10">
-          <MathPhysicsBackground />
-        </div>
-        {/* Subtle square grid overlay */}
-        {/* Light theme grid (darker lines on light bg) */}
-        <div className="absolute inset-0 opacity-60 pointer-events-none dark:hidden">
-          <Squares
-            speed={isSmallScreen ? 0.4 : 0.6}
-            squareSize={isSmallScreen ? 56 : 48}
-            borderColor={'rgba(0,0,0,0.28)'}
-            hoverFillColor={'rgba(0,0,0,0.10)'}
-            direction="diagonal"
-          />
-        </div>
-        {/* Dark theme grid (light lines on dark bg) */}
-        <div className="hidden dark:block absolute inset-0 opacity-30 pointer-events-none">
-          <Squares
-            speed={isSmallScreen ? 0.4 : 0.6}
-            squareSize={isSmallScreen ? 56 : 48}
-            borderColor={'rgba(255,255,255,0.35)'}
-            hoverFillColor={'rgba(255,255,255,0.12)'}
-            direction="diagonal"
-          />
-        </div>
-        {/* Theme-aware readability overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/0 to-white/15 dark:from-gray-900/60 dark:via-gray-900/40 dark:to-gray-900/70" />
+        {/* Mobile-optimized cool gradient background */}
+        {isSmallScreen ? (
+          <>
+            {/* Mobile: Vibrant animated gradient with floating orbs */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-purple-600 via-pink-500 to-rose-500 dark:from-indigo-950 dark:via-purple-950 dark:via-pink-950 dark:to-rose-950">
+              {/* Animated radial gradient overlay */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{
+                  background: [
+                    'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.25) 0%, transparent 50%)',
+                    'radial-gradient(circle at 80% 70%, rgba(255,255,255,0.25) 0%, transparent 50%)',
+                    'radial-gradient(circle at 50% 20%, rgba(255,255,255,0.25) 0%, transparent 50%)',
+                    'radial-gradient(circle at 20% 30%, rgba(255,255,255,0.25) 0%, transparent 50%)',
+                  ]
+                }}
+                transition={{
+                  duration: 10,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              />
+              {/* Floating animated orbs for depth and movement */}
+              <div className="absolute inset-0 overflow-hidden">
+                <motion.div
+                  className="absolute w-72 h-72 bg-white/20 rounded-full blur-3xl"
+                  style={{ top: '5%', left: '5%' }}
+                  animate={{
+                    y: [0, 40, 0],
+                    x: [0, 30, 0],
+                    scale: [1, 1.3, 1],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                <motion.div
+                  className="absolute w-56 h-56 bg-purple-300/30 rounded-full blur-3xl"
+                  style={{ bottom: '15%', right: '10%' }}
+                  animate={{
+                    y: [0, -35, 0],
+                    x: [0, -25, 0],
+                    scale: [1, 1.4, 1],
+                  }}
+                  transition={{
+                    duration: 9,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.7
+                  }}
+                />
+                <motion.div
+                  className="absolute w-64 h-64 bg-pink-300/25 rounded-full blur-3xl"
+                  style={{ top: '55%', left: '45%' }}
+                  animate={{
+                    y: [0, 30, 0],
+                    x: [0, -30, 0],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 10,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 1.2
+                  }}
+                />
+                <motion.div
+                  className="absolute w-48 h-48 bg-rose-300/20 rounded-full blur-3xl"
+                  style={{ top: '75%', left: '20%' }}
+                  animate={{
+                    y: [0, -25, 0],
+                    x: [0, 20, 0],
+                    scale: [1, 1.3, 1],
+                  }}
+                  transition={{
+                    duration: 7,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.3
+                  }}
+                />
+              </div>
+              {/* Subtle dot pattern overlay for texture */}
+              <div className="absolute inset-0 opacity-20 dark:opacity-15">
+                <div className="absolute inset-0" style={{
+                  backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)',
+                  backgroundSize: '36px 36px'
+                }} />
+              </div>
+            </div>
+            {/* Mobile readability overlay - stronger for better contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-white/30 to-white/60 dark:from-gray-900/75 dark:via-gray-900/60 dark:to-gray-900/85" />
+          </>
+        ) : (
+          <>
+            {/* Desktop: Full ColorBends WebGL background */}
+            <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-gray-800" />}>
+              <ColorBends
+                colors={['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#06b6d4']}
+                speed={0.15}
+                frequency={1.2}
+                warpStrength={1.2}
+                mouseInfluence={0.8}
+                parallax={0.6}
+                transparent={true}
+                scale={1.5}
+              />
+            </Suspense>
+            {/* Subtle math/physics background */}
+            <div className="absolute inset-0 opacity-20 dark:opacity-10">
+              <MathPhysicsBackground />
+            </div>
+            {/* Subtle square grid overlay */}
+            {/* Light theme grid (darker lines on light bg) */}
+            <div className="absolute inset-0 opacity-60 pointer-events-none dark:hidden">
+              <Squares
+                speed={0.6}
+                squareSize={48}
+                borderColor={'rgba(0,0,0,0.28)'}
+                hoverFillColor={'rgba(0,0,0,0.10)'}
+                direction="diagonal"
+              />
+            </div>
+            {/* Dark theme grid (light lines on dark bg) */}
+            <div className="hidden dark:block absolute inset-0 opacity-30 pointer-events-none">
+              <Squares
+                speed={0.6}
+                squareSize={48}
+                borderColor={'rgba(255,255,255,0.35)'}
+                hoverFillColor={'rgba(255,255,255,0.12)'}
+                direction="diagonal"
+              />
+            </div>
+            {/* Theme-aware readability overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-white/0 to-white/15 dark:from-gray-900/60 dark:via-gray-900/40 dark:to-gray-900/70" />
+          </>
+        )}
       </div>
 
       {/* Content */}

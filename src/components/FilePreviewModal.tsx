@@ -35,9 +35,8 @@ const getImageUrl = (filePath: string | undefined): string => {
 };
 
 // Helper to get preview URL using download endpoint
-const getPreviewUrl = (paperId: number, token: string): string => {
-  const authToken = token || localStorage.getItem('token') || '';
-  return `${API_BASE_URL}/papers/${paperId}/download${authToken ? `?token=${authToken}` : ''}`;
+const getPreviewUrl = (paperId: number): string => {
+  return `${API_BASE_URL}/papers/${paperId}/download`;
 };
 
 interface FilePreviewModalProps {
@@ -87,7 +86,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         try {
           const authToken = token || localStorage.getItem('token') || '';
           const response = await fetch(
-            `${API_BASE_URL}/papers/${paperId}/download`,
+            getPreviewUrl(paperId),
             {
               headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
             }
