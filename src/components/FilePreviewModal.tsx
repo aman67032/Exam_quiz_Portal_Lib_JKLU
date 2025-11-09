@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 import Toast from './Toast';
+import { API } from '../utils/api';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -33,6 +34,12 @@ const getImageUrl = (filePath: string | undefined): string => {
   return `${API_BASE_URL}/uploads/${fileName}`;
 };
 
+// Helper to get preview URL using download endpoint
+const getPreviewUrl = (paperId: number, token: string): string => {
+  const authToken = token || localStorage.getItem('token') || '';
+  return `${API_BASE_URL}/papers/${paperId}/download${authToken ? `?token=${authToken}` : ''}`;
+};
+
 interface FilePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,6 +58,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   token
 }) => {
   const [previewError, setPreviewError] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(true);
+  const [pdfUrl, setPdfUrl] = useState<string>('');
+  const pdfUrlRef = useRef<string>('');
   const [toast, setToast] = useState({ 
     show: false, 
     message: '', 
@@ -66,28 +76,72 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const isPdf = fileExtension === 'pdf';
   const isDocument = ['doc', 'docx'].includes(fileExtension || '');
 
+  // Load PDF preview URL when modal opens
+  useEffect(() => {
+    if (isOpen && isPdf && !previewError) {
+      setPreviewLoading(true);
+      let blobUrl: string | null = null;
+      
+      // Create blob URL from download endpoint for PDF preview
+      const loadPdfPreview = async () => {
+        try {
+          const authToken = token || localStorage.getItem('token') || '';
+          const response = await fetch(
+            `${API_BASE_URL}/papers/${paperId}/download`,
+            {
+              headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ detail: 'Failed to load PDF' }));
+            throw new Error(errorData.detail || 'Failed to load PDF');
+          }
+
+          const blob = await response.blob();
+          blobUrl = window.URL.createObjectURL(blob);
+          pdfUrlRef.current = blobUrl;
+          setPdfUrl(blobUrl);
+          setPreviewLoading(false);
+        } catch (error: any) {
+          console.error('PDF preview error:', error);
+          setPreviewError(true);
+          setPreviewLoading(false);
+          const errorMessage = error?.message || 'Failed to load PDF preview. Please download to view.';
+          showToast(errorMessage, 'error');
+        }
+      };
+
+      loadPdfPreview();
+
+      // Cleanup blob URL on unmount or when dependencies change
+      return () => {
+        if (blobUrl) {
+          window.URL.revokeObjectURL(blobUrl);
+        }
+        if (pdfUrlRef.current) {
+          window.URL.revokeObjectURL(pdfUrlRef.current);
+          pdfUrlRef.current = '';
+        }
+      };
+    } else if (!isOpen) {
+      // Reset states when modal closes
+      setPreviewError(false);
+      setPreviewLoading(true);
+      if (pdfUrlRef.current) {
+        window.URL.revokeObjectURL(pdfUrlRef.current);
+        pdfUrlRef.current = '';
+      }
+      setPdfUrl('');
+    }
+  }, [isOpen, isPdf, paperId, token]);
+
   const handleDownload = async () => {
     try {
-      // Get token from localStorage if not provided
-      const authToken = token || localStorage.getItem('token') || '';
+      // Use API client for consistent error handling
+      const response = await API.downloadPaper(paperId);
       
-      const response = await fetch(
-        `${API_BASE_URL}/papers/${paperId}/download`,
-        {
-          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'Download failed' }));
-        console.error('Download failed:', errorData);
-        const errorMessage = errorData.detail || 'File not found. Please try again.';
-        showToast(errorMessage, 'error');
-        setPreviewError(true);
-        return;
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -99,7 +153,11 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       showToast('File downloaded successfully!', 'success');
     } catch (error: any) {
       console.error('Download error:', error);
-      const errorMessage = error?.message || 'Network error. Please check your connection and try again.';
+      // Extract error message from API response
+      const errorMessage = error?.response?.data?.detail || 
+                         error?.response?.data?.message || 
+                         error?.message || 
+                         'Failed to download file. The file may not exist on the server.';
       showToast(errorMessage, 'error');
       setPreviewError(true);
     }
@@ -160,12 +218,21 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             {/* Preview Content */}
             <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
               {previewError ? (
-                <div className="text-center">
+                <div className="text-center p-8">
                   <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">Preview not available</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-4">
-                    This file type cannot be previewed in the browser. Please download to view.
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Preview not available</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    {isPdf 
+                      ? 'Unable to load PDF preview. The file may not exist on the server or there was an error loading it.'
+                      : 'This file type cannot be previewed in the browser. Please download to view.'}
                   </p>
+                  <button
+                    onClick={handleDownload}
+                    className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download File</span>
+                  </button>
                 </div>
               ) : isImage ? (
                 <img
@@ -175,18 +242,45 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   onError={() => {
                     console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
                     setPreviewError(true);
+                    showToast('Failed to load image. Please try downloading the file.', 'error');
                   }}
                 />
               ) : isPdf ? (
-                <iframe
-                  src={`${getImageUrl(filePath)}#toolbar=0`}
-                  className="w-full h-full rounded-lg"
-                  title={fileName}
-                  onError={() => {
-                    console.error('PDF load error:', { filePath, url: getImageUrl(filePath) });
-                    setPreviewError(true);
-                  }}
-                />
+                <>
+                  {previewLoading ? (
+                    <div className="text-center p-8">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                        className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"
+                      />
+                      <p className="text-gray-600 dark:text-gray-400">Loading PDF preview...</p>
+                    </div>
+                  ) : pdfUrl ? (
+                    <iframe
+                      src={`${pdfUrl}#toolbar=0`}
+                      className="w-full h-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"
+                      title={fileName}
+                      onError={() => {
+                        console.error('PDF iframe load error');
+                        setPreviewError(true);
+                        showToast('Failed to display PDF. Please download to view.', 'error');
+                      }}
+                    />
+                  ) : (
+                    <div className="text-center p-8">
+                      <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">Unable to load PDF preview</p>
+                      <button
+                        onClick={handleDownload}
+                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download PDF</span>
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : isDocument ? (
                 <div className="text-center">
                   <FileText className="w-24 h-24 text-orange-400 mx-auto mb-4" />
