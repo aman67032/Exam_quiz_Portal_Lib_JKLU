@@ -149,7 +149,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   src={getImageUrl(filePath)}
                   alt={fileName}
                   className="max-w-full max-h-full object-contain rounded-lg"
-                  onError={(e) => {
+                  onError={() => {
                     console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
                     setPreviewError(true);
                   }}
