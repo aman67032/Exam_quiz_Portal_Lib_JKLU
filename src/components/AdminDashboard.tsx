@@ -199,6 +199,16 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const openEditModal = (paper: Paper) => {
+    setEditPaperModal({ isOpen: true, paper });
+    setEditPaperForm({
+      course_id: paper.course_code || '',
+      paper_type: paper.paper_type,
+      year: paper.year?.toString() || '',
+      semester: paper.semester || ''
+    });
+  };
+
   const editPaper = async (paperId: number) => {
     try {
       const formData = new FormData();
@@ -221,16 +231,6 @@ const AdminDashboard: React.FC = () => {
     } catch (err: any) {
       showMessage('error', err.response?.data?.detail || 'Failed to update paper');
     }
-  };
-
-  const openEditModal = (paper: Paper) => {
-    setEditPaperModal({ isOpen: true, paper });
-    setEditPaperForm({
-      course_id: paper.course_code || '',
-      paper_type: paper.paper_type,
-      year: paper.year?.toString() || '',
-      semester: paper.semester || ''
-    });
   };
 
   const handleCourseSubmit = async () => {
@@ -471,65 +471,168 @@ const AdminDashboard: React.FC = () => {
             </motion.div>
           )}
 
-          {/* Pending Review Tab - ID Verification Requests */}
+          {/* Pending Review Tab - ID Verification Requests & Papers */}
           {activeTab === 'pending' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
+              className="space-y-8"
             >
-              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
-                PENDING_REVIEW [{verificationRequests.length}]
-              </h2>
-              {verificationRequests.length === 0 ? (
-                <div className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-12 text-center">
-                  <Terminal className="h-16 w-16 text-green-400/50 mx-auto mb-4" />
-                  <p className="text-green-400/70 font-mono">NO_PENDING_VERIFICATION_REQUESTS</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {verificationRequests.map((request, index) => (
-                    <motion.div
-                      key={request.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 hover:border-green-500/60 transition-all shadow-lg hover:shadow-green-500/10"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-bold text-green-400 font-mono mb-2">{request.name}</h3>
-                          <div className="text-sm text-green-400/70 font-mono mb-1">
-                            <span className="text-cyan-400">EMAIL:</span> {request.email}
-                          </div>
-                          {(request.university || request.department || request.roll_no) && (
-                            <div className="text-sm text-green-400/50 font-mono">
-                              {request.university && <><span className="text-cyan-400">UNIVERSITY:</span> {request.university} | </>}
-                              {request.department && <><span className="text-cyan-400">DEPT:</span> {request.department} | </>}
-                              {request.roll_no && <><span className="text-cyan-400">ROLL:</span> {request.roll_no}</>}
+              {/* ID Verification Requests Section */}
+              <div>
+                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-3">
+                  <User className="text-yellow-400" size={28} />
+                  ID_VERIFICATION_REQUESTS [{verificationRequests.length}]
+                </h2>
+                {verificationRequests.length === 0 ? (
+                  <div className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-8 text-center">
+                    <User className="h-12 w-12 text-yellow-400/50 mx-auto mb-3" />
+                    <p className="text-yellow-400/70 font-mono">NO_PENDING_VERIFICATION_REQUESTS</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {verificationRequests.map((request, index) => (
+                      <motion.div
+                        key={request.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-6 hover:border-yellow-500/60 transition-all shadow-lg hover:shadow-yellow-500/10"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-yellow-400 font-mono mb-2">{request.name}</h3>
+                            <div className="text-sm text-yellow-400/70 font-mono mb-1">
+                              <span className="text-cyan-400">EMAIL:</span> {request.email}
                             </div>
-                          )}
+                            {(request.university || request.department || request.roll_no) && (
+                              <div className="text-sm text-yellow-400/50 font-mono">
+                                {request.university && <><span className="text-cyan-400">UNIVERSITY:</span> {request.university} | </>}
+                                {request.department && <><span className="text-cyan-400">DEPT:</span> {request.department} | </>}
+                                {request.roll_no && <><span className="text-cyan-400">ROLL:</span> {request.roll_no}</>}
+                              </div>
+                            )}
+                          </div>
+                          <span className="px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-mono rounded-lg">
+                            PENDING_VERIFICATION
+                          </span>
                         </div>
-                        <span className="px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-mono rounded-lg">
-                          PENDING_VERIFICATION
-                        </span>
-                      </div>
 
-                      <div className="flex items-center justify-end pt-4 border-t border-green-500/20">
-                        <motion.button
-                          onClick={() => setVerificationModal({ isOpen: true, user: request })}
-                          className="flex items-center space-x-2 px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
-                          whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Eye size={18} />
-                          <span>REVIEW_REQUEST</span>
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+                        <div className="flex items-center justify-end pt-4 border-t border-yellow-500/20">
+                          <motion.button
+                            onClick={() => setVerificationModal({ isOpen: true, user: request })}
+                            className="flex items-center space-x-2 px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
+                            whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <Eye size={18} />
+                            <span>REVIEW_REQUEST</span>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Pending Papers Section */}
+              <div>
+                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                  <Database className="text-blue-400" size={28} />
+                  PENDING_PAPERS [{pendingPapers.length}]
+                </h2>
+                {pendingPapers.length === 0 ? (
+                  <div className="bg-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-xl p-8 text-center">
+                    <Database className="h-12 w-12 text-blue-400/50 mx-auto mb-3" />
+                    <p className="text-blue-400/70 font-mono">NO_PENDING_PAPERS</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingPapers.map((paper, index) => (
+                      <motion.div
+                        key={paper.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-xl p-6 hover:border-blue-500/60 transition-all shadow-lg hover:shadow-blue-500/10"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-blue-400 font-mono mb-2">{paper.title}</h3>
+                            <div className="text-sm text-blue-400/70 font-mono mb-1">
+                              <span className="text-cyan-400">COURSE:</span> {paper.course_code} - {paper.course_name}
+                            </div>
+                            <div className="text-sm text-blue-400/50 font-mono">
+                              <span className="text-cyan-400">UPLOADED_BY:</span> {paper.uploader_name} ({paper.uploader_email})
+                            </div>
+                          </div>
+                          <span className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-mono rounded-lg">
+                            {paper.paper_type.toUpperCase()}
+                          </span>
+                        </div>
+
+                        {paper.description && (
+                          <p className="text-blue-400/60 mb-4 font-mono text-sm">{paper.description}</p>
+                        )}
+
+                        <div className="flex items-center justify-between pt-4 border-t border-blue-500/20">
+                          <div className="text-sm text-blue-400/50 font-mono">
+                            {paper.year && `YEAR: ${paper.year}`}
+                            {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                          </div>
+                          <div className="flex space-x-2">
+                            <motion.button
+                              onClick={() => setPreviewModal({
+                                isOpen: true,
+                                fileName: paper.file_name,
+                                filePath: paper.file_path || '',
+                                paperId: paper.id
+                              })}
+                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Eye size={18} />
+                              <span>VIEW</span>
+                            </motion.button>
+                            <motion.button
+                              onClick={() => openEditModal(paper)}
+                              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(168, 85, 247, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Edit2 size={18} />
+                              <span>EDIT</span>
+                            </motion.button>
+                            <motion.button
+                              onClick={() => reviewPaper(paper.id, 'approved')}
+                              className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <CheckCircle size={18} />
+                              <span>APPROVE</span>
+                            </motion.button>
+                            <motion.button
+                              onClick={() => {
+                                const reason = prompt('Enter rejection reason:');
+                                if (reason) reviewPaper(paper.id, 'rejected', reason);
+                              }}
+                              className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <XCircle size={18} />
+                              <span>REJECT</span>
+                            </motion.button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
 
