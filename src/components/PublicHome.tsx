@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, BookOpen, Users, TrendingUp, Download } from 'lucide-react';
 import { API } from '../utils/api';
