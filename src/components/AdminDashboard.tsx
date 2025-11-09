@@ -53,6 +53,34 @@ interface VerificationRequest {
   id_verified: boolean;
 }
 
+// Helper function to construct image URL from path
+const getImageUrl = (filePath: string | undefined): string => {
+  if (!filePath) return '';
+  
+  // If path already starts with http:// or https://, return as-is
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+  
+  // Extract filename from path (handles both Windows and Unix paths)
+  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
+  
+  // Remove 'uploads/' prefix if present in filename
+  fileName = fileName.replace(/^uploads[\\\/]/, '');
+  
+  // If path already contains 'uploads/', use it directly
+  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
+    // Extract everything after 'uploads/' or 'uploads\'
+    const match = filePath.match(/uploads[\\\/](.+)$/);
+    if (match && match[1]) {
+      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
+    }
+  }
+  
+  // Construct URL
+  return `${API_BASE_URL}/uploads/${fileName}`;
+};
+
 const AdminDashboard: React.FC = () => {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -819,14 +847,37 @@ const AdminDashboard: React.FC = () => {
                 <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-4">
                   <h3 className="text-sm font-mono text-green-400/70 mb-3 uppercase">PROFILE_PHOTO</h3>
                   {verificationModal.user.photo_path ? (
-                    <img
-                      src={`${API_BASE_URL}/uploads/${verificationModal.user.photo_path.replace(/^.*[\\\/]/, '')}`}
-                      alt="Profile"
-                      className="w-full rounded-lg object-cover border-2 border-green-500/30"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
-                      }}
-                    />
+                    <div className="relative">
+                      {(() => {
+                        const photoPath = verificationModal.user.photo_path || '';
+                        const imageUrl = getImageUrl(photoPath);
+                        console.log('Profile photo - Path:', photoPath, 'URL:', imageUrl);
+                        return (
+                          <img
+                            src={imageUrl}
+                            alt="Profile"
+                            className="w-full h-auto rounded-lg object-cover border-2 border-green-500/30 max-h-96"
+                            onError={(e) => {
+                              const img = e.currentTarget as HTMLImageElement;
+                              img.style.display = 'none';
+                              const errorDiv = document.createElement('div');
+                              errorDiv.className = 'w-full h-64 bg-red-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-red-500/30 text-red-400 font-mono text-xs p-4';
+                              errorDiv.innerHTML = `
+                                <p class="mb-2 font-bold">IMAGE_LOAD_ERROR</p>
+                                <p class="text-red-400/70 break-all text-center text-[10px] mb-1">Path: ${photoPath}</p>
+                                <p class="text-red-400/70 break-all text-center text-[10px] mb-2">URL: ${imageUrl}</p>
+                                <p class="text-yellow-400/70 text-[10px]">Check browser console for details</p>
+                              `;
+                              img.parentElement?.appendChild(errorDiv);
+                              console.error('Failed to load profile photo:', { photoPath, imageUrl });
+                            }}
+                            onLoad={() => {
+                              console.log('Profile photo loaded successfully:', imageUrl);
+                            }}
+                          />
+                        );
+                      })()}
+                    </div>
                   ) : (
                     <div className="w-full h-64 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
                       <User className="h-16 w-16 text-green-400/50" />
@@ -843,7 +894,7 @@ const AdminDashboard: React.FC = () => {
                         <Eye className="h-16 w-16 text-green-400/50 mb-2" />
                         <p className="text-sm text-green-400/70 font-mono mb-2">PDF_DOCUMENT</p>
                         <a
-                          href={`${API_BASE_URL}/uploads/${verificationModal.user.id_card_path.replace(/^.*[\\\/]/, '')}`}
+                          href={getImageUrl(verificationModal.user.id_card_path)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline"
@@ -852,14 +903,37 @@ const AdminDashboard: React.FC = () => {
                         </a>
                       </div>
                     ) : (
-                      <img
-                        src={`${API_BASE_URL}/uploads/${verificationModal.user.id_card_path.replace(/^.*[\\\/]/, '')}`}
-                        alt="ID Card"
-                        className="w-full rounded-lg object-cover border-2 border-green-500/30"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
+                      <div className="relative">
+                        {(() => {
+                          const idCardPath = verificationModal.user.id_card_path || '';
+                          const imageUrl = getImageUrl(idCardPath);
+                          console.log('ID card - Path:', idCardPath, 'URL:', imageUrl);
+                          return (
+                            <img
+                              src={imageUrl}
+                              alt="ID Card"
+                              className="w-full h-auto rounded-lg object-cover border-2 border-green-500/30 max-h-96"
+                              onError={(e) => {
+                                const img = e.currentTarget as HTMLImageElement;
+                                img.style.display = 'none';
+                                const errorDiv = document.createElement('div');
+                                errorDiv.className = 'w-full h-64 bg-red-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-red-500/30 text-red-400 font-mono text-xs p-4';
+                                errorDiv.innerHTML = `
+                                  <p class="mb-2 font-bold">IMAGE_LOAD_ERROR</p>
+                                  <p class="text-red-400/70 break-all text-center text-[10px] mb-1">Path: ${idCardPath}</p>
+                                  <p class="text-red-400/70 break-all text-center text-[10px] mb-2">URL: ${imageUrl}</p>
+                                  <p class="text-yellow-400/70 text-[10px]">Check browser console for details</p>
+                                `;
+                                img.parentElement?.appendChild(errorDiv);
+                                console.error('Failed to load ID card:', { idCardPath, imageUrl });
+                              }}
+                              onLoad={() => {
+                                console.log('ID card loaded successfully:', imageUrl);
+                              }}
+                            />
+                          );
+                        })()}
+                      </div>
                     )
                   ) : (
                     <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
