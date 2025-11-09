@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, BookOpen, Users, TrendingUp, Download } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -12,7 +12,6 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
-import AnimatedCounter from './AnimatedCounter';
 import MathPhysicsBackground from './MathPhysicsBackground';
 
 // Lazy load heavy background component
@@ -501,58 +500,6 @@ const PublicHome: React.FC = () => {
           </div>
         </section>
 
-        {/* Statistics Section */}
-        <section className="relative py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12"
-            >
-              <motion.h2
-                initial={{ opacity: 0 }}
-                whileInView={{ opacity: 1 }}
-                viewport={{ once: true }}
-                className="text-2xl sm:text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-8 sm:mb-12"
-              >
-                Platform Statistics
-              </motion.h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
-                {[
-                  { icon: FileText, value: papers.length, label: 'Total Papers', color: 'from-indigo-500 to-indigo-600' },
-                  { icon: BookOpen, value: Math.floor(papers.length * 0.3), label: 'Courses', color: 'from-purple-500 to-purple-600' },
-                  { icon: Users, value: Math.floor(papers.length * 0.15), label: 'Active Users', color: 'from-pink-500 to-pink-600' },
-                  { icon: TrendingUp, value: 98, label: 'Satisfaction %', color: 'from-cyan-500 to-cyan-600' },
-                ].map((stat, index) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.05, y: -5 }}
-                    className="text-center p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-gradient-to-br backdrop-blur-sm border border-white/30 dark:border-gray-700/40 shadow-lg"
-                  >
-                    <motion.div
-                      className={`inline-flex p-2.5 sm:p-4 rounded-full bg-gradient-to-r ${stat.color} mb-3 sm:mb-4`}
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <stat.icon className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-                    </motion.div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                      <AnimatedCounter value={stat.value} suffix={stat.label === 'Satisfaction %' ? '%' : ''} />
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
         {/* How It Works Section */}
         <section className="relative py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
@@ -638,8 +585,8 @@ const PublicHome: React.FC = () => {
                 <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Search In
               </label>
-              <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0 scrollbar-hide">
-                <div className="min-w-max sm:min-w-0">
+              <div className="overflow-hidden">
+                <div className="flex flex-wrap gap-2">
                   <GooeyNav
                     items={[
                       { label: 'All', href: '#' },
@@ -682,8 +629,8 @@ const PublicHome: React.FC = () => {
 
               {/* Gooey Paper Type Tabs */}
               <div className="mb-3 sm:mb-4">
-                <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0 scrollbar-hide">
-                  <div className="min-w-max sm:min-w-0">
+                <div className="overflow-hidden">
+                  <div className="flex flex-wrap gap-2">
                     <GooeyNav
                       items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
                       initialActiveIndex={0}
