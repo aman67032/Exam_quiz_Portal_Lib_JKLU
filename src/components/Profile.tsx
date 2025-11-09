@@ -7,6 +7,34 @@ import Toast from './Toast';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
+// Helper function to construct image URL from path
+const getImageUrl = (filePath: string | undefined): string => {
+  if (!filePath) return '';
+  
+  // If path already starts with http:// or https://, return as-is
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+  
+  // Extract filename from path (handles both Windows and Unix paths)
+  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
+  
+  // Remove 'uploads/' prefix if present in filename
+  fileName = fileName.replace(/^uploads[\\\/]/, '');
+  
+  // If path already contains 'uploads/', use it directly
+  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
+    // Extract everything after 'uploads/' or 'uploads\'
+    const match = filePath.match(/uploads[\\\/](.+)$/);
+    if (match && match[1]) {
+      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
+    }
+  }
+  
+  // Construct URL
+  return `${API_BASE_URL}/uploads/${fileName}`;
+};
+
 type Me = {
   id: number;
   name: string;
@@ -178,11 +206,16 @@ const Profile: React.FC = () => {
                 {me.photo_path ? (
                   <div className="relative">
                     <img 
-                      src={`${API_BASE_URL}/uploads/${me.photo_path.replace(/^.*[\\\/]/, '')}`} 
+                      src={getImageUrl(me.photo_path)} 
                       alt="Profile" 
                       className="w-full rounded-xl object-cover shadow-lg ring-2 ring-purple-400/40"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        const img = e.currentTarget as HTMLImageElement;
+                        img.style.display = 'none';
+                        console.error('Failed to load profile photo:', { photoPath: me.photo_path, imageUrl: getImageUrl(me.photo_path) });
+                      }}
+                      onLoad={() => {
+                        console.log('Profile photo loaded successfully:', getImageUrl(me.photo_path));
                       }}
                     />
                   </div>
@@ -206,7 +239,7 @@ const Profile: React.FC = () => {
                         <IdCard className="h-16 w-16 text-emerald-500 mb-2" />
                         <p className="text-sm text-gray-600 dark:text-gray-400">PDF Document</p>
                         <a 
-                          href={`${API_BASE_URL}/uploads/${me.id_card_path.replace(/^.*[\\\/]/, '')}`}
+                          href={getImageUrl(me.id_card_path)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
@@ -216,11 +249,16 @@ const Profile: React.FC = () => {
                       </div>
                     ) : (
                       <img 
-                        src={`${API_BASE_URL}/uploads/${me.id_card_path.replace(/^.*[\\\/]/, '')}`} 
+                        src={getImageUrl(me.id_card_path)} 
                         alt="ID Card" 
                         className="w-full rounded-xl object-cover shadow-lg ring-2 ring-emerald-400/40"
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = 'none';
+                          const img = e.currentTarget as HTMLImageElement;
+                          img.style.display = 'none';
+                          console.error('Failed to load ID card:', { idCardPath: me.id_card_path, imageUrl: getImageUrl(me.id_card_path) });
+                        }}
+                        onLoad={() => {
+                          console.log('ID card loaded successfully:', getImageUrl(me.id_card_path));
                         }}
                       />
                     )}
@@ -361,10 +399,17 @@ const Profile: React.FC = () => {
                 <div className="flex items-center gap-4">
                   {me.photo_path ? (
                     <img 
-                      src={`${API_BASE_URL}/uploads/${me.photo_path.replace(/^.*[\\\/]/, '')}`} 
+                      src={getImageUrl(me.photo_path)} 
                       alt="avatar" 
                       className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-400/40" 
-                      onError={(e)=>{ (e.currentTarget as HTMLImageElement).style.display='none'; }} 
+                      onError={(e)=>{ 
+                        const img = e.currentTarget as HTMLImageElement;
+                        img.style.display='none';
+                        console.error('Failed to load profile photo (unverified view):', { photoPath: me.photo_path, imageUrl: getImageUrl(me.photo_path) });
+                      }} 
+                      onLoad={() => {
+                        console.log('Profile photo loaded successfully (unverified view):', getImageUrl(me.photo_path));
+                      }}
                     />
                   ) : (
                     <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center">

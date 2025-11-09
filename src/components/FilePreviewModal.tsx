@@ -4,6 +4,34 @@ import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
+// Helper function to construct image URL from path
+const getImageUrl = (filePath: string | undefined): string => {
+  if (!filePath) return '';
+  
+  // If path already starts with http:// or https://, return as-is
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
+  }
+  
+  // Extract filename from path (handles both Windows and Unix paths)
+  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
+  
+  // Remove 'uploads/' prefix if present in filename
+  fileName = fileName.replace(/^uploads[\\\/]/, '');
+  
+  // If path already contains 'uploads/', use it directly
+  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
+    // Extract everything after 'uploads/' or 'uploads\'
+    const match = filePath.match(/uploads[\\\/](.+)$/);
+    if (match && match[1]) {
+      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
+    }
+  }
+  
+  // Construct URL
+  return `${API_BASE_URL}/uploads/${fileName}`;
+};
+
 interface FilePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,14 +57,23 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
   const handleDownload = async () => {
     try {
+      // Get token from localStorage if not provided
+      const authToken = token || localStorage.getItem('token') || '';
+      
       const response = await fetch(
         `${API_BASE_URL}/papers/${paperId}/download`,
         {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
         }
       );
 
-      if (!response.ok) throw new Error('Download failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Download failed' }));
+        console.error('Download failed:', errorData);
+        alert(`Download failed: ${errorData.detail || 'File not found'}`);
+        setPreviewError(true);
+        return;
+      }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -47,7 +84,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Download error:', error);
+      alert(`Download failed: ${error.message || 'Network error'}`);
       setPreviewError(true);
     }
   };
@@ -107,17 +146,23 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 </div>
               ) : isImage ? (
                 <img
-                  src={`${API_BASE_URL}/uploads/${filePath.split('/').pop()}`}
+                  src={getImageUrl(filePath)}
                   alt={fileName}
                   className="max-w-full max-h-full object-contain rounded-lg"
-                  onError={() => setPreviewError(true)}
+                  onError={(e) => {
+                    console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
+                    setPreviewError(true);
+                  }}
                 />
               ) : isPdf ? (
                 <iframe
-                  src={`${API_BASE_URL}/uploads/${filePath.split('/').pop()}#toolbar=0`}
+                  src={`${getImageUrl(filePath)}#toolbar=0`}
                   className="w-full h-full rounded-lg"
                   title={fileName}
-                  onError={() => setPreviewError(true)}
+                  onError={() => {
+                    console.error('PDF load error:', { filePath, url: getImageUrl(filePath) });
+                    setPreviewError(true);
+                  }}
                 />
               ) : isDocument ? (
                 <div className="text-center">

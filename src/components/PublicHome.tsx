@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, BookOpen, Award, Users, TrendingUp, Zap, CheckCircle, Star, Clock, Shield, Download } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, BookOpen, Users, TrendingUp, Download } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -490,53 +490,6 @@ const PublicHome: React.FC = () => {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="relative py-12 sm:py-16 px-3 sm:px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-12"
-            >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                Why Choose Paper Portal?
-              </h2>
-            </motion.div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[
-                { icon: Shield, title: 'Verified Content', description: 'All papers are reviewed and verified by administrators', color: 'text-green-500' },
-                { icon: Zap, title: 'Lightning Fast', description: 'Quick search and instant downloads for all your study needs', color: 'text-yellow-500' },
-                { icon: Clock, title: 'Always Updated', description: 'New papers added regularly to keep you ahead', color: 'text-blue-500' },
-                { icon: Award, title: 'Quality Assured', description: 'High-quality, organized, and categorized papers', color: 'text-purple-500' },
-                { icon: Star, title: 'User Friendly', description: 'Intuitive interface designed for easy navigation', color: 'text-pink-500' },
-                { icon: CheckCircle, title: 'Free Access', description: 'Completely free for all students and educators', color: 'text-indigo-500' },
-              ].map((feature, index) => (
-                <motion.div
-                  key={feature.title}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.05, rotate: 1 }}
-                  className="backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-2xl border border-white/30 dark:border-gray-700/40 p-6 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <motion.div
-                    className={`inline-flex p-3 rounded-xl bg-white/50 dark:bg-gray-800/50 mb-4 ${feature.color}`}
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <feature.icon className="w-6 h-6" />
-                  </motion.div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Search and Documents Section */}
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-12 sm:pb-20">
           {/* Search and Filters */}
@@ -708,7 +661,7 @@ const PublicHome: React.FC = () => {
           fileName={previewModal.fileName}
           filePath={previewModal.filePath}
           paperId={previewModal.paperId}
-          token=""
+          token={localStorage.getItem('token') || ''}
         />
       </div>
     </div>
