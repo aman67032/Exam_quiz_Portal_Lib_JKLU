@@ -4,36 +4,9 @@ import { motion } from 'framer-motion';
 import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft, Edit2, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
+import { buildUploadUrl } from '../utils/uploads';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-
-// Helper function to construct image URL from path
-const getImageUrl = (filePath: string | undefined): string => {
-  if (!filePath) return '';
-  
-  // If path already starts with http:// or https://, return as-is
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    return filePath;
-  }
-  
-  // Extract filename from path (handles both Windows and Unix paths)
-  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
-  
-  // Remove 'uploads/' prefix if present in filename
-  fileName = fileName.replace(/^uploads[\\\/]/, '');
-  
-  // If path already contains 'uploads/', use it directly
-  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
-    // Extract everything after 'uploads/' or 'uploads\'
-    const match = filePath.match(/uploads[\\\/](.+)$/);
-    if (match && match[1]) {
-      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
-    }
-  }
-  
-  // Construct URL
-  return `${API_BASE_URL}/uploads/${fileName}`;
-};
 
 type Me = {
   id: number;
@@ -81,6 +54,14 @@ const Profile: React.FC = () => {
         });
         const data = res.data as any;
         setMe(data);
+        const photoUrl = buildUploadUrl(data.photo_path);
+        if (photoUrl) {
+          localStorage.setItem('profile.photo', photoUrl);
+          localStorage.removeItem('profile.photo.path');
+        } else {
+          localStorage.removeItem('profile.photo');
+          localStorage.removeItem('profile.photo.path');
+        }
         setExtra({
           age: data.age ? String(data.age) : '',
           year: data.year || '',
@@ -181,7 +162,16 @@ const Profile: React.FC = () => {
 
       // Sync local flags for compatibility
       localStorage.setItem('idVerified', updated.id_verified ? 'yes' : 'no');
-      if (updated.photo_path) localStorage.setItem('profile.photo.path', updated.photo_path);
+      if (updated.photo_path) {
+        const photoUrl = buildUploadUrl(updated.photo_path);
+        if (photoUrl) {
+          localStorage.setItem('profile.photo', photoUrl);
+          localStorage.removeItem('profile.photo.path');
+        }
+      } else {
+        localStorage.removeItem('profile.photo');
+        localStorage.removeItem('profile.photo.path');
+      }
 
       // Refresh profile data
       setMe(updated);
@@ -314,16 +304,16 @@ const Profile: React.FC = () => {
                 {me.photo_path ? (
                   <div className="relative">
                     <img 
-                      src={getImageUrl(me.photo_path)} 
+                      src={buildUploadUrl(me.photo_path)} 
                       alt="Profile" 
                       className="w-full rounded-xl object-cover shadow-lg ring-2 ring-purple-400/40"
                       onError={(e) => {
                         const img = e.currentTarget as HTMLImageElement;
                         img.style.display = 'none';
-                        console.error('Failed to load profile photo:', { photoPath: me.photo_path, imageUrl: getImageUrl(me.photo_path) });
+                        console.error('Failed to load profile photo:', { photoPath: me.photo_path, imageUrl: buildUploadUrl(me.photo_path) });
                       }}
                       onLoad={() => {
-                        console.log('Profile photo loaded successfully:', getImageUrl(me.photo_path));
+                        console.log('Profile photo loaded successfully:', buildUploadUrl(me.photo_path));
                       }}
                     />
                   </div>
@@ -364,7 +354,7 @@ const Profile: React.FC = () => {
                         <IdCard className="h-16 w-16 text-emerald-500 mb-2" />
                         <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">PDF Document</p>
                         <motion.a 
-                          href={getImageUrl(me.id_card_path)}
+                          href={buildUploadUrl(me.id_card_path)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold hover:underline"
@@ -376,16 +366,16 @@ const Profile: React.FC = () => {
                       </div>
                     ) : (
                       <img 
-                        src={getImageUrl(me.id_card_path)} 
+                        src={buildUploadUrl(me.id_card_path)} 
                         alt="ID Card" 
                         className="w-full rounded-xl object-cover shadow-lg ring-2 ring-emerald-400/40"
                         onError={(e) => {
                           const img = e.currentTarget as HTMLImageElement;
                           img.style.display = 'none';
-                          console.error('Failed to load ID card:', { idCardPath: me.id_card_path, imageUrl: getImageUrl(me.id_card_path) });
+                          console.error('Failed to load ID card:', { idCardPath: me.id_card_path, imageUrl: buildUploadUrl(me.id_card_path) });
                         }}
                         onLoad={() => {
-                          console.log('ID card loaded successfully:', getImageUrl(me.id_card_path));
+                          console.log('ID card loaded successfully:', buildUploadUrl(me.id_card_path));
                         }}
                       />
                     )}
@@ -789,18 +779,18 @@ const Profile: React.FC = () => {
                   whileHover={{ scale: 1.05 }}
                 >
                   {me.photo_path ? (
-                    <motion.img 
-                      src={getImageUrl(me.photo_path)} 
+                      <motion.img 
+                      src={buildUploadUrl(me.photo_path)} 
                       alt="avatar" 
                       className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-400/40 dark:ring-purple-500/40 shadow-lg" 
                       whileHover={{ scale: 1.1 }}
                       onError={(e)=>{ 
                         const img = e.currentTarget as HTMLImageElement;
                         img.style.display='none';
-                        console.error('Failed to load profile photo (unverified view):', { photoPath: me.photo_path, imageUrl: getImageUrl(me.photo_path) });
+                        console.error('Failed to load profile photo (unverified view):', { photoPath: me.photo_path, imageUrl: buildUploadUrl(me.photo_path) });
                       }} 
                       onLoad={() => {
-                        console.log('Profile photo loaded successfully (unverified view):', getImageUrl(me.photo_path));
+                        console.log('Profile photo loaded successfully (unverified view):', buildUploadUrl(me.photo_path));
                       }}
                     />
                   ) : (

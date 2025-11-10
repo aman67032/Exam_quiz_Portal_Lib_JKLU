@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
 import { lazy, Suspense } from 'react';
+import { buildUploadUrl } from '../utils/uploads';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -207,6 +208,13 @@ const StudentDashboard: React.FC = () => {
     return typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches;
   }, []);
 
+  const profilePhoto = useMemo(() => {
+    const direct = localStorage.getItem('profile.photo');
+    if (direct) return direct;
+    const legacy = localStorage.getItem('profile.photo.path');
+    return legacy ? buildUploadUrl(legacy) : '';
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
       {/* Animated Background */}
@@ -306,8 +314,8 @@ const StudentDashboard: React.FC = () => {
                   to="/profile"
                   className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-purple-500/20 max-w-[60vw] sm:max-w-none"
                 >
-                  {localStorage.getItem('profile.photo') ? (
-                    <img src={localStorage.getItem('profile.photo') || ''} className="h-6 sm:h-7 w-6 sm:w-7 rounded-full object-cover ring-2 ring-purple-400/40" />
+                  {profilePhoto ? (
+                    <img src={profilePhoto} className="h-6 sm:h-7 w-6 sm:w-7 rounded-full object-cover ring-2 ring-purple-400/40" />
                   ) : (
                     <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full">
                       <User className="h-3.5 w-3.5 text-white" />

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
+import { buildUploadUrl } from '../utils/uploads';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -50,6 +51,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
         .then(response => {
           setUser(response.data);
+          const photoUrl = buildUploadUrl(response.data.photo_path);
+          if (photoUrl) {
+            localStorage.setItem('profile.photo', photoUrl);
+          } else {
+            localStorage.removeItem('profile.photo');
+          }
         })
         .catch(() => {
           localStorage.removeItem('token');
@@ -79,6 +86,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       setUser(userResponse.data);
+      const photoUrl = buildUploadUrl(userResponse.data.photo_path);
+      if (photoUrl) {
+        localStorage.setItem('profile.photo', photoUrl);
+      } else {
+        localStorage.removeItem('profile.photo');
+      }
     } catch (error: any) {
       const message = error.response?.data?.detail || 'Login failed';
       throw new Error(message);
@@ -116,6 +129,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       setUser(userResponse.data);
+      const photoUrl = buildUploadUrl(userResponse.data.photo_path);
+      if (photoUrl) {
+        localStorage.setItem('profile.photo', photoUrl);
+      } else {
+        localStorage.removeItem('profile.photo');
+      }
     } catch (error: any) {
       const message = error.response?.data?.detail || 'OTP verification failed';
       throw new Error(message);
@@ -134,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
+    localStorage.removeItem('profile.photo');
   };
 
   const value = {

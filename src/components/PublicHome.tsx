@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download } from 'lucide-react';
 import { API } from '../utils/api';
@@ -12,6 +12,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
+import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
 
 // Lazy load heavy background component
@@ -154,6 +155,13 @@ const PublicHome: React.FC = () => {
       filePath,
       paperId
     });
+  }, []);
+
+  const profilePhoto = useMemo(() => {
+    const direct = localStorage.getItem('profile.photo');
+    if (direct) return direct;
+    const legacy = localStorage.getItem('profile.photo.path');
+    return legacy ? buildUploadUrl(legacy) : '';
   }, []);
 
   const handleDownload = useCallback(async (paperId: number, fileName: string) => {
@@ -359,8 +367,8 @@ const PublicHome: React.FC = () => {
                       to="/profile"
                       className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-white/30 dark:border-gray-700/40 text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 shadow-md hover:shadow-lg transition-all min-w-0 flex-1 sm:flex-initial"
                     >
-                      {localStorage.getItem('profile.photo') ? (
-                        <img src={localStorage.getItem('profile.photo') || ''} className="h-5 w-5 sm:h-7 sm:w-7 rounded-full object-cover flex-shrink-0" />
+                      {profilePhoto ? (
+                        <img src={profilePhoto} className="h-5 w-5 sm:h-7 sm:w-7 rounded-full object-cover flex-shrink-0" />
                       ) : (
                         <div className="p-1 sm:p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex-shrink-0">
                           <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white" />

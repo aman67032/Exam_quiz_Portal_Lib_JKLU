@@ -3,46 +3,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 import Toast from './Toast';
 import { API } from '../utils/api';
-
-const API_BASE_URL = API.baseURL;
+import { buildUploadUrl } from '../utils/uploads';
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
-  if (!filePath) return '';
-  
-  // If path already starts with http:// or https://, return as-is
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    return filePath;
-  }
-  
-  // Extract filename from path (handles both Windows and Unix paths)
-  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
-  
-  // Remove 'uploads/' prefix if present in filename
-  fileName = fileName.replace(/^uploads[\\\/]/, '');
-  
-  // If path already contains 'uploads/', use it directly
-  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
-    // Extract everything after 'uploads/' or 'uploads\'
-    const match = filePath.match(/uploads[\\\/](.+)$/);
-    if (match && match[1]) {
-      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
-    }
-  }
-  
-  // Construct URL
-  // Encode each path segment to handle spaces, parentheses, etc.
-  const encoded = fileName
-    .split('/')
-    .filter(Boolean)
-    .map(seg => encodeURIComponent(seg))
-    .join('/');
-  return `${API_BASE_URL}/uploads/${encoded}`;
+  return buildUploadUrl(filePath);
 };
 
 // Helper to get preview URL using download endpoint
 const getPreviewUrl = (paperId: number): string => {
-  return `${API_BASE_URL}/papers/${paperId}/download`;
+  return `${API.baseURL}/papers/${paperId}/download`;
 };
 
 interface FilePreviewModalProps {

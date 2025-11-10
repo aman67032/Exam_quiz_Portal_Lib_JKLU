@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, Us
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FilePreviewModal from './FilePreviewModal';
+import { buildUploadUrl } from '../utils/uploads';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -55,30 +56,7 @@ interface VerificationRequest {
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
-  if (!filePath) return '';
-  
-  // If path already starts with http:// or https://, return as-is
-  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-    return filePath;
-  }
-  
-  // Extract filename from path (handles both Windows and Unix paths)
-  let fileName = filePath.split(/[\\\/]/).pop() || filePath;
-  
-  // Remove 'uploads/' prefix if present in filename
-  fileName = fileName.replace(/^uploads[\\\/]/, '');
-  
-  // If path already contains 'uploads/', extract everything after it
-  if (filePath.includes('uploads/') || filePath.includes('uploads\\')) {
-    // Extract everything after 'uploads/' or 'uploads\'
-    const match = filePath.match(/uploads[\\\/](.+)$/);
-    if (match && match[1]) {
-      fileName = match[1].replace(/[\\\/]/g, '/'); // Normalize to forward slashes
-    }
-  }
-  
-  // Construct URL using backend endpoint: /uploads/{filename:path}
-  return `${API_BASE_URL}/uploads/${fileName}`;
+  return buildUploadUrl(filePath);
 };
 
 const AdminDashboard: React.FC = () => {
