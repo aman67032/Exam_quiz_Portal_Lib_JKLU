@@ -68,7 +68,7 @@ export const API = {
     const params = new URLSearchParams();
     params.append('username', email);
     params.append('password', password);
-    return axios.post(`${API_BASE_URL}/admin-login`, params, {
+    return apiClient.post('/admin-login', params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
   },
