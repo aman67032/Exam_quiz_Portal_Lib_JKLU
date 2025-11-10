@@ -30,6 +30,7 @@ interface Paper {
   course_name?: string;
   uploader_name?: string;
   uploader_email?: string;
+  status?: string;
 }
 
 interface Course {
@@ -64,10 +65,20 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState<Stats | null>(null);
   const [pendingPapers, setPendingPapers] = useState<Paper[]>([]);
+  const [allPapers, setAllPapers] = useState<Paper[]>([]);
   const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  
+  // Filters for all papers
+  const [paperFilters, setPaperFilters] = useState({
+    course_id: '',
+    paper_type: '',
+    year: '',
+    semester: '',
+    status: ''
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // File Preview Modal State
@@ -183,11 +194,38 @@ const AdminDashboard: React.FC = () => {
       setPendingPapers(papersRes.data);
       setVerificationRequests(verificationRes.data);
       setCourses(coursesRes.data);
+      
+      // Fetch all papers for the all documents tab
+      fetchAllPapers();
     } catch (err) {
       showMessage('error', 'Failed to fetch data');
     }
     setLoading(false);
   };
+
+  const fetchAllPapers = async () => {
+    try {
+      const params: any = {};
+      Object.entries(paperFilters).forEach(([key, value]) => {
+        if (value) params[key] = value;
+      });
+
+      const response = await axios.get(`${API_BASE_URL}/papers`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params
+      });
+      setAllPapers(response.data);
+    } catch (err) {
+      console.error('Failed to fetch all papers:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'all-papers' && token) {
+      fetchAllPapers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paperFilters, activeTab, token]);
 
   const reviewPaper = async (paperId: number, status: string, reason?: string) => {
     try {
@@ -200,6 +238,9 @@ const AdminDashboard: React.FC = () => {
 
       showMessage('success', `Paper ${status} successfully`);
       fetchDashboardData();
+      if (activeTab === 'all-papers') {
+        fetchAllPapers();
+      }
     } catch (err) {
       showMessage('error', 'Failed to review paper');
     }
@@ -234,6 +275,9 @@ const AdminDashboard: React.FC = () => {
       setEditPaperModal({ isOpen: false, paper: null });
       setEditPaperForm({ course_id: '', paper_type: '', year: '', semester: '' });
       fetchDashboardData();
+      if (activeTab === 'all-papers') {
+        fetchAllPapers();
+      }
     } catch (err: any) {
       showMessage('error', err.response?.data?.detail || 'Failed to update paper');
     }
@@ -412,7 +456,7 @@ const AdminDashboard: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-1 flex space-x-1 shadow-lg shadow-green-500/10"
           >
-            {['dashboard', 'pending', 'courses'].map(tab => (
+            {['dashboard', 'all-papers', 'pending', 'courses'].map(tab => (
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -424,7 +468,7 @@ const AdminDashboard: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'pending' ? 'PENDING_REVIEW' : 'COURSE_MANAGEMENT'}
+                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : 'COURSE_MANAGEMENT'}
               </motion.button>
             ))}
           </motion.div>
@@ -473,6 +517,184 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </motion.div>
                 ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* All Documents Tab */}
+          {activeTab === 'all-papers' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="space-y-8"
+            >
+              <div>
+                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
+                  <Database className="text-cyan-400" size={28} />
+                  ALL_DOCUMENTS [{allPapers.length}]
+                </h2>
+
+                {/* Filters */}
+                <div className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-4 mb-6">
+                  <h3 className="text-sm font-mono text-cyan-400/70 mb-3 uppercase">FILTERS</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <select
+                      value={paperFilters.course_id}
+                      onChange={(e) => setPaperFilters({ ...paperFilters, course_id: e.target.value })}
+                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                    >
+                      <option value="">All Courses</option>
+                      {courses.map(course => (
+                        <option key={course.id} value={course.id}>{course.code}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={paperFilters.paper_type}
+                      onChange={(e) => setPaperFilters({ ...paperFilters, paper_type: e.target.value })}
+                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                    >
+                      <option value="">All Types</option>
+                      <option value="assignment">Assignment</option>
+                      <option value="quiz">Quiz</option>
+                      <option value="midterm">Midterm</option>
+                      <option value="endterm">Endterm</option>
+                      <option value="project">Project</option>
+                    </select>
+
+                    <input
+                      type="number"
+                      placeholder="Year"
+                      value={paperFilters.year}
+                      onChange={(e) => setPaperFilters({ ...paperFilters, year: e.target.value })}
+                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none placeholder-cyan-400/50"
+                    />
+
+                    <input
+                      type="text"
+                      placeholder="Semester"
+                      value={paperFilters.semester}
+                      onChange={(e) => setPaperFilters({ ...paperFilters, semester: e.target.value })}
+                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none placeholder-cyan-400/50"
+                    />
+
+                    <select
+                      value={paperFilters.status}
+                      onChange={(e) => setPaperFilters({ ...paperFilters, status: e.target.value })}
+                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                    >
+                      <option value="">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </div>
+                </div>
+
+                {allPapers.length === 0 ? (
+                  <div className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-8 text-center">
+                    <Database className="h-12 w-12 text-cyan-400/50 mx-auto mb-3" />
+                    <p className="text-cyan-400/70 font-mono">NO_PAPERS_FOUND</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allPapers.map((paper, index) => (
+                      <motion.div
+                        key={paper.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-6 hover:border-cyan-500/60 transition-all shadow-lg hover:shadow-cyan-500/10"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-bold text-cyan-400 font-mono mb-2">{paper.title}</h3>
+                            <div className="text-sm text-cyan-400/70 font-mono mb-1">
+                              <span className="text-blue-400">COURSE:</span> {paper.course_code} - {paper.course_name}
+                            </div>
+                            <div className="text-sm text-cyan-400/50 font-mono">
+                              <span className="text-blue-400">UPLOADED_BY:</span> {paper.uploader_name} {paper.uploader_email && `(${paper.uploader_email})`}
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2 items-end">
+                            <span className={`px-3 py-1 border text-xs font-mono rounded-lg ${
+                              paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                              paper.status === 'rejected' ? 'bg-red-500/20 border-red-500/50 text-red-400' :
+                              'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
+                            }`}>
+                              {paper.status?.toUpperCase() || 'PENDING'}
+                            </span>
+                            <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-xs font-mono rounded-lg">
+                              {paper.paper_type.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {paper.description && (
+                          <p className="text-cyan-400/60 mb-4 font-mono text-sm">{paper.description}</p>
+                        )}
+
+                        <div className="flex items-center justify-between pt-4 border-t border-cyan-500/20">
+                          <div className="text-sm text-cyan-400/50 font-mono">
+                            {paper.year && `YEAR: ${paper.year}`}
+                            {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                          </div>
+                          <div className="flex space-x-2">
+                            <motion.button
+                              onClick={() => setPreviewModal({
+                                isOpen: true,
+                                fileName: paper.file_name,
+                                filePath: paper.file_path || '',
+                                paperId: paper.id
+                              })}
+                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Eye size={18} />
+                              <span>VIEW</span>
+                            </motion.button>
+                            <motion.button
+                              onClick={() => openEditModal(paper)}
+                              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(168, 85, 247, 0.5)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Edit2 size={18} />
+                              <span>EDIT</span>
+                            </motion.button>
+                            {paper.status !== 'approved' && (
+                              <motion.button
+                                onClick={() => reviewPaper(paper.id, 'approved')}
+                                className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 rounded-lg font-mono transition-all"
+                                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <CheckCircle size={18} />
+                                <span>APPROVE</span>
+                              </motion.button>
+                            )}
+                            {paper.status !== 'rejected' && (
+                              <motion.button
+                                onClick={() => {
+                                  const reason = prompt('Enter rejection reason:');
+                                  if (reason) reviewPaper(paper.id, 'rejected', reason);
+                                }}
+                                className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
+                                whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <XCircle size={18} />
+                                <span>REJECT</span>
+                              </motion.button>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
