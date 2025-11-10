@@ -70,6 +70,8 @@ const AdminDashboard: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [fileDiagnostics, setFileDiagnostics] = useState<any>(null);
+  const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
   
   // Filters for all papers
   const [paperFilters, setPaperFilters] = useState({
@@ -348,6 +350,25 @@ const AdminDashboard: React.FC = () => {
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
 
+  const runFileDiagnostics = async () => {
+    setDiagnosticsLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/diagnose/files`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFileDiagnostics(response.data);
+      const missingCount = response.data.papers_with_missing_files;
+      if (missingCount > 0) {
+        showMessage('error', `Found ${missingCount} papers with missing files. Check diagnostics below.`);
+      } else {
+        showMessage('success', 'All files are present on the server.');
+      }
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to run diagnostics');
+    }
+    setDiagnosticsLoading(false);
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
       {/* Matrix Rain Background */}
@@ -530,10 +551,62 @@ const AdminDashboard: React.FC = () => {
               className="space-y-8"
             >
               <div>
-                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
-                  <Database className="text-cyan-400" size={28} />
-                  ALL_DOCUMENTS [{allPapers.length}]
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <Database className="text-cyan-400" size={28} />
+                    ALL_DOCUMENTS [{allPapers.length}]
+                  </h2>
+                  <motion.button
+                    onClick={runFileDiagnostics}
+                    disabled={diagnosticsLoading}
+                    className="flex items-center space-x-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 rounded-lg font-mono transition-all disabled:opacity-50"
+                    whileHover={{ scale: diagnosticsLoading ? 1 : 1.05 }}
+                    whileTap={{ scale: diagnosticsLoading ? 1 : 0.95 }}
+                  >
+                    <Activity size={18} />
+                    <span>{diagnosticsLoading ? 'CHECKING...' : 'CHECK FILES'}</span>
+                  </motion.button>
+                </div>
+
+                {/* File Diagnostics Results */}
+                {fileDiagnostics && (
+                  <div className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-4 mb-6">
+                    <h3 className="text-sm font-mono text-yellow-400/70 mb-3 uppercase">FILE DIAGNOSTICS</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div className="bg-black/40 rounded-lg p-3 border border-yellow-500/20">
+                        <div className="text-xs text-yellow-400/50 font-mono uppercase mb-1">TOTAL PAPERS</div>
+                        <div className="text-2xl font-bold text-yellow-400 font-mono">{fileDiagnostics.total_papers}</div>
+                      </div>
+                      <div className="bg-black/40 rounded-lg p-3 border border-yellow-500/20">
+                        <div className="text-xs text-yellow-400/50 font-mono uppercase mb-1">FILES ON DISK</div>
+                        <div className="text-2xl font-bold text-yellow-400 font-mono">{fileDiagnostics.files_on_disk_count}</div>
+                      </div>
+                      <div className={`bg-black/40 rounded-lg p-3 border ${fileDiagnostics.papers_with_missing_files > 0 ? 'border-red-500/50' : 'border-green-500/50'}`}>
+                        <div className="text-xs font-mono uppercase mb-1" style={{ color: fileDiagnostics.papers_with_missing_files > 0 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(34, 197, 94, 0.5)' }}>
+                          MISSING FILES
+                        </div>
+                        <div className={`text-2xl font-bold font-mono ${fileDiagnostics.papers_with_missing_files > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                          {fileDiagnostics.papers_with_missing_files}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-yellow-400/50 font-mono">
+                      <span className="text-yellow-400/70">UPLOADS_DIR:</span> {fileDiagnostics.uploads_directory}
+                    </div>
+                    {fileDiagnostics.papers_with_missing_files > 0 && (
+                      <div className="mt-4 max-h-60 overflow-y-auto">
+                        <div className="text-xs text-red-400/70 font-mono uppercase mb-2">PAPERS WITH MISSING FILES:</div>
+                        {fileDiagnostics.papers.filter((p: any) => !p.file_exists).map((p: any) => (
+                          <div key={p.paper_id} className="bg-red-900/20 border border-red-500/30 rounded p-2 mb-2 text-xs font-mono">
+                            <div className="text-red-400">ID: {p.paper_id} - {p.paper_title}</div>
+                            <div className="text-red-400/70">Stored: {p.stored_path}</div>
+                            <div className="text-red-400/70">Expected: {p.extracted_filename}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Filters */}
                 <div className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-4 mb-6">
@@ -636,21 +709,40 @@ const AdminDashboard: React.FC = () => {
                         )}
 
                         <div className="flex items-center justify-between pt-4 border-t border-cyan-500/20">
-                          <div className="text-sm text-cyan-400/50 font-mono">
-                            {paper.year && `YEAR: ${paper.year}`}
-                            {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm text-cyan-400/50 font-mono">
+                              {paper.year && `YEAR: ${paper.year}`}
+                              {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                            </div>
+                            {paper.file_path && (
+                              <div className="text-xs text-cyan-400/40 font-mono">
+                                FILE: {paper.file_path}
+                              </div>
+                            )}
+                            {!paper.file_path && (
+                              <div className="text-xs text-red-400/70 font-mono">
+                                ⚠️ FILE_PATH MISSING
+                              </div>
+                            )}
                           </div>
                           <div className="flex space-x-2">
                             <motion.button
-                              onClick={() => setPreviewModal({
-                                isOpen: true,
-                                fileName: paper.file_name,
-                                filePath: paper.file_path || '',
-                                paperId: paper.id
-                              })}
-                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
-                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
-                              whileTap={{ scale: 0.95 }}
+                              onClick={() => {
+                                if (!paper.file_name) {
+                                  showMessage('error', 'File name is missing for this paper');
+                                  return;
+                                }
+                                setPreviewModal({
+                                  isOpen: true,
+                                  fileName: paper.file_name,
+                                  filePath: paper.file_path || '',
+                                  paperId: paper.id
+                                });
+                              }}
+                              disabled={!paper.file_name}
+                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              whileHover={{ scale: paper.file_name ? 1.05 : 1, boxShadow: paper.file_name ? '0 0 15px rgba(6, 182, 212, 0.5)' : 'none' }}
+                              whileTap={{ scale: paper.file_name ? 0.95 : 1 }}
                             >
                               <Eye size={18} />
                               <span>VIEW</span>
@@ -805,21 +897,40 @@ const AdminDashboard: React.FC = () => {
                         )}
 
                         <div className="flex items-center justify-between pt-4 border-t border-blue-500/20">
-                          <div className="text-sm text-blue-400/50 font-mono">
-                            {paper.year && `YEAR: ${paper.year}`}
-                            {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                          <div className="flex flex-col gap-1">
+                            <div className="text-sm text-blue-400/50 font-mono">
+                              {paper.year && `YEAR: ${paper.year}`}
+                              {paper.semester && ` | SEMESTER: ${paper.semester}`}
+                            </div>
+                            {paper.file_path && (
+                              <div className="text-xs text-blue-400/40 font-mono">
+                                FILE: {paper.file_path}
+                              </div>
+                            )}
+                            {!paper.file_path && (
+                              <div className="text-xs text-red-400/70 font-mono">
+                                ⚠️ FILE_PATH MISSING
+                              </div>
+                            )}
                           </div>
                           <div className="flex space-x-2">
                             <motion.button
-                              onClick={() => setPreviewModal({
-                                isOpen: true,
-                                fileName: paper.file_name,
-                                filePath: paper.file_path || '',
-                                paperId: paper.id
-                              })}
-                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
-                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
-                              whileTap={{ scale: 0.95 }}
+                              onClick={() => {
+                                if (!paper.file_name) {
+                                  showMessage('error', 'File name is missing for this paper');
+                                  return;
+                                }
+                                setPreviewModal({
+                                  isOpen: true,
+                                  fileName: paper.file_name,
+                                  filePath: paper.file_path || '',
+                                  paperId: paper.id
+                                });
+                              }}
+                              disabled={!paper.file_name}
+                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              whileHover={{ scale: paper.file_name ? 1.05 : 1, boxShadow: paper.file_name ? '0 0 15px rgba(6, 182, 212, 0.5)' : 'none' }}
+                              whileTap={{ scale: paper.file_name ? 0.95 : 1 }}
                             >
                               <Eye size={18} />
                               <span>VIEW</span>
