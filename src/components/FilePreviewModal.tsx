@@ -31,7 +31,13 @@ const getImageUrl = (filePath: string | undefined): string => {
   }
   
   // Construct URL
-  return `${API_BASE_URL}/uploads/${fileName}`;
+  // Encode each path segment to handle spaces, parentheses, etc.
+  const encoded = fileName
+    .split('/')
+    .filter(Boolean)
+    .map(seg => encodeURIComponent(seg))
+    .join('/');
+  return `${API_BASE_URL}/uploads/${encoded}`;
 };
 
 // Helper to get preview URL using download endpoint
