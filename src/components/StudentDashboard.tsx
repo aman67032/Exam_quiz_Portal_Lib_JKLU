@@ -199,7 +199,12 @@ const StudentDashboard: React.FC = () => {
       link.remove();
       showToast('File downloaded successfully!', 'success');
     } catch (error: any) {
-      showToast('Failed to download file', 'error');
+      console.error('Download error:', error);
+      const errorMessage = error?.response?.data?.detail || 
+                          error?.response?.data?.message || 
+                          error?.message || 
+                          'Failed to download file. The file may not exist on the server.';
+      showToast(errorMessage, 'error');
     }
   };
 

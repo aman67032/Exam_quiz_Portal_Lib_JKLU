@@ -36,6 +36,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [previewLoading, setPreviewLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [retryKey, setRetryKey] = useState(0); // Force reload on retry
+  const [errorMessage, setErrorMessage] = useState<string>(''); // Store specific error message
   const pdfUrlRef = useRef<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const [toast, setToast] = useState({ 
@@ -84,6 +85,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       if (!isOpen) {
         setPreviewError(false);
         setPreviewLoading(true);
+        setErrorMessage('');
         cleanupBlobUrl();
       }
       return;
@@ -129,7 +131,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ detail: 'Failed to load PDF' }));
-          throw new Error(errorData.detail || `Failed to load PDF (${response.status})`);
+          const errorMsg = errorData.detail || `Failed to load PDF (${response.status})`;
+          setErrorMessage(errorMsg);
+          throw new Error(errorMsg);
         }
 
         const blob = await response.blob();
@@ -151,8 +155,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
         console.error('PDF preview error:', error);
         setPreviewError(true);
         setPreviewLoading(false);
-        const errorMessage = error?.message || 'Failed to load PDF preview. Please download to view.';
-        showToast(errorMessage, 'error');
+        const errorMsg = error?.message || 'Failed to load PDF preview. Please download to view.';
+        setErrorMessage(errorMsg);
+        showToast(errorMsg, 'error');
       }
     };
 
@@ -177,11 +182,12 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     } catch (error: any) {
       console.error('Download error:', error);
       // Extract error message from API response
-      const errorMessage = error?.response?.data?.detail || 
+      const errorMsg = error?.response?.data?.detail || 
                          error?.response?.data?.message || 
                          error?.message || 
                          'Failed to download file. The file may not exist on the server.';
-      showToast(errorMessage, 'error');
+      setErrorMessage(errorMsg);
+      showToast(errorMsg, 'error');
       setPreviewError(true);
     }
   };
@@ -244,10 +250,10 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 <div className="text-center p-8">
                   <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
                   <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Preview not available</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    {isPdf 
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">
+                    {errorMessage || (isPdf 
                       ? 'Unable to load PDF preview. The file may not exist on the server or there was an error loading it.'
-                      : 'This file type cannot be previewed in the browser. Please download to view.'}
+                      : 'This file type cannot be previewed in the browser. Please download to view.')}
                   </p>
                   <div className="flex gap-3 justify-center">
                     {isPdf && (
@@ -255,6 +261,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                         onClick={() => {
                           setPreviewError(false);
                           setPreviewLoading(true);
+                          setErrorMessage('');
                           cleanupBlobUrl();
                           // Force reload by incrementing retry key
                           setRetryKey(prev => prev + 1);
@@ -280,8 +287,10 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   className="max-w-full max-h-full object-contain rounded-lg"
                   onError={() => {
                     console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
+                    const errorMsg = 'Failed to load image. This file may have been stored in a previous database and is no longer available.';
+                    setErrorMessage(errorMsg);
                     setPreviewError(true);
-                    showToast('Failed to load image. Please try downloading the file.', 'error');
+                    showToast(errorMsg, 'error');
                   }}
                 />
               ) : isPdf ? (
