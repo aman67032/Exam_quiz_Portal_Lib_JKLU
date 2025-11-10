@@ -4,7 +4,7 @@ import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 import Toast from './Toast';
 import { API } from '../utils/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = API.baseURL;
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
