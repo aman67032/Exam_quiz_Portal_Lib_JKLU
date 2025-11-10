@@ -78,16 +78,29 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     };
   }, [cleanupBlobUrl]);
 
+  // Reset states when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      // Reset states when modal opens
+      setPreviewError(false);
+      setPreviewLoading(true);
+      setErrorMessage('');
+      if (!isPdf) {
+        // For images, loading will be handled by onLoad/onError
+        setPreviewLoading(false);
+      }
+    } else {
+      // Cleanup when modal closes
+      setPreviewError(false);
+      setPreviewLoading(true);
+      setErrorMessage('');
+      cleanupBlobUrl();
+    }
+  }, [isOpen, cleanupBlobUrl, isPdf]);
+
   // Load PDF when modal opens or paperId changes
   useEffect(() => {
     if (!isOpen || !isPdf) {
-      // Reset states when modal closes or not a PDF
-      if (!isOpen) {
-        setPreviewError(false);
-        setPreviewLoading(true);
-        setErrorMessage('');
-        cleanupBlobUrl();
-      }
       return;
     }
 
@@ -281,18 +294,40 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   </div>
                 </div>
               ) : isImage ? (
-                <img
-                  src={getImageUrl(filePath)}
-                  alt={fileName}
-                  className="max-w-full max-h-full object-contain rounded-lg"
-                  onError={() => {
-                    console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
-                    const errorMsg = 'Failed to load image. This file may have been stored in a previous database and is no longer available.';
-                    setErrorMessage(errorMsg);
-                    setPreviewError(true);
-                    showToast(errorMsg, 'error');
-                  }}
-                />
+                previewError ? (
+                  <div className="text-center p-8">
+                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                    <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Image not available</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-md mx-auto">
+                      {errorMessage || 'Failed to load image. This file may have been stored in a previous database and is no longer available.'}
+                    </p>
+                    <button
+                      onClick={handleDownload}
+                      className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Try Download</span>
+                    </button>
+                  </div>
+                ) : (
+                  <img
+                    src={getImageUrl(filePath)}
+                    alt={fileName}
+                    className="max-w-full max-h-full object-contain rounded-lg"
+                    onLoad={() => {
+                      setPreviewLoading(false);
+                      setPreviewError(false);
+                    }}
+                    onError={() => {
+                      console.error('Image load error:', { filePath, url: getImageUrl(filePath) });
+                      const errorMsg = 'Failed to load image. This file may have been stored in a previous database and is no longer available.';
+                      setErrorMessage(errorMsg);
+                      setPreviewError(true);
+                      setPreviewLoading(false);
+                      showToast(errorMsg, 'error');
+                    }}
+                  />
+                )
               ) : isPdf ? (
                 <>
                   {previewLoading ? (
