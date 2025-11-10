@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 import Toast from './Toast';
@@ -59,7 +59,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [previewError, setPreviewError] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [retryKey, setRetryKey] = useState(0); // Force reload on retry
   const pdfUrlRef = useRef<string>('');
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [toast, setToast] = useState({ 
     show: false, 
     message: '', 
@@ -75,65 +77,111 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const isPdf = fileExtension === 'pdf';
   const isDocument = ['doc', 'docx'].includes(fileExtension || '');
 
+  // Cleanup function to revoke blob URLs
+  const cleanupBlobUrl = useCallback(() => {
+    if (pdfUrlRef.current) {
+      try {
+        window.URL.revokeObjectURL(pdfUrlRef.current);
+      } catch (e) {
+        console.warn('Error revoking blob URL:', e);
+      }
+      pdfUrlRef.current = '';
+    }
+    setPdfUrl('');
+  }, []);
+
   // Load PDF preview URL when modal opens
   useEffect(() => {
-    if (isOpen && isPdf && !previewError) {
-      setPreviewLoading(true);
-      let blobUrl: string | null = null;
-      
-      // Create blob URL from download endpoint for PDF preview
-      const loadPdfPreview = async () => {
-        try {
-          const authToken = token || localStorage.getItem('token') || '';
-          const response = await fetch(
-            getPreviewUrl(paperId),
-            {
-              headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-            }
-          );
-
-          if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ detail: 'Failed to load PDF' }));
-            throw new Error(errorData.detail || 'Failed to load PDF');
-          }
-
-          const blob = await response.blob();
-          blobUrl = window.URL.createObjectURL(blob);
-          pdfUrlRef.current = blobUrl;
-          setPdfUrl(blobUrl);
-          setPreviewLoading(false);
-        } catch (error: any) {
-          console.error('PDF preview error:', error);
-          setPreviewError(true);
-          setPreviewLoading(false);
-          const errorMessage = error?.message || 'Failed to load PDF preview. Please download to view.';
-          showToast(errorMessage, 'error');
-        }
-      };
-
-      loadPdfPreview();
-
-      // Cleanup blob URL on unmount or when dependencies change
-      return () => {
-        if (blobUrl) {
-          window.URL.revokeObjectURL(blobUrl);
-        }
-        if (pdfUrlRef.current) {
-          window.URL.revokeObjectURL(pdfUrlRef.current);
-          pdfUrlRef.current = '';
-        }
-      };
-    } else if (!isOpen) {
-      // Reset states when modal closes
-      setPreviewError(false);
-      setPreviewLoading(true);
-      if (pdfUrlRef.current) {
-        window.URL.revokeObjectURL(pdfUrlRef.current);
-        pdfUrlRef.current = '';
+    // Cleanup on unmount
+    return () => {
+      cleanupBlobUrl();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-      setPdfUrl('');
+    };
+  }, [cleanupBlobUrl]);
+
+  // Load PDF when modal opens or paperId changes
+  useEffect(() => {
+    if (!isOpen || !isPdf) {
+      // Reset states when modal closes or not a PDF
+      if (!isOpen) {
+        setPreviewError(false);
+        setPreviewLoading(true);
+        cleanupBlobUrl();
+      }
+      return;
     }
-  }, [isOpen, isPdf, paperId, token]);
+
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
+    setPreviewLoading(true);
+    setPreviewError(false);
+    
+    // Cleanup previous blob URL if exists
+    cleanupBlobUrl();
+    
+    // Create blob URL from download endpoint for PDF preview
+    const loadPdfPreview = async () => {
+      try {
+        const authToken = token || localStorage.getItem('token') || '';
+        
+        // Check if token is still valid (basic check)
+        if (!authToken && paperId) {
+          // For pending papers, token is required
+          throw new Error('Authentication required to view this file');
+        }
+
+        const response = await fetch(
+          getPreviewUrl(paperId),
+          {
+            headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+            signal // Add abort signal
+          }
+        );
+
+        if (signal.aborted) {
+          return; // Request was cancelled
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ detail: 'Failed to load PDF' }));
+          throw new Error(errorData.detail || `Failed to load PDF (${response.status})`);
+        }
+
+        const blob = await response.blob();
+        
+        if (signal.aborted) {
+          return; // Request was cancelled after blob received
+        }
+
+        // Create blob URL
+        const blobUrl = window.URL.createObjectURL(blob);
+        pdfUrlRef.current = blobUrl;
+        setPdfUrl(blobUrl);
+        setPreviewLoading(false);
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          // Request was cancelled, don't show error
+          return;
+        }
+        console.error('PDF preview error:', error);
+        setPreviewError(true);
+        setPreviewLoading(false);
+        const errorMessage = error?.message || 'Failed to load PDF preview. Please download to view.';
+        showToast(errorMessage, 'error');
+      }
+    };
+
+    loadPdfPreview();
+  }, [isOpen, isPdf, paperId, token, cleanupBlobUrl, retryKey]);
 
   const handleDownload = async () => {
     try {
@@ -225,13 +273,29 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                       ? 'Unable to load PDF preview. The file may not exist on the server or there was an error loading it.'
                       : 'This file type cannot be previewed in the browser. Please download to view.'}
                   </p>
-                  <button
-                    onClick={handleDownload}
-                    className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download File</span>
-                  </button>
+                  <div className="flex gap-3 justify-center">
+                    {isPdf && (
+                      <button
+                        onClick={() => {
+                          setPreviewError(false);
+                          setPreviewLoading(true);
+                          cleanupBlobUrl();
+                          // Force reload by incrementing retry key
+                          setRetryKey(prev => prev + 1);
+                        }}
+                        className="mt-4 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center space-x-2"
+                      >
+                        <span>Retry Preview</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={handleDownload}
+                      className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download File</span>
+                    </button>
+                  </div>
                 </div>
               ) : isImage ? (
                 <img
@@ -257,13 +321,30 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     </div>
                   ) : pdfUrl ? (
                     <iframe
+                      key={pdfUrl} // Force re-render when URL changes
                       src={`${pdfUrl}#toolbar=0`}
                       className="w-full h-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"
                       title={fileName}
+                      onLoad={() => {
+                        // Iframe loaded successfully
+                        setPreviewLoading(false);
+                      }}
                       onError={() => {
                         console.error('PDF iframe load error');
-                        setPreviewError(true);
-                        showToast('Failed to display PDF. Please download to view.', 'error');
+                        // Try to reload after a short delay
+                        setTimeout(() => {
+                          if (pdfUrlRef.current) {
+                            // Blob URL might be invalid, try to reload
+                            const currentUrl = pdfUrlRef.current;
+                            setPdfUrl(''); // Clear to trigger reload
+                            setTimeout(() => {
+                              setPdfUrl(currentUrl);
+                            }, 100);
+                          } else {
+                            setPreviewError(true);
+                            showToast('Failed to display PDF. Please download to view.', 'error');
+                          }
+                        }, 1000);
                       }}
                     />
                   ) : (
