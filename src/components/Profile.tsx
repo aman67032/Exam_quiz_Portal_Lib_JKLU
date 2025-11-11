@@ -1,15 +1,10 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft, Edit2, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import { buildUploadUrl } from '../utils/uploads';
-import MathPhysicsBackground from './MathPhysicsBackground';
-import Squares from './square_bg';
-
-// Lazy load heavy background component
-const ColorBends = lazy(() => import('./color_band_bg'));
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -230,59 +225,47 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
-      {/* Animated Background Layers */}
+      {/* Custom Profile Page Background */}
       <div className="fixed inset-0 z-[1] pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
-        {/* ColorBends WebGL Background */}
-        <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />}>
-          <ColorBends
-            colors={["#a855f7", "#ec4899", "#06b6d4", "#8b5cf6"]}
-            rotation={25}
-            speed={0.2}
-            scale={1.3}
-            frequency={1.3}
-            warpStrength={1.1}
-            mouseInfluence={0.7}
-            parallax={0.5}
-            noise={0.05}
-            transparent={true}
-            style={{ width: '100%', height: '100%', display: 'block' }}
-          />
-        </Suspense>
+        {/* Base Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-purple-50/40 to-indigo-50/60 dark:from-slate-950 dark:via-purple-950/30 dark:to-indigo-950/40" />
         
-        {/* Math/Physics Background Overlay */}
-        <div className="absolute inset-0 opacity-15 dark:opacity-8">
-          <MathPhysicsBackground />
+        {/* Geometric Pattern Overlay */}
+        <div 
+          className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
+          style={{
+            backgroundImage: `
+              linear-gradient(30deg, transparent 24%, rgba(168, 85, 247, 0.5) 25%, rgba(168, 85, 247, 0.5) 26%, transparent 27%, transparent 74%, rgba(139, 92, 246, 0.5) 75%, rgba(139, 92, 246, 0.5) 76%, transparent 77%, transparent),
+              linear-gradient(60deg, transparent 24%, rgba(99, 102, 241, 0.5) 25%, rgba(99, 102, 241, 0.5) 26%, transparent 27%, transparent 74%, rgba(79, 70, 229, 0.5) 75%, rgba(79, 70, 229, 0.5) 76%, transparent 77%, transparent)
+            `,
+            backgroundSize: '60px 60px'
+          }}
+        />
+        
+        {/* Subtle Circles Pattern */}
+        <div className="absolute inset-0 opacity-10 dark:opacity-5">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300/30 dark:bg-purple-600/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-300/30 dark:bg-indigo-600/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-200/20 dark:bg-purple-800/10 rounded-full blur-3xl" />
         </div>
         
-        {/* Animated Square Grid - Light Theme */}
-        <div className="absolute inset-0 opacity-40 pointer-events-none dark:hidden">
-          <Squares
-            speed={0.5}
-            squareSize={50}
-            borderColor={'rgba(168, 85, 247, 0.25)'}
-            hoverFillColor={'rgba(168, 85, 247, 0.08)'}
-            direction="diagonal"
-          />
-        </div>
+        {/* Subtle Grid Lines */}
+        <div 
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.03]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(168, 85, 247, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(168, 85, 247, 0.1) 1px, transparent 1px)
+            `,
+            backgroundSize: '50px 50px'
+          }}
+        />
         
-        {/* Animated Square Grid - Dark Theme */}
-        <div className="hidden dark:block absolute inset-0 opacity-25 pointer-events-none">
-          <Squares
-            speed={0.5}
-            squareSize={50}
-            borderColor={'rgba(168, 85, 247, 0.3)'}
-            hoverFillColor={'rgba(168, 85, 247, 0.1)'}
-            direction="diagonal"
-          />
-        </div>
+        {/* Top Accent Gradient */}
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-purple-100/20 via-transparent to-transparent dark:from-purple-900/10" />
         
-        {/* Gradient Overlay for Readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-purple-50/10 to-cyan-50/20 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50" />
-        
-        {/* Animated Gradient Orbs */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        {/* Bottom Accent Gradient */}
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-indigo-100/20 via-transparent to-transparent dark:from-indigo-900/10" />
       </div>
 
       {/* Content Layer */}
@@ -523,7 +506,7 @@ const Profile: React.FC = () => {
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
+                        <label className="block text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
                           Age <span className="text-red-500">*</span>
                         </label>
                         <input 
@@ -533,10 +516,10 @@ const Profile: React.FC = () => {
                           min={15} 
                           max={80} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.age 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         {errors.age && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.age}</p>}
@@ -549,10 +532,10 @@ const Profile: React.FC = () => {
                           value={extra.year} 
                           onChange={(e)=>setExtra({...extra, year: e.target.value})} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md appearance-none cursor-pointer ${
                             errors.year 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         >
                           <option value="">Select Year</option>
@@ -572,10 +555,10 @@ const Profile: React.FC = () => {
                           value={extra.university} 
                           onChange={(e)=>setExtra({...extra, university: e.target.value})} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.university 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         {errors.university && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.university}</p>}
@@ -588,10 +571,10 @@ const Profile: React.FC = () => {
                           value={extra.department} 
                           onChange={(e)=>setExtra({...extra, department: e.target.value})} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.department 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         {errors.department && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.department}</p>}
@@ -604,10 +587,10 @@ const Profile: React.FC = () => {
                           value={extra.rollno} 
                           onChange={(e)=>setExtra({...extra, rollno: e.target.value})} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.rollno 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         {errors.rollno && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.rollno}</p>}
@@ -620,10 +603,10 @@ const Profile: React.FC = () => {
                           value={extra.studentId} 
                           onChange={(e)=>setExtra({...extra, studentId: e.target.value})} 
                           required
-                          className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.studentId 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                              : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
+                              : 'border-gray-300 dark:border-gray-600'
                           }`}
                         />
                         {errors.studentId && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.studentId}</p>}
@@ -948,17 +931,17 @@ const Profile: React.FC = () => {
                 type="file"
                 accept="image/*,application/pdf"
                 onChange={(e) => setIdFile(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all"
+                className="w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 dark:file:bg-purple-900/30 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900/50"
               />
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">Profile Photo</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Profile Photo</label>
                 <input 
                   type="file" 
                   accept="image/*" 
                   onChange={(e)=>setPhotoFile(e.target.files?.[0] || null)} 
-                  className="w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all" 
+                  className="w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 dark:file:bg-purple-900/30 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900/50" 
                 />
               </div>
               <div>
