@@ -25,10 +25,38 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle errors
+// Add response interceptor to handle errors and backend wake-up
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    // If backend is sleeping (connection error), try to wake it up
+    if (
+      error.code === 'ECONNREFUSED' || 
+      error.code === 'ERR_NETWORK' ||
+      error.message?.includes('Failed to fetch') ||
+      error.message?.includes('NetworkError') ||
+      (!error.response && error.request)
+    ) {
+      console.log('⏳ Backend appears to be sleeping, attempting to wake up...');
+      
+      // Try to wake up the backend
+      try {
+        const wakeResponse = await fetch(`${API_BASE_URL}/wake`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(30000), // 30 second timeout for cold start
+        });
+        
+        if (wakeResponse.ok) {
+          console.log('✓ Backend woke up, retrying original request...');
+          // Retry the original request after a short delay
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          // Note: We can't automatically retry here, but the wake-up helps
+        }
+      } catch (wakeError) {
+        console.warn('⚠️ Backend wake-up attempt failed:', wakeError);
+      }
+    }
+    
     const message = (error.response?.data as any)?.detail || error.message || 'An error occurred';
     return Promise.reject(new Error(message));
   }

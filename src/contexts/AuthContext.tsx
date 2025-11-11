@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
 import { buildUploadUrl } from '../utils/uploads';
+import { wakeUpBackend } from '../utils/keepAlive';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -43,13 +44,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Verify token and get user info
-      axios.get(`${API_BASE_URL}/me`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(response => {
+    const initializeAuth = async () => {
+      // First, wake up backend if it's sleeping
+      await wakeUpBackend();
+      
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Verify token and get user info
+        try {
+          const response = await axios.get(`${API_BASE_URL}/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 30000 // 30 second timeout for cold start
+          });
           setUser(response.data);
           const photoUrl = buildUploadUrl(response.data.photo_path);
           if (photoUrl) {
@@ -57,16 +63,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else {
             localStorage.removeItem('profile.photo');
           }
-        })
-        .catch(() => {
-          localStorage.removeItem('token');
-        })
-        .finally(() => {
+        } catch (error: any) {
+          // If backend is still waking up, wait a bit and retry once
+          if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
+            console.log('⏳ Backend is waking up, waiting...');
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            try {
+              const retryResponse = await axios.get(`${API_BASE_URL}/me`, {
+                headers: { Authorization: `Bearer ${token}` },
+                timeout: 30000
+              });
+              setUser(retryResponse.data);
+              const photoUrl = buildUploadUrl(retryResponse.data.photo_path);
+              if (photoUrl) {
+                localStorage.setItem('profile.photo', photoUrl);
+              } else {
+                localStorage.removeItem('profile.photo');
+              }
+            } catch (retryError) {
+              localStorage.removeItem('token');
+            }
+          } else {
+            localStorage.removeItem('token');
+          }
+        } finally {
           setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (email: string, password: string, otp: string) => {
