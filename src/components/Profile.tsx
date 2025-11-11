@@ -1,10 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft, Edit2, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import { buildUploadUrl } from '../utils/uploads';
+import MathPhysicsBackground from './MathPhysicsBackground';
+import Squares from './square_bg';
+
+// Lazy load heavy background component
+const ColorBends = lazy(() => import('./color_band_bg'));
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -224,15 +229,72 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-cyan-50/20 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.show}
-        onClose={() => setToast({ ...toast, show: false })}
-      />
+    <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* Animated Background Layers */}
+      <div className="fixed inset-0 z-[1] pointer-events-none" style={{ width: '100vw', height: '100vh' }}>
+        {/* ColorBends WebGL Background */}
+        <Suspense fallback={<div className="w-full h-full bg-gradient-to-br from-purple-50 via-pink-50 to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900" />}>
+          <ColorBends
+            colors={["#a855f7", "#ec4899", "#06b6d4", "#8b5cf6"]}
+            rotation={25}
+            speed={0.2}
+            scale={1.3}
+            frequency={1.3}
+            warpStrength={1.1}
+            mouseInfluence={0.7}
+            parallax={0.5}
+            noise={0.05}
+            transparent={true}
+            style={{ width: '100%', height: '100%', display: 'block' }}
+          />
+        </Suspense>
+        
+        {/* Math/Physics Background Overlay */}
+        <div className="absolute inset-0 opacity-15 dark:opacity-8">
+          <MathPhysicsBackground />
+        </div>
+        
+        {/* Animated Square Grid - Light Theme */}
+        <div className="absolute inset-0 opacity-40 pointer-events-none dark:hidden">
+          <Squares
+            speed={0.5}
+            squareSize={50}
+            borderColor={'rgba(168, 85, 247, 0.25)'}
+            hoverFillColor={'rgba(168, 85, 247, 0.08)'}
+            direction="diagonal"
+          />
+        </div>
+        
+        {/* Animated Square Grid - Dark Theme */}
+        <div className="hidden dark:block absolute inset-0 opacity-25 pointer-events-none">
+          <Squares
+            speed={0.5}
+            squareSize={50}
+            borderColor={'rgba(168, 85, 247, 0.3)'}
+            hoverFillColor={'rgba(168, 85, 247, 0.1)'}
+            direction="diagonal"
+          />
+        </div>
+        
+        {/* Gradient Overlay for Readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-purple-50/10 to-cyan-50/20 dark:from-gray-900/50 dark:via-gray-800/30 dark:to-gray-900/50" />
+        
+        {/* Animated Gradient Orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      </div>
 
-      <header className="sticky top-0 z-10 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/40 shadow-sm">
+      {/* Content Layer */}
+      <div className="relative z-10 min-h-screen">
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={toast.show}
+          onClose={() => setToast({ ...toast, show: false })}
+        />
+
+        <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/30 dark:border-gray-700/50 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
@@ -260,7 +322,7 @@ const Profile: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+        <main className="max-w-6xl mx-auto px-4 py-8">
         {loading ? (
           <motion.div 
             initial={{ opacity: 0 }}
@@ -290,7 +352,7 @@ const Profile: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300"
+                className="backdrop-blur-2xl bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-2xl p-6 hover:shadow-purple-500/20 hover:scale-[1.01] transition-all duration-300"
               >
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                   <motion.div
@@ -329,7 +391,7 @@ const Profile: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300"
+                className="backdrop-blur-2xl bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-2xl p-6 hover:shadow-purple-500/20 hover:scale-[1.01] transition-all duration-300"
               >
                 <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                   <motion.div
@@ -760,7 +822,7 @@ const Profile: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300"
+              className="backdrop-blur-2xl bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-2xl p-6 hover:shadow-purple-500/20 hover:scale-[1.01] transition-all duration-300"
             >
               <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                 <motion.div
@@ -867,7 +929,7 @@ const Profile: React.FC = () => {
             onSubmit={handleSave} 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 space-y-4 hover:shadow-2xl transition-shadow duration-300"
+            className="backdrop-blur-2xl bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-2xl p-6 space-y-4 hover:shadow-purple-500/20 hover:scale-[1.01] transition-all duration-300"
           >
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <motion.div
@@ -1024,7 +1086,8 @@ const Profile: React.FC = () => {
           </motion.form>
           </motion.div>
         ) : null}
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
