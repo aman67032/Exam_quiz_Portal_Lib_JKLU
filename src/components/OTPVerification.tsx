@@ -43,7 +43,7 @@ const OTPVerification: React.FC = () => {
 
       const token = response.data.access_token;
       localStorage.setItem('token', token);
-      window.location.href = '/dashboard';
+      window.location.href = '/home';
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to verify OTP');
     } finally {

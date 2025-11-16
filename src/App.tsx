@@ -17,6 +17,7 @@ const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 const Profile = lazy(() => import('./components/Profile'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const PublicHome = lazy(() => import('./components/PublicHome'));
 
 // Loading fallback component with backend wake-up message
 const LoadingFallback = () => {
@@ -136,6 +137,16 @@ function AppContent() {
               element={
                 user && !user.is_admin ? (
                   <StudentDashboard />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            <Route
+              path="/home"
+              element={
+                user && !user.is_admin ? (
+                  <PublicHome />
                 ) : (
                   <Navigate to="/" replace />
                 )

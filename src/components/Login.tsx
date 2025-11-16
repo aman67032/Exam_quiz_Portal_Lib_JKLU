@@ -29,7 +29,7 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
