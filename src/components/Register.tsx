@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, Eye, EyeOff, Shield } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import MathPhysicsBackground from './MathPhysicsBackground';
 
@@ -10,19 +10,22 @@ const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [otp, setOtp] = useState('');
-  const [step, setStep] = useState<'form' | 'otp'>('form');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
 
-  const { register, verifyRegistrationOTP } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate email domain
+    if (!email.endsWith('@jklu.edu.in')) {
+      setError('Only @jklu.edu.in email addresses are allowed');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -38,35 +41,12 @@ const Register: React.FC = () => {
 
     try {
       await register(email, name, password, confirmPassword);
-      setSuccess(true);
-      setStep('otp');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Registration failed. Email may already be in use.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      await verifyRegistrationOTP(email, otp);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.message || 'OTP verification failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBackToForm = () => {
-    setStep('form');
-    setOtp('');
-    setSuccess(false);
-    setError('');
   };
 
   return (
@@ -86,17 +66,14 @@ const Register: React.FC = () => {
             className="text-center mb-8"
           >
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {step === 'form' ? 'Create Account' : 'Verify Email'}
+              Create Account
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {step === 'form' 
-                ? 'Join Paper Portal to start submitting papers' 
-                : 'Enter the OTP sent to your email to complete registration'}
+              Join Paper Portal to start submitting papers
             </p>
           </motion.div>
 
-          {step === 'form' ? (
-            <form onSubmit={handleRegister} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -133,7 +110,7 @@ const Register: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="input-field pl-10"
-                    placeholder="Enter your email"
+                    placeholder="example@jklu.edu.in"
                     required
                   />
                 </div>
@@ -212,89 +189,10 @@ const Register: React.FC = () => {
                     className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto"
                   />
                 ) : (
-                  'Verify Email'
+                  'Create Account'
                 )}
               </motion.button>
             </form>
-          ) : (
-            <form onSubmit={handleVerifyOTP} className="space-y-6">
-              {success && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3"
-                >
-                  <p className="text-green-600 dark:text-green-400 text-sm">
-                    OTP sent to {email}. Please check your email.
-                  </p>
-                </motion.div>
-              )}
-
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Enter OTP
-                </label>
-                <div className="relative">
-                  <Shield className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="input-field pl-10 text-center text-2xl tracking-widest font-mono"
-                    placeholder="000000"
-                    maxLength={6}
-                    required
-                  />
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  OTP sent to {email}
-                </p>
-              </motion.div>
-
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3"
-                >
-                  <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-                </motion.div>
-              )}
-
-              <div className="flex gap-3">
-                <motion.button
-                  type="button"
-                  onClick={handleBackToForm}
-                  className="flex-1 btn-secondary"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  Back
-                </motion.button>
-                <motion.button
-                  type="submit"
-                  disabled={loading || otp.length !== 6}
-                  className="flex-1 btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {loading ? (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full mx-auto"
-                    />
-                  ) : (
-                    'Complete Registration'
-                  )}
-                </motion.button>
-              </div>
-            </form>
-          )}
 
           <motion.div
             initial={{ opacity: 0 }}
@@ -303,27 +201,13 @@ const Register: React.FC = () => {
             className="mt-6 text-center"
           >
             <p className="text-gray-600 dark:text-gray-400">
-              {step === 'form' ? (
-                <>
-                  Already have an account?{' '}
-                  <Link
-                    to="/login"
-                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                  >
-                    Sign in
-                  </Link>
-                </>
-              ) : (
-                <>
-                  Didn't receive OTP?{' '}
-                  <button
-                    onClick={handleBackToForm}
-                    className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
-                  >
-                    Register again
-                  </button>
-                </>
-              )}
+              Already have an account?{' '}
+              <Link
+                to="/login"
+                className="text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
+              >
+                Sign in
+              </Link>
             </p>
           </motion.div>
         </div>

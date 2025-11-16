@@ -14,13 +14,8 @@ type Me = {
   email: string;
   is_admin: boolean;
   created_at?: string;
-  age?: number;
-  year?: string;
-  university?: string;
-  department?: string;
   roll_no?: string;
   student_id?: string;
-  photo_path?: string;
   id_card_path?: string;
   id_verified?: boolean;
 };
@@ -30,13 +25,8 @@ const Profile: React.FC = () => {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [idFile, setIdFile] = useState<File | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [extra, setExtra] = useState({
-    age: '',
-    year: '',
-    university: '',
-    department: '',
     rollno: '',
     studentId: ''
   });
@@ -54,19 +44,7 @@ const Profile: React.FC = () => {
         });
         const data = res.data as any;
         setMe(data);
-        const photoUrl = buildUploadUrl(data.photo_path);
-        if (photoUrl) {
-          localStorage.setItem('profile.photo', photoUrl);
-          localStorage.removeItem('profile.photo.path');
-        } else {
-          localStorage.removeItem('profile.photo');
-          localStorage.removeItem('profile.photo.path');
-        }
         setExtra({
-          age: data.age ? String(data.age) : '',
-          year: data.year || '',
-          university: data.university || '',
-          department: data.department || '',
           rollno: data.roll_no || '',
           studentId: data.student_id || ''
         });
@@ -84,24 +62,6 @@ const Profile: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
-    if (!extra.age || extra.age.trim() === '') {
-      newErrors.age = 'Age is required';
-    } else if (Number(extra.age) < 15 || Number(extra.age) > 80) {
-      newErrors.age = 'Age must be between 15 and 80';
-    }
-    
-    if (!extra.year || extra.year.trim() === '') {
-      newErrors.year = 'Year is required';
-    }
-    
-    if (!extra.university || extra.university.trim() === '') {
-      newErrors.university = 'University is required';
-    }
-    
-    if (!extra.department || extra.department.trim() === '') {
-      newErrors.department = 'Department is required';
-    }
     
     if (!extra.rollno || extra.rollno.trim() === '') {
       newErrors.rollno = 'Roll Number is required';
@@ -127,66 +87,36 @@ const Profile: React.FC = () => {
     // Save profile to backend
     setSaving(true);
     try {
+      let updated: any = null;
+      
       await axios.put(`${API_BASE_URL}/profile`, {
-        age: extra.age ? Number(extra.age) : undefined,
-        year: extra.year || undefined,
-        university: extra.university || undefined,
-        department: extra.department || undefined,
         roll_no: extra.rollno || undefined,
         student_id: extra.studentId || undefined,
       }, { headers: { Authorization: `Bearer ${token}` }});
 
-      if (photoFile) {
-        const fd = new FormData();
-        fd.append('file', photoFile);
-        await axios.post(`${API_BASE_URL}/profile/photo`, fd, { headers: { Authorization: `Bearer ${token}` }});
-      }
-
-      let updated: any = null;
       if (idFile) {
         const fd = new FormData();
         fd.append('file', idFile);
         const res = await axios.post(`${API_BASE_URL}/profile/id-card`, fd, { headers: { Authorization: `Bearer ${token}` }});
         updated = res.data;
-      }
-      
-      if (photoFile) {
-        // If we uploaded a photo, fetch updated profile
-        const res = await axios.get(`${API_BASE_URL}/me`, { headers: { Authorization: `Bearer ${token}` }});
-        updated = res.data;
-      } else if (!idFile) {
-        // If no files uploaded, just refresh
+      } else {
+        // If no file uploaded, just refresh
         const res = await axios.get(`${API_BASE_URL}/me`, { headers: { Authorization: `Bearer ${token}` }});
         updated = res.data;
       }
 
       // Sync local flags for compatibility
       localStorage.setItem('idVerified', updated.id_verified ? 'yes' : 'no');
-      if (updated.photo_path) {
-        const photoUrl = buildUploadUrl(updated.photo_path);
-        if (photoUrl) {
-          localStorage.setItem('profile.photo', photoUrl);
-          localStorage.removeItem('profile.photo.path');
-        }
-      } else {
-        localStorage.removeItem('profile.photo');
-        localStorage.removeItem('profile.photo.path');
-      }
 
       // Refresh profile data
       setMe(updated);
       setExtra({
-        age: updated.age ? String(updated.age) : '',
-        year: updated.year || '',
-        university: updated.university || '',
-        department: updated.department || '',
         rollno: updated.roll_no || '',
         studentId: updated.student_id || ''
       });
 
-      // Clear file inputs
+      // Clear file input
       setIdFile(null);
-      setPhotoFile(null);
       
       // Clear errors and exit edit mode
       setErrors({});
@@ -211,16 +141,11 @@ const Profile: React.FC = () => {
     // Reset to original values
     if (me) {
       setExtra({
-        age: me.age ? String(me.age) : '',
-        year: me.year || '',
-        university: me.university || '',
-        department: me.department || '',
         rollno: me.roll_no || '',
         studentId: me.student_id || ''
       });
     }
     setIdFile(null);
-    setPhotoFile(null);
   };
 
   return (
@@ -328,47 +253,8 @@ const Profile: React.FC = () => {
             animate={{ opacity: 1, y: 0 }} 
             className="grid lg:grid-cols-3 gap-6"
           >
-            {/* Left Side - Photo and ID Card */}
+            {/* Left Side - ID Card */}
             <div className="lg:col-span-1 space-y-4">
-              {/* Profile Photo */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="backdrop-blur-2xl bg-white/80 dark:bg-gray-800/80 rounded-2xl border border-white/40 dark:border-gray-700/50 shadow-2xl p-6 hover:shadow-purple-500/20 hover:scale-[1.01] transition-all duration-300"
-              >
-                <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
-                  <motion.div
-                    whileHover={{ scale: 1.2, rotate: 5 }}
-                    className="p-1.5 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg"
-                  >
-                    <User className="h-4 w-4 text-white" />
-                  </motion.div>
-                  <span className="text-gray-800 dark:text-gray-200">Profile Photo</span>
-                </h3>
-                {me.photo_path ? (
-                  <div className="relative">
-                    <img 
-                      src={buildUploadUrl(me.photo_path)} 
-                      alt="Profile" 
-                      className="w-full rounded-xl object-cover shadow-lg ring-2 ring-purple-400/40"
-                      onError={(e) => {
-                        const img = e.currentTarget as HTMLImageElement;
-                        img.style.display = 'none';
-                        console.error('Failed to load profile photo:', { photoPath: me.photo_path, imageUrl: buildUploadUrl(me.photo_path) });
-                      }}
-                      onLoad={() => {
-                        console.log('Profile photo loaded successfully:', buildUploadUrl(me.photo_path));
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-64 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl flex items-center justify-center">
-                    <User className="h-16 w-16 text-gray-400" />
-                  </div>
-                )}
-              </motion.div>
-
               {/* ID Card */}
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
@@ -437,7 +323,7 @@ const Profile: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.1 }}
               className="lg:col-span-2"
             >
               <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
@@ -506,86 +392,13 @@ const Profile: React.FC = () => {
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">
-                          Age <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                          value={extra.age} 
-                          onChange={(e)=>setExtra({...extra, age: e.target.value})} 
-                          type="number" 
-                          min={15} 
-                          max={80} 
-                          required
-                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
-                            errors.age 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
-                              : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                        {errors.age && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.age}</p>}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                          Year <span className="text-red-500">*</span>
-                        </label>
-                        <select 
-                          value={extra.year} 
-                          onChange={(e)=>setExtra({...extra, year: e.target.value})} 
-                          required
-                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md appearance-none cursor-pointer ${
-                            errors.year 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
-                              : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        >
-                          <option value="">Select Year</option>
-                          <option>1st</option>
-                          <option>2nd</option>
-                          <option>3rd</option>
-                          <option>4th</option>
-                          <option>5th</option>
-                        </select>
-                        {errors.year && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.year}</p>}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                          University <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                          value={extra.university} 
-                          onChange={(e)=>setExtra({...extra, university: e.target.value})} 
-                          required
-                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
-                            errors.university 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
-                              : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                        {errors.university && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.university}</p>}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                          Department <span className="text-red-500">*</span>
-                        </label>
-                        <input 
-                          value={extra.department} 
-                          onChange={(e)=>setExtra({...extra, department: e.target.value})} 
-                          required
-                          className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
-                            errors.department 
-                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30' 
-                              : 'border-gray-300 dark:border-gray-600'
-                          }`}
-                        />
-                        {errors.department && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.department}</p>}
-                      </div>
-                      <div>
                         <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
                           Roll Number <span className="text-red-500">*</span>
                         </label>
                         <input 
                           value={extra.rollno} 
                           onChange={(e)=>setExtra({...extra, rollno: e.target.value})} 
+                          placeholder="eg. 20XXBtech/BBA/BDES123"
                           required
                           className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${
                             errors.rollno 
@@ -677,81 +490,13 @@ const Profile: React.FC = () => {
                     </div>
 
                     {/* Academic Information */}
-                    {(extra.age || extra.year || extra.university || extra.department || extra.rollno || extra.studentId) && (
+                    {(extra.rollno || extra.studentId) && (
                       <div>
                         <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
                           <div className="h-1 w-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"></div>
                           Academic Information
                         </h3>
                         <div className="grid md:grid-cols-2 gap-4">
-                          {extra.age && (
-                            <motion.div 
-                              className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl border border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors"
-                              whileHover={{ scale: 1.02, x: 4 }}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.6 }}
-                            >
-                              <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg text-white flex-shrink-0">
-                                <span className="text-xs font-bold">A</span>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Age</p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">{extra.age}</p>
-                              </div>
-                            </motion.div>
-                          )}
-                          {extra.year && (
-                            <motion.div 
-                              className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl border border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors"
-                              whileHover={{ scale: 1.02, x: 4 }}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.7 }}
-                            >
-                              <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg text-white flex-shrink-0">
-                                <span className="text-xs font-bold">Y</span>
-                              </div>
-                              <div>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Year</p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">{extra.year}</p>
-                              </div>
-                            </motion.div>
-                          )}
-                          {extra.university && (
-                            <motion.div 
-                              className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl border border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors md:col-span-2"
-                              whileHover={{ scale: 1.02, x: 4 }}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.8 }}
-                            >
-                              <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg text-white flex-shrink-0">
-                                <span className="text-xs font-bold">U</span>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">University</p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">{extra.university}</p>
-                              </div>
-                            </motion.div>
-                          )}
-                          {extra.department && (
-                            <motion.div 
-                              className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl border border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors md:col-span-2"
-                              whileHover={{ scale: 1.02, x: 4 }}
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.9 }}
-                            >
-                              <div className="h-8 w-8 flex items-center justify-center bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg text-white flex-shrink-0">
-                                <span className="text-xs font-bold">D</span>
-                              </div>
-                              <div className="flex-1">
-                                <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Department</p>
-                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-1">{extra.department}</p>
-                              </div>
-                            </motion.div>
-                          )}
                           {extra.rollno && (
                             <motion.div 
                               className="flex items-center gap-3 p-4 bg-white/50 dark:bg-gray-700/50 rounded-xl border border-cyan-200/50 dark:border-cyan-800/50 hover:border-cyan-400 dark:hover:border-cyan-600 transition-colors"
@@ -820,32 +565,6 @@ const Profile: React.FC = () => {
               </h2>
               <div className="space-y-4 text-sm">
                 <motion.div 
-                  className="flex items-center gap-4"
-                  whileHover={{ scale: 1.05 }}
-                >
-                  {me.photo_path ? (
-                      <motion.img 
-                      src={buildUploadUrl(me.photo_path)} 
-                      alt="avatar" 
-                      className="h-16 w-16 rounded-full object-cover ring-2 ring-purple-400/40 dark:ring-purple-500/40 shadow-lg" 
-                      whileHover={{ scale: 1.1 }}
-                      onError={(e)=>{ 
-                        const img = e.currentTarget as HTMLImageElement;
-                        img.style.display='none';
-                        console.error('Failed to load profile photo (unverified view):', { photoPath: me.photo_path, imageUrl: buildUploadUrl(me.photo_path) });
-                      }} 
-                      onLoad={() => {
-                        console.log('Profile photo loaded successfully (unverified view):', buildUploadUrl(me.photo_path));
-                      }}
-                    />
-                  ) : (
-                    <div className="h-16 w-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 flex items-center justify-center ring-2 ring-purple-400/40 dark:ring-purple-500/40">
-                      <User className="h-8 w-8 text-gray-500 dark:text-gray-400" />
-                    </div>
-                  )}
-                  <div className="text-xs text-gray-600 dark:text-gray-400 font-medium">{me.photo_path ? 'Profile photo' : 'No photo uploaded'}</div>
-                </motion.div>
-                <motion.div 
                   className="flex items-center gap-2 text-gray-800 dark:text-gray-100 p-2 rounded-lg bg-white/50 dark:bg-gray-700/50"
                   whileHover={{ x: 4, scale: 1.02 }}
                 >
@@ -867,30 +586,6 @@ const Profile: React.FC = () => {
                   <span className="font-medium">ID verification: <span className={me.id_verified ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>{me.id_verified ? 'Verified' : 'Not verified'}</span></span>
                 </motion.div>
                 <div className="grid grid-cols-2 gap-3">
-                  <motion.div 
-                    className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">Age:</span> <span className="text-gray-600 dark:text-gray-400">{extra.age || '-'}</span>
-                  </motion.div>
-                  <motion.div 
-                    className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">Year:</span> <span className="text-gray-600 dark:text-gray-400">{extra.year || '-'}</span>
-                  </motion.div>
-                  <motion.div 
-                    className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">University:</span> <span className="text-gray-600 dark:text-gray-400">{extra.university || '-'}</span>
-                  </motion.div>
-                  <motion.div 
-                    className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">Department:</span> <span className="text-gray-600 dark:text-gray-400">{extra.department || '-'}</span>
-                  </motion.div>
                   <motion.div 
                     className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"
                     whileHover={{ scale: 1.05 }}
@@ -936,97 +631,15 @@ const Profile: React.FC = () => {
             </motion.div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-800 dark:text-gray-200">Profile Photo</label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  onChange={(e)=>setPhotoFile(e.target.files?.[0] || null)} 
-                  className="w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 border-gray-300 dark:border-gray-600 rounded-2xl text-gray-900 dark:text-gray-100 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 dark:file:bg-purple-900/30 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900/50" 
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Age <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  value={extra.age} 
-                  onChange={(e)=>setExtra({...extra, age: e.target.value})} 
-                  type="number" 
-                  min={15} 
-                  max={80} 
-                  required
-                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
-                    errors.age 
-                      ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                      : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
-                  }`}
-                />
-                {errors.age && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.age}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Year <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  value={extra.year} 
-                  onChange={(e)=>setExtra({...extra, year: e.target.value})} 
-                  required
-                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
-                    errors.year 
-                      ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                      : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
-                  }`}
-                >
-                  <option value="">Select Year</option>
-                  <option>1st</option>
-                  <option>2nd</option>
-                  <option>3rd</option>
-                  <option>4th</option>
-                  <option>5th</option>
-                </select>
-                {errors.year && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.year}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  University <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  value={extra.university} 
-                  onChange={(e)=>setExtra({...extra, university: e.target.value})} 
-                  required
-                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
-                    errors.university 
-                      ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                      : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
-                  }`}
-                />
-                {errors.university && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.university}</p>}
-              </div>
-              <div>
-                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
-                  Department <span className="text-red-500">*</span>
-                </label>
-                <input 
-                  value={extra.department} 
-                  onChange={(e)=>setExtra({...extra, department: e.target.value})} 
-                  required
-                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
-                    errors.department 
-                      ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
-                      : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
-                  }`}
-                />
-                {errors.department && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.department}</p>}
-              </div>
-              <div>
                 <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">
                   Roll Number <span className="text-red-500">*</span>
                 </label>
                 <input 
                   value={extra.rollno} 
                   onChange={(e)=>setExtra({...extra, rollno: e.target.value})} 
+                  placeholder="eg. 20XXBtech/BBA/BDES123"
                   required
-                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
+                  className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${
                     errors.rollno 
                       ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400' 
                       : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'

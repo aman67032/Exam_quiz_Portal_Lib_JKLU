@@ -67,16 +67,8 @@ export const API = {
   client: apiClient,
   
   // Auth endpoints
-  login: (email: string, password: string, otp: string) => {
-    return apiClient.post('/login', { email, password, otp });
-  },
-
-  sendOTP: (email: string) => {
-    return apiClient.post('/send-otp', { email });
-  },
-
-  verifyOTP: (email: string, otp: string) => {
-    return apiClient.post('/verify-otp', { email, otp });
+  login: (email: string, password: string) => {
+    return apiClient.post('/login', { email, password });
   },
 
   register: (email: string, name: string, password: string, confirmPassword: string) => {
@@ -86,10 +78,6 @@ export const API = {
       password, 
       confirm_password: confirmPassword 
     });
-  },
-
-  verifyRegistrationOTP: (email: string, otp: string) => {
-    return apiClient.post('/register/verify-otp', { email, otp });
   },
 
   adminLogin: (email: string, password: string) => {
@@ -125,22 +113,10 @@ export const API = {
 
   // Profile endpoints
   updateProfile: (data: {
-    age?: number;
-    year?: string;
-    university?: string;
-    department?: string;
     roll_no?: string;
     student_id?: string;
   }) => {
     return apiClient.put('/profile', data);
-  },
-
-  uploadProfilePhoto: (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    return apiClient.post('/profile/photo', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
   },
 
   uploadIdCard: (file: File) => {

@@ -8,6 +8,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { startKeepAlive, stopKeepAlive, wakeUpBackend } from './utils/keepAlive';
 
 // Lazy load heavy components for code splitting
+const LandingPage = lazy(() => import('./components/LandingPage'));
 const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
 const AdminLogin = lazy(() => import('./components/AdminLogin'));
@@ -15,7 +16,6 @@ const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 const Profile = lazy(() => import('./components/Profile'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
-const PublicHome = lazy(() => import('./components/PublicHome'));
 
 // Loading fallback component with backend wake-up message
 const LoadingFallback = () => {
@@ -87,12 +87,23 @@ function AppContent() {
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            <Route path="/" element={<PublicHome />} />
+            {/* Landing page - redirect to dashboard if logged in */}
+            <Route
+              path="/"
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                ) : (
+                  <LandingPage />
+                )
+              }
+            />
+            {/* Auth pages - redirect to dashboard if already logged in */}
             <Route
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
                 ) : (
                   <Login />
                 )
@@ -102,7 +113,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
                 ) : (
                   <Register />
                 )
@@ -112,7 +123,9 @@ function AppContent() {
               path="/admin-login"
               element={
                 user && user.is_admin ? (
-                  <Navigate to="/admin" />
+                  <Navigate to="/admin" replace />
+                ) : user ? (
+                  <Navigate to="/" replace />
                 ) : (
                   <AdminLogin />
                 )
@@ -122,19 +135,20 @@ function AppContent() {
               path="/forgot-password"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} />
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
                 ) : (
                   <ForgotPassword />
                 )
               }
             />
+            {/* Protected routes - redirect to landing page if not logged in */}
             <Route
               path="/dashboard"
               element={
                 user && !user.is_admin ? (
                   <StudentDashboard />
                 ) : (
-                  <Navigate to="/login" />
+                  <Navigate to="/" replace />
                 )
               }
             />
@@ -144,7 +158,7 @@ function AppContent() {
                 user && !user.is_admin ? (
                   <Profile />
                 ) : (
-                  <Navigate to="/login" />
+                  <Navigate to="/" replace />
                 )
               }
             />
@@ -154,7 +168,18 @@ function AppContent() {
                 user && user.is_admin ? (
                   <AdminDashboard />
                 ) : (
-                  <Navigate to="/admin-login" />
+                  <Navigate to="/" replace />
+                )
+              }
+            />
+            {/* Catch all - redirect to landing page */}
+            <Route
+              path="*"
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                ) : (
+                  <Navigate to="/" replace />
                 )
               }
             />

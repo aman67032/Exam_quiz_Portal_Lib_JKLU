@@ -33,6 +33,8 @@ const AdminLogin: React.FC = () => {
 
       const token = response.data.access_token;
       localStorage.setItem('token', token);
+      
+      // Trigger page reload to update auth context
       window.location.href = '/admin';
     } catch (err: any) {
       if (err.response?.status === 403) {
