@@ -5,6 +5,7 @@ import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft, Edit2, X } from 'l
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import { buildUploadUrl } from '../utils/uploads';
+import Loader from './Loader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -232,20 +233,9 @@ const Profile: React.FC = () => {
 
         <main className="max-w-6xl mx-auto px-4 py-8">
         {loading ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-gray-600 dark:text-gray-400 py-12"
-          >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="inline-block mb-4"
-            >
-              <IdCard className="h-8 w-8 text-purple-500 dark:text-purple-400 mx-auto" />
-            </motion.div>
-            <p className="text-lg font-medium">Loading profile...</p>
-          </motion.div>
+          <div className="text-center py-12">
+            <Loader />
+          </div>
         ) : me && me.id_verified ? (
           // Beautiful verified profile view
           <motion.div 

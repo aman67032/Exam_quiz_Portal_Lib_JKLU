@@ -4,6 +4,7 @@ import { X, Download, FileText, Image, AlertCircle } from 'lucide-react';
 import Toast from './Toast';
 import { API } from '../utils/api';
 import { buildUploadUrl } from '../utils/uploads';
+import Loader from './Loader';
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
@@ -332,12 +333,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 <>
                   {previewLoading ? (
                     <div className="text-center p-8">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"
-                      />
-                      <p className="text-gray-600 dark:text-gray-400">Loading PDF preview...</p>
+                      <Loader />
                     </div>
                   ) : pdfUrl ? (
                     <iframe

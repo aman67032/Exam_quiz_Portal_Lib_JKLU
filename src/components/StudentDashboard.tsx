@@ -8,6 +8,7 @@ import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
 import { lazy, Suspense } from 'react';
 import { buildUploadUrl } from '../utils/uploads';
+import Loader from './Loader';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -622,12 +623,7 @@ const StudentDashboard: React.FC = () => {
                   {/* Papers List */}
                   {loading ? (
                     <div className="text-center py-16">
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-16 h-16 border-4 border-purple-200 dark:border-purple-800 border-t-purple-500 dark:border-t-purple-400 rounded-full mx-auto mb-4"
-                      />
-                      <p className="text-gray-600 dark:text-gray-400 font-semibold">Loading papers...</p>
+                      <Loader />
                     </div>
                   ) : papers.length === 0 ? (
                     <div className="text-center py-16">

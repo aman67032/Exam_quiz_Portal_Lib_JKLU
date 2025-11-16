@@ -14,6 +14,7 @@ import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
 import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
+import Loader from './Loader';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -695,11 +696,7 @@ const PublicHome: React.FC = () => {
 
           {loading ? (
             <div className="flex justify-center items-center py-12 sm:py-20">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400 rounded-full"
-              />
+              <Loader />
             </div>
           ) : filteredPapers.length === 0 ? (
             <motion.div

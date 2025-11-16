@@ -6,6 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { startKeepAlive, stopKeepAlive, wakeUpBackend } from './utils/keepAlive';
+import Loader from './components/Loader';
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -32,19 +33,7 @@ const LoadingFallback = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-indigo-50/60 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-        className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full mb-4"
-      />
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="text-gray-600 dark:text-gray-400 text-sm"
-      >
-        Loading...
-      </motion.p>
+      <Loader fullScreen />
       {showWakeMessage && (
         <motion.p
           initial={{ opacity: 0, y: 10 }}
