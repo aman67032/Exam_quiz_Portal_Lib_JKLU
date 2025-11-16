@@ -77,23 +77,23 @@ function AppContent() {
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Landing page - redirect to dashboard if logged in */}
+            {/* Landing page - redirect to home if logged in */}
             <Route
               path="/"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
                 ) : (
                   <LandingPage />
                 )
               }
             />
-            {/* Auth pages - redirect to dashboard if already logged in */}
+            {/* Auth pages - redirect to home if already logged in */}
             <Route
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
                 ) : (
                   <Login />
                 )
@@ -103,7 +103,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
                 ) : (
                   <Register />
                 )
@@ -125,7 +125,7 @@ function AppContent() {
               path="/forgot-password"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
                 ) : (
                   <ForgotPassword />
                 )
@@ -177,7 +177,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/dashboard"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )
