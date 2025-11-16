@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { GraduationCap, BookOpen, Shield, ArrowRight, Upload } from 'lucide-react';
+import { BookOpen, Shield, ArrowRight, Upload } from 'lucide-react';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import logoImg from '../assets/logo (2).png';
 

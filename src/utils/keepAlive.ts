@@ -5,7 +5,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
-let keepAliveInterval: number | null = null;
+let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 let isActive = false;
 
 /**
