@@ -168,7 +168,7 @@ function AppContent() {
                 user && user.is_admin ? (
                   <AdminDashboard />
                 ) : (
-                  <Navigate to="/" replace />
+                  <Navigate to="/admin-login" replace />
                 )
               }
             />
