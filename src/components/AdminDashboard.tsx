@@ -113,6 +113,20 @@ const AdminDashboard: React.FC = () => {
     semester: ''
   });
 
+  // Rejection feedback modal state
+  const [rejectionModal, setRejectionModal] = useState({
+    isOpen: false,
+    paperId: 0,
+    feedback: ''
+  });
+
+  // Profile rejection feedback modal state
+  const [profileRejectionModal, setProfileRejectionModal] = useState({
+    isOpen: false,
+    userId: 0,
+    feedback: ''
+  });
+
   const token = localStorage.getItem('token');
 
   // Matrix rain animation
@@ -229,16 +243,29 @@ const AdminDashboard: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperFilters, activeTab, token]);
 
-  const reviewPaper = async (paperId: number, status: string, reason?: string) => {
+  const reviewPaper = async (paperId: number, status: string, reason?: string, adminFeedback?: { message: string }) => {
     try {
-      await axios.patch(`${API_BASE_URL}/papers/${paperId}/review`, {
-        status,
-        rejection_reason: reason
-      }, {
+      const payload: any = { status };
+      
+      if (status === 'rejected') {
+        if (adminFeedback) {
+          payload.admin_feedback = adminFeedback;
+        } else if (reason) {
+          // Convert old reason to new JSON format
+          payload.admin_feedback = { message: reason };
+        }
+        // Keep rejection_reason for backward compatibility
+        if (reason) {
+          payload.rejection_reason = reason;
+        }
+      }
+
+      await axios.patch(`${API_BASE_URL}/papers/${paperId}/review`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       showMessage('success', `Paper ${status} successfully`);
+      setRejectionModal({ isOpen: false, paperId: 0, feedback: '' });
       fetchDashboardData();
       if (activeTab === 'all-papers') {
         fetchAllPapers();
@@ -246,6 +273,18 @@ const AdminDashboard: React.FC = () => {
     } catch (err) {
       showMessage('error', 'Failed to review paper');
     }
+  };
+
+  const handleRejectPaper = (paperId: number) => {
+    setRejectionModal({ isOpen: true, paperId, feedback: '' });
+  };
+
+  const submitRejection = () => {
+    if (!rejectionModal.feedback.trim()) {
+      showMessage('error', 'Please provide feedback for rejection');
+      return;
+    }
+    reviewPaper(rejectionModal.paperId, 'rejected', rejectionModal.feedback, { message: rejectionModal.feedback });
   };
 
   const openEditModal = (paper: Paper) => {
@@ -328,21 +367,44 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const verifyUser = async (userId: number, approve: boolean, reason?: string) => {
+  const verifyUser = async (userId: number, approve: boolean, reason?: string, adminFeedback?: { message: string }) => {
     try {
-      await axios.post(`${API_BASE_URL}/admin/verify-user/${userId}`, {
-        approve,
-        reason
-      }, {
+      const payload: any = { approve };
+      
+      if (!approve) {
+        if (adminFeedback) {
+          payload.admin_feedback = adminFeedback;
+        } else if (reason) {
+          payload.admin_feedback = { message: reason };
+        }
+        if (reason) {
+          payload.reason = reason;
+        }
+      }
+
+      await axios.post(`${API_BASE_URL}/admin/verify-user/${userId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       showMessage('success', `User ${approve ? 'verified' : 'rejected'} successfully`);
       setVerificationModal({ isOpen: false, user: null });
+      setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' });
       fetchDashboardData();
     } catch (err: any) {
       showMessage('error', err.response?.data?.detail || 'Failed to verify user');
     }
+  };
+
+  const handleRejectProfile = (userId: number) => {
+    setProfileRejectionModal({ isOpen: true, userId, feedback: '' });
+  };
+
+  const submitProfileRejection = () => {
+    if (!profileRejectionModal.feedback.trim()) {
+      showMessage('error', 'Please provide feedback for rejection');
+      return;
+    }
+    verifyUser(profileRejectionModal.userId, false, profileRejectionModal.feedback, { message: profileRejectionModal.feedback });
   };
 
   const showMessage = (type: string, text: string) => {
@@ -769,10 +831,7 @@ const AdminDashboard: React.FC = () => {
                             )}
                             {paper.status !== 'rejected' && (
                               <motion.button
-                                onClick={() => {
-                                  const reason = prompt('Enter rejection reason:');
-                                  if (reason) reviewPaper(paper.id, 'rejected', reason);
-                                }}
+                                onClick={() => handleRejectPaper(paper.id)}
                                 className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
                                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
                                 whileTap={{ scale: 0.95 }}
@@ -955,8 +1014,7 @@ const AdminDashboard: React.FC = () => {
                             </motion.button>
                             <motion.button
                               onClick={() => {
-                                const reason = prompt('Enter rejection reason:');
-                                if (reason) reviewPaper(paper.id, 'rejected', reason);
+                                handleRejectPaper(paper.id);
                               }}
                               className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
                               whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
@@ -1344,10 +1402,7 @@ const AdminDashboard: React.FC = () => {
               {/* Action Buttons */}
               <div className="flex space-x-4 justify-end pt-4 border-t border-green-500/20">
                 <motion.button
-                  onClick={() => {
-                    const reason = prompt('Enter rejection reason (optional):');
-                    verifyUser(verificationModal.user!.id, false, reason || undefined);
-                  }}
+                  onClick={() => handleRejectProfile(verificationModal.user!.id)}
                   className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
                   whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(239, 68, 68, 0.5)' }}
                   whileTap={{ scale: 0.98 }}
@@ -1479,6 +1534,102 @@ const AdminDashboard: React.FC = () => {
           </motion.div>
         )}
       </div>
+
+      {/* Rejection Feedback Modal for Papers */}
+      {rejectionModal.isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+          >
+            <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PAPER</h3>
+            <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
+              REJECTION FEEDBACK (REQUIRED)
+            </label>
+            <textarea
+              value={rejectionModal.feedback}
+              onChange={(e) => setRejectionModal({ ...rejectionModal, feedback: e.target.value })}
+              placeholder="Enter feedback for rejection (e.g., 'Incomplete information', 'File format not supported', etc.)"
+              className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              rows={5}
+              autoFocus
+            />
+            <div className="flex space-x-4 justify-end mt-4">
+              <motion.button
+                onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
+                className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                CANCEL
+              </motion.button>
+              <motion.button
+                onClick={submitRejection}
+                className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                SUBMIT REJECTION
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* Rejection Feedback Modal for Profiles */}
+      {profileRejectionModal.isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+          >
+            <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PROFILE</h3>
+            <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
+              REJECTION FEEDBACK (REQUIRED)
+            </label>
+            <textarea
+              value={profileRejectionModal.feedback}
+              onChange={(e) => setProfileRejectionModal({ ...profileRejectionModal, feedback: e.target.value })}
+              placeholder="Enter feedback for rejection (e.g., 'ID card not clear', 'Missing information', etc.)"
+              className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+              rows={5}
+              autoFocus
+            />
+            <div className="flex space-x-4 justify-end mt-4">
+              <motion.button
+                onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
+                className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                CANCEL
+              </motion.button>
+              <motion.button
+                onClick={submitProfileRejection}
+                className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                SUBMIT REJECTION
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Add CSS for glitch animation */}
       <style>{`

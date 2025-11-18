@@ -209,11 +209,17 @@ export const API = {
     });
   },
 
-  reviewPaper: (id: number, status: string, rejection_reason?: string) => {
-    return apiClient.patch(`/papers/${id}/review`, {
-      status,
-      rejection_reason
-    });
+  reviewPaper: (id: number, status: string, rejection_reason?: string, admin_feedback?: { message: string }) => {
+    const payload: any = { status };
+    if (status === 'rejected') {
+      if (admin_feedback) {
+        payload.admin_feedback = admin_feedback;
+      }
+      if (rejection_reason) {
+        payload.rejection_reason = rejection_reason;
+      }
+    }
+    return apiClient.patch(`/papers/${id}/review`, payload);
   },
 
   deletePaper: (id: number) => {
@@ -249,11 +255,17 @@ export const API = {
     return apiClient.get('/admin/verification-requests');
   },
 
-  verifyUser: (userId: number, approve: boolean, reason?: string) => {
-    return apiClient.post(`/admin/verify-user/${userId}`, {
-      approve,
-      reason
-    });
+  verifyUser: (userId: number, approve: boolean, reason?: string, admin_feedback?: { message: string }) => {
+    const payload: any = { approve };
+    if (!approve) {
+      if (admin_feedback) {
+        payload.admin_feedback = admin_feedback;
+      }
+      if (reason) {
+        payload.reason = reason;
+      }
+    }
+    return apiClient.post(`/admin/verify-user/${userId}`, payload);
   },
 };
 

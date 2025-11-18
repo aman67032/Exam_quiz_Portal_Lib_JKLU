@@ -19,6 +19,11 @@ type Me = {
   student_id?: string;
   id_card_path?: string;
   id_verified?: boolean;
+  admin_feedback?: {
+    message?: string;
+    rejected_at?: string;
+    rejected_by?: number;
+  } | null;
 };
 
 const Profile: React.FC = () => {
@@ -575,6 +580,35 @@ const Profile: React.FC = () => {
                   <CheckCircle2 className={`h-4 w-4 ${me.id_verified ? 'text-emerald-500 dark:text-emerald-400' : 'text-amber-500 dark:text-amber-400'}`} />
                   <span className="font-medium">ID verification: <span className={me.id_verified ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>{me.id_verified ? 'Verified' : 'Not verified'}</span></span>
                 </motion.div>
+                
+                {/* Admin Feedback - Display in red when profile is rejected */}
+                {!me.id_verified && me.admin_feedback && (
+                  <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-xl">
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-600 dark:text-red-400 font-bold text-lg">⚠️</span>
+                      <div className="flex-1">
+                        <h4 className="text-red-800 dark:text-red-300 font-bold text-sm mb-1">Profile Rejection Feedback</h4>
+                        <p className="text-red-700 dark:text-red-400 text-sm leading-relaxed">
+                          {me.admin_feedback.message || 'Your profile has been rejected. Please review and correct the information.'}
+                        </p>
+                        {me.admin_feedback.rejected_at && (
+                          <p className="text-red-600 dark:text-red-500 text-xs mt-2 opacity-75">
+                            Rejected on: {new Date(me.admin_feedback.rejected_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        )}
+                        <p className="text-red-600 dark:text-red-500 text-xs mt-2 font-semibold">
+                          Please correct your profile information and resubmit for verification.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="grid grid-cols-2 gap-3">
                   <motion.div 
                     className="p-2 rounded-lg bg-white/50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300"

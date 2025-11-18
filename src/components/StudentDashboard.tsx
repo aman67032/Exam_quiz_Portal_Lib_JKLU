@@ -33,6 +33,11 @@ interface Paper {
   uploaded_at: string;
   course_code?: string;
   course_name?: string;
+  admin_feedback?: {
+    message?: string;
+    rejected_at?: string;
+    rejected_by?: number;
+  } | null;
 }
 
 const StudentDashboard: React.FC = () => {
@@ -49,12 +54,14 @@ const StudentDashboard: React.FC = () => {
   const [uploadForm, setUploadForm] = useState({
     course_id: '',
     courseText: '',
+    courseName: '',
     title: '',
     description: '',
     paper_type: 'assignment',
+    quiz_set: '',
     year: new Date().getFullYear().toString(),
     yearText: '',
-    semester: 'Fall 2024'
+    semester: '1st Sem'
   });
 
   // Filters
@@ -116,8 +123,14 @@ const StudentDashboard: React.FC = () => {
     }
 
     // Validate course selection
-    if (!uploadForm.course_id && !uploadForm.courseText) {
-      showToast('Please select or enter a course', 'error');
+    if (!uploadForm.course_id && (!uploadForm.courseText || !uploadForm.courseName)) {
+      showToast('Please select or enter both course code and name', 'error');
+      return;
+    }
+
+    // Validate quiz set if paper type is quiz
+    if (uploadForm.paper_type === 'quiz' && !uploadForm.quiz_set) {
+      showToast('Please select a quiz set (A to F)', 'error');
       return;
     }
 
@@ -131,16 +144,22 @@ const StudentDashboard: React.FC = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
     
-    // Send course_id if selected from dropdown, otherwise send course_code
+    // Send course_id if selected from dropdown, otherwise send course_code and course_name
     if (uploadForm.course_id) {
       formData.append('course_id', uploadForm.course_id);
-    } else if (uploadForm.courseText) {
+    } else if (uploadForm.courseText && uploadForm.courseName) {
       formData.append('course_code', uploadForm.courseText);
+      formData.append('course_name', uploadForm.courseName);
     }
     
     formData.append('title', uploadForm.title);
     formData.append('description', uploadForm.description);
     formData.append('paper_type', uploadForm.paper_type);
+    
+    // Add quiz_set if paper type is quiz
+    if (uploadForm.paper_type === 'quiz' && uploadForm.quiz_set) {
+      formData.append('quiz_set', uploadForm.quiz_set);
+    }
     
     // Convert year to integer if provided
     const yearValue = uploadForm.year || uploadForm.yearText;
@@ -157,12 +176,14 @@ const StudentDashboard: React.FC = () => {
       setUploadForm({
         course_id: '',
         courseText: '',
+        courseName: '',
         title: '',
         description: '',
         paper_type: 'assignment',
+        quiz_set: '',
         year: new Date().getFullYear().toString(),
         yearText: '',
-        semester: 'Fall 2024'
+        semester: '1st Sem'
       });
       fetchPapers();
     } catch (error: any) {
@@ -374,7 +395,7 @@ const StudentDashboard: React.FC = () => {
                       <div className="space-y-2">
                         <select
                           value={uploadForm.course_id}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '' }))}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
                           className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
                         >
                           <option value="">Select from existing courses</option>
@@ -385,16 +406,29 @@ const StudentDashboard: React.FC = () => {
                           ))}
                         </select>
                         <div className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium">OR</div>
-                        <input
-                          type="text"
-                          value={uploadForm.courseText}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
-                          placeholder="Type new course code (e.g., CS101)"
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                        />
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={uploadForm.courseText}
+                            onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
+                            placeholder="Course Code (e.g., CS1109)"
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                          />
+                          <input
+                            type="text"
+                            value={uploadForm.courseName}
+                            onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
+                            placeholder="Course Name (e.g., Python)"
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                          />
+                        </div>
                       </div>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                        {uploadForm.course_id ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code}` : uploadForm.courseText ? `New: ${uploadForm.courseText}` : 'Choose one option'}
+                        {uploadForm.course_id 
+                          ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}` 
+                          : (uploadForm.courseText && uploadForm.courseName) 
+                            ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}` 
+                            : 'Choose one option'}
                       </p>
                     </div>
 
@@ -432,7 +466,7 @@ const StudentDashboard: React.FC = () => {
                         </label>
                         <select
                           value={uploadForm.paper_type}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value }))}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
                           className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
                         >
                           <option value="assignment">Assignment</option>
@@ -471,6 +505,28 @@ const StudentDashboard: React.FC = () => {
                       </div>
                     </div>
 
+                    {uploadForm.paper_type === 'quiz' && (
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Quiz Set
+                        </label>
+                        <select
+                          value={uploadForm.quiz_set}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
+                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
+                          required
+                        >
+                          <option value="">Select Set</option>
+                          <option value="A">Set A</option>
+                          <option value="B">Set B</option>
+                          <option value="C">Set C</option>
+                          <option value="D">Set D</option>
+                          <option value="E">Set E</option>
+                          <option value="F">Set F</option>
+                        </select>
+                      </div>
+                    )}
+                    
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                         Semester
@@ -480,9 +536,14 @@ const StudentDashboard: React.FC = () => {
                         onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
                         className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
                       >
-                        <option value="Fall 2024">Fall 2024</option>
-                        <option value="Spring 2024">Spring 2024</option>
-                        <option value="Summer 2024">Summer 2024</option>
+                        <option value="1st Sem">1st Sem</option>
+                        <option value="2nd Sem">2nd Sem</option>
+                        <option value="3rd Sem">3rd Sem</option>
+                        <option value="4th Sem">4th Sem</option>
+                        <option value="5th Sem">5th Sem</option>
+                        <option value="6th Sem">6th Sem</option>
+                        <option value="7th Sem">7th Sem</option>
+                        <option value="8th Sem">8th Sem</option>
                       </select>
                     </div>
 
@@ -614,9 +675,14 @@ const StudentDashboard: React.FC = () => {
                       className="px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm font-medium"
                     >
                       <option value="">All Semesters</option>
-                      <option value="Fall 2024">Fall 2024</option>
-                      <option value="Spring 2024">Spring 2024</option>
-                      <option value="Summer 2024">Summer 2024</option>
+                      <option value="1st Sem">1st Sem</option>
+                      <option value="2nd Sem">2nd Sem</option>
+                      <option value="3rd Sem">3rd Sem</option>
+                      <option value="4th Sem">4th Sem</option>
+                      <option value="5th Sem">5th Sem</option>
+                      <option value="6th Sem">6th Sem</option>
+                      <option value="7th Sem">7th Sem</option>
+                      <option value="8th Sem">8th Sem</option>
                     </select>
                   </div>
 
@@ -693,6 +759,32 @@ const StudentDashboard: React.FC = () => {
                               <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border border-purple-500/20 p-3 rounded-xl backdrop-blur-sm">
                                 {paper.description}
                               </p>
+                            )}
+
+                            {/* Admin Feedback - Display in red when rejected */}
+                            {paper.status === 'rejected' && paper.admin_feedback && (
+                              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-xl">
+                                <div className="flex items-start gap-2">
+                                  <span className="text-red-600 dark:text-red-400 font-bold text-lg">⚠️</span>
+                                  <div className="flex-1">
+                                    <h4 className="text-red-800 dark:text-red-300 font-bold text-sm mb-1">Rejection Feedback</h4>
+                                    <p className="text-red-700 dark:text-red-400 text-sm leading-relaxed">
+                                      {paper.admin_feedback.message || 'Your submission has been rejected. Please review and resubmit.'}
+                                    </p>
+                                    {paper.admin_feedback.rejected_at && (
+                                      <p className="text-red-600 dark:text-red-500 text-xs mt-2 opacity-75">
+                                        Rejected on: {new Date(paper.admin_feedback.rejected_at).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             )}
 
                             {/* File Info */}
