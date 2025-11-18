@@ -77,16 +77,15 @@ function AppContent() {
       <AnimatePresence mode="wait">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Landing page - redirect to home if logged in */}
+            {/* Landing page - always accessible */}
             <Route
               path="/"
-              element={
-                user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
-                ) : (
-                  <LandingPage />
-                )
-              }
+              element={<LandingPage />}
+            />
+            {/* Public home - accessible to everyone */}
+            <Route
+              path="/home"
+              element={<PublicHome />}
             />
             {/* Auth pages - redirect to home if already logged in */}
             <Route
@@ -115,7 +114,7 @@ function AppContent() {
                 user && user.is_admin ? (
                   <Navigate to="/admin" replace />
                 ) : user ? (
-                  <Navigate to="/" replace />
+                  <Navigate to="/home" replace />
                 ) : (
                   <AdminLogin />
                 )
@@ -131,24 +130,14 @@ function AppContent() {
                 )
               }
             />
-            {/* Protected routes - redirect to landing page if not logged in */}
+            {/* Protected routes - redirect to login if not logged in */}
             <Route
               path="/dashboard"
               element={
                 user && !user.is_admin ? (
                   <StudentDashboard />
                 ) : (
-                  <Navigate to="/" replace />
-                )
-              }
-            />
-            <Route
-              path="/home"
-              element={
-                user && !user.is_admin ? (
-                  <PublicHome />
-                ) : (
-                  <Navigate to="/" replace />
+                  <Navigate to="/login" replace />
                 )
               }
             />
@@ -158,7 +147,7 @@ function AppContent() {
                 user && !user.is_admin ? (
                   <Profile />
                 ) : (
-                  <Navigate to="/" replace />
+                  <Navigate to="/login" replace />
                 )
               }
             />

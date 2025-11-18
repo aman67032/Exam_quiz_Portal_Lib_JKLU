@@ -102,24 +102,17 @@ const LandingPage: React.FC = () => {
           className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center w-full"
         >
           <Link
-            to="/login"
+            to="/home"
             className="group relative px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 bg-gradient-to-r from-amber-700 to-amber-600 text-white rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl active:scale-95 transition-all duration-300 overflow-hidden text-center min-h-[48px] flex items-center justify-center"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
-              Sign In
+              Get Started
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 group-hover:translate-x-1 transition-transform" />
             </span>
             <motion.div
               className="absolute inset-0 bg-gradient-to-r from-amber-600 to-amber-700 opacity-0 group-hover:opacity-100 transition-opacity"
               initial={false}
             />
-          </Link>
-          
-          <Link
-            to="/register"
-            className="px-6 sm:px-7 md:px-8 py-3 sm:py-3.5 md:py-4 bg-white dark:bg-gray-800 text-amber-900 dark:text-amber-200 rounded-lg sm:rounded-xl font-semibold text-base sm:text-lg border-2 border-amber-700 dark:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 active:scale-95 transition-all duration-300 shadow-lg hover:shadow-xl text-center min-h-[48px] flex items-center justify-center"
-          >
-            Create Account
           </Link>
         </motion.div>
 
@@ -129,7 +122,7 @@ const LandingPage: React.FC = () => {
           transition={{ delay: 0.7 }}
           className="text-center text-xs sm:text-sm text-amber-800 dark:text-amber-300 mt-6 sm:mt-8 px-2"
         >
-          Please login or register to access the portal
+          Browse papers instantly. Login to upload and access your dashboard.
         </motion.p>
       </motion.div>
     </div>

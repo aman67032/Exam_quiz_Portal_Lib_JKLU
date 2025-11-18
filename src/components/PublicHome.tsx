@@ -75,14 +75,21 @@ const PublicHome: React.FC = () => {
 
   const fetchPublicPapers = useCallback(async () => {
     try {
-      const response = await API.getPublicPapers();
-      setPapers(response.data);
+      // If user is logged in, fetch all papers (approved, pending, rejected)
+      // If not logged in, fetch only approved papers (public)
+      if (user) {
+        const response = await API.getPapers({});
+        setPapers(response.data);
+      } else {
+        const response = await API.getPublicPapers();
+        setPapers(response.data);
+      }
     } catch (error) {
       console.error('Error fetching papers:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchPublicPapers();
