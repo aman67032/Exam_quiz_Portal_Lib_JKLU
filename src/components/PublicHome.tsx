@@ -33,6 +33,7 @@ interface Paper {
   course_name?: string;
   uploader_name?: string;
   uploaded_at: string;
+  status?: string;
 }
 
 const PublicHome: React.FC = () => {
@@ -96,7 +97,7 @@ const PublicHome: React.FC = () => {
   }, [fetchPublicPapers]);
 
   const applyFilters = useCallback(() => {
-    let filtered = papers;
+    let filtered = papers.filter((paper) => paper.status?.toLowerCase() === 'approved');
 
     // Search filter - use debounced query
     if (debouncedSearchQuery.trim()) {

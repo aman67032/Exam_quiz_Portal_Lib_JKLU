@@ -124,12 +124,6 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     const loadPdfPreview = async () => {
       try {
         const authToken = token || localStorage.getItem('token') || '';
-        
-        // Check if token is still valid (basic check)
-        if (!authToken && paperId) {
-          // For pending papers, token is required
-          throw new Error('Authentication required to view this file');
-        }
 
         const response = await fetch(
           getPreviewUrl(paperId),
