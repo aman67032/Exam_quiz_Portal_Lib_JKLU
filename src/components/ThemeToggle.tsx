@@ -1,5 +1,4 @@
 import React from 'react';
-import styled from 'styled-components';
 import { useTheme } from '../contexts/ThemeContext';
 
 const ThemeToggle: React.FC = () => {
@@ -10,15 +9,24 @@ const ThemeToggle: React.FC = () => {
   };
 
   return (
-    <StyledWrapper>
-      <label id="theme-toggle-button" htmlFor="toggle">
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+      <label 
+        id="theme-toggle-button" 
+        htmlFor="toggle"
+        className="text-[9px] sm:text-[13px] relative inline-block w-[7em] cursor-pointer"
+      >
         <input 
           type="checkbox" 
           id="toggle" 
           checked={theme === 'dark'}
           onChange={handleToggle}
+          className="opacity-0 w-0 h-0"
         />
-        <svg viewBox="0 0 69.667 44" xmlnsXlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+        <svg 
+          viewBox="0 0 69.667 44" 
+          xmlnsXlink="http://www.w3.org/1999/xlink" 
+          xmlns="http://www.w3.org/2000/svg"
+        >
           <defs>
             <filter id="container" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur in="SourceGraphic" stdDeviation="1"/>
@@ -104,92 +112,56 @@ const ThemeToggle: React.FC = () => {
           </g>
         </svg>
       </label>
-    </StyledWrapper>
+      <style>{`
+        #toggle + svg #container,
+        #toggle + svg #patches,
+        #toggle + svg #stars,
+        #toggle + svg #button,
+        #toggle + svg #sun,
+        #toggle + svg #moon,
+        #toggle + svg #cloud {
+          transition-property: all;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 0.25s;
+        }
+        #toggle:checked + svg #container {
+          fill: #2b4360;
+        }
+        #toggle:checked + svg #button {
+          transform: translate(28px, 2.333px);
+        }
+        @media (max-width: 639px) {
+          #toggle:checked + svg #button {
+            transform: translate(19.4px, 1.6px);
+          }
+        }
+        #toggle + svg #sun {
+          opacity: 1;
+        }
+        #toggle:checked + svg #sun {
+          opacity: 0;
+        }
+        #toggle + svg #moon {
+          opacity: 0;
+        }
+        #toggle:checked + svg #moon {
+          opacity: 1;
+        }
+        #toggle + svg #cloud {
+          opacity: 1;
+        }
+        #toggle:checked + svg #cloud {
+          opacity: 0;
+        }
+        #toggle + svg #stars {
+          opacity: 0;
+        }
+        #toggle:checked + svg #stars {
+          opacity: 1;
+        }
+      `}</style>
+    </div>
   );
 };
-
-const StyledWrapper = styled.div`
-  position: fixed;
-  bottom: 1rem;
-  right: 1rem;
-  z-index: 50;
-
-  @media (min-width: 640px) {
-    bottom: 1.5rem;
-    right: 1.5rem;
-  }
-
-  /* The switch - the box around the slider */
-  #theme-toggle-button {
-    font-size: 13px;
-    position: relative;
-    display: inline-block;
-    width: 7em;
-    cursor: pointer;
-  }
-
-  /* Hide default HTML checkbox */
-  #toggle {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  #container,
-  #patches,
-  #stars,
-  #button,
-  #sun,
-  #moon,
-  #cloud {
-    transition-property: all;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 0.25s;
-  }
-
-  /* night sky background */
-  #toggle:checked + svg #container {
-    fill: #2b4360;
-  }
-
-  /* move button to right when checked */
-  #toggle:checked + svg #button {
-    transform: translate(28px, 2.333px);
-  }
-
-  /* show/hide sun and moon based on checkbox state */
-  #sun {
-    opacity: 1;
-  }
-
-  #toggle:checked + svg #sun {
-    opacity: 0;
-  }
-
-  #moon {
-    opacity: 0;
-  }
-
-  #toggle:checked + svg #moon {
-    opacity: 1;
-  }
-
-  /* show or hide background items on checkbox state */
-  #cloud {
-    opacity: 1;
-  }
-
-  #toggle:checked + svg #cloud {
-    opacity: 0;
-  }
-
-  #stars {
-    opacity: 0;
-  }
-
-  #toggle:checked + svg #stars {
-    opacity: 1;
-  }
-`;
 
 export default ThemeToggle;

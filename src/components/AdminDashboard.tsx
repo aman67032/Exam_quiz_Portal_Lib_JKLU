@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FilePreviewModal from './FilePreviewModal';
 import { buildUploadUrl } from '../utils/uploads';
+import JKLULogo from './JKLULogo';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -491,7 +492,12 @@ const AdminDashboard: React.FC = () => {
                 <p className="text-sm text-green-400 font-mono">USER: {user?.name}</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* JKLU Logo - Integrated in navbar */}
+              <div className="flex items-center ml-2 sm:ml-4 flex-shrink-0">
+                <JKLULogo size="sm" className="sm:hidden opacity-90 hover:opacity-100" />
+                <JKLULogo size="md" className="hidden sm:block opacity-90 hover:opacity-100" />
+              </div>
               <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
                 <Activity className="h-4 w-4 text-green-400 animate-pulse" />
                 <span className="text-sm text-green-400 font-mono">SYSTEM_ONLINE</span>

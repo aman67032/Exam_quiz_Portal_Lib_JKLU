@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import axios from 'axios';
 import MathPhysicsBackground from './MathPhysicsBackground';
+import JKLULogo from './JKLULogo';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -49,6 +50,10 @@ const AdminLogin: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* JKLU Logo - Top Right */}
+      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 z-50">
+        <JKLULogo size="lg" className="opacity-90 hover:opacity-100" />
+      </div>
       <MathPhysicsBackground />
       <motion.div
         initial={{ opacity: 0, y: 20 }}

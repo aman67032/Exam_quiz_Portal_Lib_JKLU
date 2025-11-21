@@ -15,6 +15,7 @@ import { lazy, Suspense } from 'react';
 import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import Loader from './Loader';
+import JKLULogo from './JKLULogo';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -355,15 +356,26 @@ const PublicHome: React.FC = () => {
           className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-              <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-shrink-0">
-                <img src={logoImg} alt="Paper Portal Logo" className="h-10 sm:h-16 w-auto object-contain flex-shrink-0" />
-                <div className="min-w-0">
-                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">Paper Portal</h1>
-                  <p className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">Academic Resource Hub</p>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+              {/* Top row: brand left, JKLU logo right on mobile */}
+              <div className="flex items-center justify-between gap-2 min-w-0 flex-shrink-0">
+                <div className="flex items-center space-x-2 sm:space-x-4 min-w-0">
+                  {/* Desktop JKLU logo inline with brand */}
+                  <div className="hidden sm:block">
+                    <JKLULogo size="sm" className="opacity-90 hover:opacity-100" />
+                  </div>
+                  <img src={logoImg} alt="Paper Portal Logo" className="h-10 sm:h-16 w-auto object-contain flex-shrink-0" />
+                  <div className="min-w-0">
+                    <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white truncate">Paper Portal</h1>
+                    <p className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">Academic Resource Hub</p>
+                  </div>
+                </div>
+                {/* Mobile JKLU logo on far right */}
+                <div className="sm:hidden flex-shrink-0">
+                  <JKLULogo size="sm" className="opacity-90 hover:opacity-100" />
                 </div>
               </div>
-              <div className="flex items-center sm:justify-end gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto">
+              <div className="flex items-center sm:justify-end gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto sm:ml-4">
                 {user ? (
                   <>
                     <Link

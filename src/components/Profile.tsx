@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import { buildUploadUrl } from '../utils/uploads';
 import Loader from './Loader';
+import JKLULogo from './JKLULogo';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 
@@ -210,29 +211,45 @@ const Profile: React.FC = () => {
 
         <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/30 dark:border-gray-700/50 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 text-gray-800 dark:text-gray-100 font-bold text-xl"
-          >
-            <motion.div
-              animate={{ rotate: [0, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+          {/* Left side - JKLU Logo on mobile, Profile title on desktop */}
+          <div className="flex items-center gap-3 sm:gap-0">
+            {/* JKLU Logo - Left side on mobile only */}
+            <div className="flex items-center flex-shrink-0 sm:hidden">
+              <JKLULogo size="sm" className="opacity-90 hover:opacity-100" />
+            </div>
+            {/* Profile Title */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex items-center gap-2 text-gray-800 dark:text-gray-100 font-bold text-xl"
             >
-              <IdCard className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+              >
+                <IdCard className="h-6 w-6 text-purple-500 dark:text-purple-400" />
+              </motion.div>
+              <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+                Profile
+              </span>
             </motion.div>
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
-              Profile
-            </span>
-          </motion.div>
-          <motion.a 
-            href="/dashboard" 
-            className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            whileHover={{ x: -4 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to dashboard
-          </motion.a>
+          </div>
+
+          {/* Right side - Back button and JKLU Logo on desktop */}
+          <div className="flex items-center gap-4 sm:gap-6">
+            <motion.a 
+              href="/dashboard" 
+              className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+              whileHover={{ x: -4 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to dashboard</span>
+            </motion.a>
+            {/* JKLU Logo - Right side on desktop */}
+            <div className="hidden sm:flex items-center flex-shrink-0">
+              <JKLULogo size="sm" className="opacity-90 hover:opacity-100" />
+            </div>
+          </div>
         </div>
       </header>
 

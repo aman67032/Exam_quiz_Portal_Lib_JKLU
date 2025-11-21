@@ -9,6 +9,7 @@ import logoImg from '../assets/logo (2).png';
 import { lazy, Suspense } from 'react';
 import { buildUploadUrl } from '../utils/uploads';
 import Loader from './Loader';
+import JKLULogo from './JKLULogo';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -282,8 +283,13 @@ const StudentDashboard: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           className="sticky top-0 z-50 backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 border-b border-white/20 dark:border-gray-700/30 shadow-lg shadow-purple-500/10"
         >
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 py-3">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
+            {/* JKLU Logo - Top Right, fixed position on mobile, integrated on desktop */}
+            <div className="absolute top-3 right-3 sm:relative sm:top-auto sm:right-auto sm:flex sm:items-center sm:ml-4 flex-shrink-0 z-10">
+              <JKLULogo size="sm" className="sm:hidden opacity-90 hover:opacity-100" />
+              <JKLULogo size="md" className="hidden sm:block opacity-90 hover:opacity-100" />
+            </div>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 py-3 pr-14 sm:pr-0">
               {/* Logo and Title */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
@@ -329,7 +335,7 @@ const StudentDashboard: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 sm:gap-3 flex-wrap"
+                className="flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-4"
               >
                 <Link
                   to="/home"

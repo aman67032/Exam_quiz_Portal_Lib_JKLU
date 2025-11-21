@@ -184,7 +184,12 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <ErrorBoundary>
-          <Router>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <AppContent />
           </Router>
         </ErrorBoundary>
