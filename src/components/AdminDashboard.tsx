@@ -276,6 +276,33 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleApproveAll = async () => {
+    if (pendingPapers.length === 0) {
+      showMessage('info', 'No pending papers to approve');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to approve all ${pendingPapers.length} pending papers?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/admin/papers/approve-all`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      showMessage('success', response.data.message || `Successfully approved ${response.data.approved_count} paper(s)`);
+      fetchDashboardData();
+      if (activeTab === 'all-papers') {
+        fetchAllPapers();
+      }
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to approve all papers');
+    }
+    setLoading(false);
+  };
+
   const handleRejectPaper = (paperId: number) => {
     setRejectionModal({ isOpen: true, paperId, feedback: '' });
   };
@@ -923,10 +950,24 @@ const AdminDashboard: React.FC = () => {
 
               {/* Pending Papers Section */}
               <div>
-                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                  <Database className="text-blue-400" size={28} />
-                  PENDING_PAPERS [{pendingPapers.length}]
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <Database className="text-blue-400" size={28} />
+                    PENDING_PAPERS [{pendingPapers.length}]
+                  </h2>
+                  {pendingPapers.length > 0 && (
+                    <motion.button
+                      onClick={handleApproveAll}
+                      disabled={loading}
+                      className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      whileHover={{ scale: loading ? 1 : 1.05, boxShadow: loading ? 'none' : '0 0 20px rgba(34, 197, 94, 0.5)' }}
+                      whileTap={{ scale: loading ? 1 : 0.95 }}
+                    >
+                      <CheckCircle size={20} />
+                      <span>APPROVE ALL</span>
+                    </motion.button>
+                  )}
+                </div>
                 {pendingPapers.length === 0 ? (
                   <div className="bg-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-xl p-8 text-center">
                     <Database className="h-12 w-12 text-blue-400/50 mx-auto mb-3" />

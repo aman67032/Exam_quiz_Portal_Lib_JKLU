@@ -269,6 +269,10 @@ export const API = {
     }
     return apiClient.post(`/admin/verify-user/${userId}`, payload);
   },
+
+  approveAllPendingPapers: () => {
+    return apiClient.post('/admin/papers/approve-all');
+  },
 };
 
 export default apiClient;
