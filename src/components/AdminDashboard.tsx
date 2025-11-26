@@ -282,25 +282,42 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    if (!confirm(`Are you sure you want to approve all ${pendingPapers.length} pending papers?`)) {
+    // Use setTimeout to defer confirm dialog and prevent blocking
+    const confirmed = await new Promise<boolean>((resolve) => {
+      setTimeout(() => {
+        resolve(window.confirm(`Are you sure you want to approve all ${pendingPapers.length} pending papers?`));
+      }, 0);
+    });
+
+    if (!confirmed) {
       return;
     }
 
+    // Optimistically update UI
+    setPendingPapers([]);
     setLoading(true);
+
     try {
       const response = await axios.post(`${API_BASE_URL}/admin/papers/approve-all`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
       showMessage('success', response.data.message || `Successfully approved ${response.data.approved_count} paper(s)`);
-      fetchDashboardData();
-      if (activeTab === 'all-papers') {
-        fetchAllPapers();
-      }
+      
+      // Refresh data in background without blocking
+      Promise.all([
+        fetchDashboardData(),
+        activeTab === 'all-papers' ? fetchAllPapers() : Promise.resolve()
+      ]).catch(() => {
+        // Silently handle errors, data will refresh on next manual refresh
+      });
     } catch (err: any) {
+      // Restore pending papers on error
+      fetchDashboardData();
       showMessage('error', err.response?.data?.detail || 'Failed to approve all papers');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleRejectPaper = (paperId: number) => {
