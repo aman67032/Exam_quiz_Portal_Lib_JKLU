@@ -28,6 +28,7 @@ interface Paper {
   paper_type: string;
   year?: number;
   semester?: string;
+  department?: string;
   file_name: string;
   file_path?: string;
   course_code?: string;
@@ -47,10 +48,16 @@ const PublicHome: React.FC = () => {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Filters
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<{
+    course_code: string;
+    paper_type: string;
+    year: string;
+    department: string;
+  }>({
     course_code: '',
     paper_type: '',
-    year: ''
+    year: '',
+    department: '',
   });
 
   // Preview Modal
@@ -74,6 +81,7 @@ const PublicHome: React.FC = () => {
 
   const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
   const years = ['2025', '2024', '2023', '2022'];
+  const departments = ['BTECH', 'BBA', 'CCCT'];
 
   const fetchPublicPapers = useCallback(async () => {
     try {
@@ -130,6 +138,13 @@ const PublicHome: React.FC = () => {
     // Year filter
     if (filters.year) {
       filtered = filtered.filter((paper) => paper.year?.toString() === filters.year);
+    }
+
+    // Department filter
+    if (filters.department) {
+      filtered = filtered.filter(
+        (paper) => (paper.department || '').toUpperCase() === filters.department.toUpperCase()
+      );
     }
 
     setFilteredPapers(filtered);
@@ -672,7 +687,7 @@ const PublicHome: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <select
                   value={filters.year}
                   onChange={(e) => handleFilterChange('year', e.target.value)}
@@ -693,6 +708,19 @@ const PublicHome: React.FC = () => {
                   onChange={(e) => handleFilterChange('course_code', e.target.value.toUpperCase())}
                   className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
                 />
+
+                <select
+                  value={filters.department}
+                  onChange={(e) => handleFilterChange('department', e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">All Departments</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>

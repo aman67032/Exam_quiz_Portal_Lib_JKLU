@@ -169,6 +169,7 @@ export const API = {
     year?: number;
     semester?: string;
     status?: string;
+    department?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters) {
@@ -188,6 +189,7 @@ export const API = {
     paper_type?: string;
     year?: number;
     semester?: string;
+    department?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters) {
