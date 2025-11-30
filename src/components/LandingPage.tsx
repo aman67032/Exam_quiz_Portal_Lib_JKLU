@@ -1,27 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { BookOpen, Shield, ArrowRight, Upload } from 'lucide-react';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import logoImg from '../assets/logo (2).png';
 import JKLULogo from './JKLULogo';
-import TestingPhaseNotice from './TestingPhaseNotice';
 import Footer from './Footer';
 
 const LandingPage: React.FC = () => {
-  const [showTestingNotice, setShowTestingNotice] = useState(false);
-
-  // Show testing phase notice on first visit
-  useEffect(() => {
-    const hasSeenNotice = sessionStorage.getItem('testing-phase-notice-seen');
-    if (!hasSeenNotice) {
-      // Small delay to let page load first
-      const timer = setTimeout(() => {
-        setShowTestingNotice(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   return (
     <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -149,15 +135,6 @@ const LandingPage: React.FC = () => {
         </motion.p>
         </motion.div>
       </div>
-
-      {/* Testing Phase Notice Modal */}
-      <TestingPhaseNotice
-        isVisible={showTestingNotice}
-        onClose={() => {
-          setShowTestingNotice(false);
-          sessionStorage.setItem('testing-phase-notice-seen', 'true');
-        }}
-      />
 
       {/* Footer - Below viewport, requires scrolling */}
       <Footer />

@@ -16,7 +16,6 @@ import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import Loader from './Loader';
 import JKLULogo from './JKLULogo';
-import TestingPhaseNotice from './TestingPhaseNotice';
 import Footer from './Footer';
 
 // Lazy load heavy background component
@@ -83,26 +82,9 @@ const PublicHome: React.FC = () => {
     type: 'success' as 'success' | 'error' | 'info' 
   });
 
-  // Testing Phase Notice Modal
-  const [showTestingNotice, setShowTestingNotice] = useState(false);
-
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ show: true, message, type });
   }, []);
-
-  // Show testing phase notice on first visit (only if not logged in)
-  useEffect(() => {
-    if (!user) {
-      const hasSeenNotice = sessionStorage.getItem('testing-phase-notice-seen');
-      if (!hasSeenNotice) {
-        // Small delay to let page load first
-        const timer = setTimeout(() => {
-          setShowTestingNotice(true);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [user]);
 
   const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
   const years = ['2025', '2024', '2023', '2022'];
@@ -177,7 +159,11 @@ const PublicHome: React.FC = () => {
   }, []);
 
   const applyFilters = useCallback(() => {
-    let filtered = papers.filter((paper) => paper.status?.toLowerCase() === 'approved');
+    // For logged-in users: show all papers they have access to (approved + their own papers)
+    // For non-logged-in users: only show approved papers
+    let filtered = user 
+      ? papers // Logged-in users see all papers they fetched (backend already filters appropriately)
+      : papers.filter((paper) => paper.status?.toLowerCase() === 'approved'); // Non-logged-in: only approved
 
     // Search filter - use debounced query
     if (debouncedSearchQuery.trim()) {
@@ -444,37 +430,26 @@ const PublicHome: React.FC = () => {
         onClose={() => setToast({ ...toast, show: false })}
       />
 
-      {/* Testing Phase Notice Modal */}
-      <TestingPhaseNotice
-        isVisible={showTestingNotice}
-        onClose={() => {
-          setShowTestingNotice(false);
-          sessionStorage.setItem('testing-phase-notice-seen', 'true');
-        }}
-      />
-
-        {/* Testing Phase Banner - Above Navigation */}
-        {!user && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="sticky top-0 z-[60] bg-gradient-to-r from-amber-500 to-amber-600 dark:from-amber-700 dark:to-amber-800 text-white shadow-lg border-b-2 border-amber-400 dark:border-amber-600"
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-              <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-                <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mt-0.5 sm:mt-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm sm:text-base font-semibold mb-1">
-                    Testing Phase Update
-                  </p>
-                  <p className="text-xs sm:text-sm leading-relaxed opacity-95">
-                    Student login is currently unavailable as we've rolled out the platform early to support end-term exam paper uploads. Only available papers can be accessed for now. Student login and access to other papers will be enabled once our end-term exams are over 😉
-                  </p>
-                </div>
+      {/* Testing Phase Banner - Above Navigation */}
+      {!user && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="sticky top-0 z-[60] bg-gradient-to-r from-amber-500 to-amber-600 dark:from-amber-700 dark:to-amber-800 text-white shadow-lg border-b-2 border-amber-400 dark:border-amber-600"
+        >
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+              <div className="flex-1 text-center">
+                <p className="text-sm sm:text-base font-medium leading-relaxed">
+                  <span className="font-bold">Test Phase Notice:</span>This platform has been launched early to support your end-term examinations. <span className="font-semibold">Only these papers are available till end term ends.</span> Features like student login, quiz papers, solutions etc will be added after end term.😉 <span className="font-semibold">All the best for your exams!</span> 🎓
+                </p>
               </div>
             </div>
-          </motion.div>
-        )}
+          </div>
+        </motion.div>
+      )}
 
         {/* Header */}
         <motion.header
@@ -988,7 +963,7 @@ const PublicHome: React.FC = () => {
             >
               <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300">
                 Showing <span className="font-bold text-indigo-600 dark:text-indigo-400">{filteredPapers.length}</span> of{' '}
-                <span className="font-bold text-gray-900 dark:text-white">{papers.length}</span> papers
+                <span className="font-bold text-gray-900 dark:text-white">{papers.length}</span> {user ? 'available' : 'approved'} papers
               </p>
             </motion.div>
           )}
