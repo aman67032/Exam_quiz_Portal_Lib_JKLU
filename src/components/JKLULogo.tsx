@@ -15,11 +15,11 @@ const JKLULogo: React.FC<JKLULogoProps> = ({ className = '', size = 'md' }) => {
     ? '/white_jklu_logo.png' 
     : '/black_jklu_logo.png';
   
-  // Size mappings
+  // Size mappings - optimized sizes
   const sizeClasses = {
-    sm: 'h-16 w-auto',
-    md: 'h-24 w-auto',
-    lg: 'h-32 w-auto'
+    sm: 'h-12 w-auto',
+    md: 'h-20 w-auto',
+    lg: 'h-28 w-auto'
   };
 
   return (
@@ -31,6 +31,7 @@ const JKLULogo: React.FC<JKLULogoProps> = ({ className = '', size = 'md' }) => {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.05 }}
+      loading="lazy"
     />
   );
 };

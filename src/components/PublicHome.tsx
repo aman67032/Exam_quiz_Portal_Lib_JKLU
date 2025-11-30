@@ -54,13 +54,11 @@ const PublicHome: React.FC = () => {
     paper_type: string;
     year: string;
     semester: string;
-    department: string;
   }>({
     course_code: '',
     paper_type: '',
     year: '',
     semester: '',
-    department: '',
   });
 
   // Courses for dropdown
@@ -88,7 +86,6 @@ const PublicHome: React.FC = () => {
 
   const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
   const years = ['2025', '2024', '2023', '2022'];
-  const departments = ['BTECH', 'BBA', 'CCCT'];
 
   const fetchPublicPapers = useCallback(async () => {
     try {
@@ -197,13 +194,6 @@ const PublicHome: React.FC = () => {
     // Year filter
     if (filters.year) {
       filtered = filtered.filter((paper) => paper.year?.toString() === filters.year);
-    }
-
-    // Department filter
-    if (filters.department) {
-      filtered = filtered.filter(
-        (paper) => (paper.department || '').toUpperCase() === filters.department.toUpperCase()
-      );
     }
 
     // Semester filter
@@ -756,7 +746,7 @@ const PublicHome: React.FC = () => {
                   <label className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</label>
                 </div>
                 {/* Clear Filters Button - Mobile Friendly */}
-                {(filters.year || filters.semester || filters.course_code || filters.department || filters.paper_type) && (
+                {(filters.year || filters.semester || filters.course_code || filters.paper_type) && (
                   <button
                     onClick={() => {
                       setFilters({
@@ -764,7 +754,6 @@ const PublicHome: React.FC = () => {
                         paper_type: '',
                         year: '',
                         semester: '',
-                        department: '',
                       });
                       setCourseSearchQuery('');
                     }}
@@ -884,25 +873,6 @@ const PublicHome: React.FC = () => {
                         ))}
                     </datalist>
                   </div>
-                </div>
-
-                {/* Department Filter */}
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                    Department
-                  </label>
-                  <select
-                    value={filters.department}
-                    onChange={(e) => handleFilterChange('department', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700"
-                  >
-                    <option value="">All Departments</option>
-                    {departments.map((dept) => (
-                      <option key={dept} value={dept}>
-                        {dept}
-                      </option>
-                    ))}
-                  </select>
                 </div>
               </div>
             </div>

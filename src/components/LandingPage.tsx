@@ -15,7 +15,7 @@ const LandingPage: React.FC = () => {
       <div className="h-screen flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 md:py-12 relative overflow-hidden">
         {/* JKLU Logo - Top Right */}
         <div className="fixed top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 z-50">
-          <JKLULogo size="lg" className="opacity-90 hover:opacity-100" />
+          <JKLULogo size="md" className="opacity-90 hover:opacity-100" />
         </div>
         <MathPhysicsBackground />
         <motion.div
@@ -34,7 +34,7 @@ const LandingPage: React.FC = () => {
             <motion.img
               src={logoImg}
               alt="Paper Portal Logo"
-              className="h-20 sm:h-28 md:h-32 lg:h-40 xl:h-48 w-auto mx-auto drop-shadow-2xl"
+              className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto mx-auto drop-shadow-2xl"
               animate={{
                 y: [0, -10, 0],
               }}
