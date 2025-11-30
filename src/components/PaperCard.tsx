@@ -66,22 +66,38 @@ const PaperCard: React.FC<PaperCardProps> = memo(({ paper, index, onPreview, onD
         </div>
         <div className="flex space-x-1.5 sm:space-x-2 flex-shrink-0">
           <motion.button
-            onClick={() => onPreview(paper.id, paper.file_name, paper.file_path || '')}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onPreview(paper.id, paper.file_name, paper.file_path || '');
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 sm:p-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg sm:rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all shadow-md"
+            className="p-3 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg sm:rounded-xl hover:from-indigo-600 hover:to-purple-600 transition-all shadow-md touch-manipulation active:scale-95 flex items-center justify-center"
             title="Preview"
+            type="button"
           >
-            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Eye className="w-4 h-4 sm:w-4 sm:h-4" />
           </motion.button>
           <motion.button
-            onClick={() => onDownload(paper.id, paper.file_name)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDownload(paper.id, paper.file_name);
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
-            className="p-2 sm:p-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg sm:rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-md"
+            className="p-3 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg sm:rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all shadow-md touch-manipulation active:scale-95 flex items-center justify-center"
             title="Download"
+            type="button"
           >
-            <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <Download className="w-4 h-4 sm:w-4 sm:h-4" />
           </motion.button>
         </div>
       </div>
