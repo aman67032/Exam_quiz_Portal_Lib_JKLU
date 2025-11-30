@@ -272,92 +272,48 @@ const PublicHome: React.FC = () => {
         {/* Mobile-optimized cool gradient background */}
         {isSmallScreen ? (
           <>
-            {/* Mobile: Warm cream animated gradient with floating orbs */}
+            {/* Mobile: Warm cream gradient - optimized for performance */}
             <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 via-yellow-50 to-amber-100 dark:from-indigo-950 dark:via-purple-950 dark:via-pink-950 dark:to-rose-950">
-              {/* Animated radial gradient overlay */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{
-                  background: [
-                    'radial-gradient(circle at 20% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 50%)',
-                    'radial-gradient(circle at 80% 70%, rgba(251, 146, 60, 0.15) 0%, transparent 50%)',
-                    'radial-gradient(circle at 50% 20%, rgba(234, 179, 8, 0.15) 0%, transparent 50%)',
-                    'radial-gradient(circle at 20% 30%, rgba(251, 191, 36, 0.15) 0%, transparent 50%)',
-                  ]
-                }}
-                transition={{
-                  duration: 10,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-              />
-              {/* Floating animated orbs for depth and movement */}
-              <div className="absolute inset-0 overflow-hidden">
-                <motion.div
-                  className="absolute w-72 h-72 bg-amber-200/30 rounded-full blur-3xl"
-                  style={{ top: '5%', left: '5%' }}
-                  animate={{
-                    y: [0, 40, 0],
-                    x: [0, 30, 0],
-                    scale: [1, 1.3, 1],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    ease: "easeInOut"
+              {/* Static radial gradient overlay - no animation for better performance */}
+              <div className="absolute inset-0 opacity-60" style={{
+                background: 'radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.1) 0%, transparent 60%)',
+                willChange: 'opacity'
+              }} />
+              {/* Static orbs - reduced blur and no animation for better performance */}
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div
+                  className="absolute w-72 h-72 bg-amber-200/20 rounded-full blur-2xl"
+                  style={{ 
+                    top: '5%', 
+                    left: '5%',
+                    willChange: 'transform',
+                    transform: 'translate(15px, 20px)'
                   }}
                 />
-                <motion.div
-                  className="absolute w-56 h-56 bg-orange-200/25 rounded-full blur-3xl"
-                  style={{ bottom: '15%', right: '10%' }}
-                  animate={{
-                    y: [0, -35, 0],
-                    x: [0, -25, 0],
-                    scale: [1, 1.4, 1],
-                  }}
-                  transition={{
-                    duration: 9,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.7
+                <div
+                  className="absolute w-56 h-56 bg-orange-200/15 rounded-full blur-2xl"
+                  style={{ 
+                    bottom: '15%', 
+                    right: '10%',
+                    willChange: 'transform',
+                    transform: 'translate(-12px, -17px)'
                   }}
                 />
-                <motion.div
-                  className="absolute w-64 h-64 bg-yellow-200/20 rounded-full blur-3xl"
-                  style={{ top: '55%', left: '45%' }}
-                  animate={{
-                    y: [0, 30, 0],
-                    x: [0, -30, 0],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    duration: 10,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 1.2
-                  }}
-                />
-                <motion.div
-                  className="absolute w-48 h-48 bg-amber-300/20 rounded-full blur-3xl"
-                  style={{ top: '75%', left: '20%' }}
-                  animate={{
-                    y: [0, -25, 0],
-                    x: [0, 20, 0],
-                    scale: [1, 1.3, 1],
-                  }}
-                  transition={{
-                    duration: 7,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                    delay: 0.3
+                <div
+                  className="absolute w-64 h-64 bg-yellow-200/15 rounded-full blur-2xl"
+                  style={{ 
+                    top: '55%', 
+                    left: '45%',
+                    willChange: 'transform',
+                    transform: 'translate(-15px, 15px)'
                   }}
                 />
               </div>
-              {/* Subtle dot pattern overlay for texture */}
-              <div className="absolute inset-0 opacity-10 dark:opacity-15">
+              {/* Subtle dot pattern overlay for texture - reduced opacity */}
+              <div className="absolute inset-0 opacity-5 dark:opacity-10">
                 <div className="absolute inset-0" style={{
-                  backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(120, 53, 15, 0.1) 1px, transparent 0)',
-                  backgroundSize: '36px 36px'
+                  backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(120, 53, 15, 0.08) 1px, transparent 0)',
+                  backgroundSize: '48px 48px'
                 }} />
               </div>
             </div>
@@ -445,7 +401,7 @@ const PublicHome: React.FC = () => {
         <motion.header
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`sticky ${!user ? 'top-[60px] sm:top-[72px]' : 'top-0'} z-50 backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg`}
+          className={`sticky ${!user ? 'top-[60px] sm:top-[72px]' : 'top-0'} z-50 backdrop-blur-md sm:backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg`}
         >
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
@@ -513,7 +469,7 @@ const PublicHome: React.FC = () => {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12 lg:p-16"
+              className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12 lg:p-16"
             >
               <motion.div
                 initial={{ scale: 0.9, rotate: -5 }}
@@ -527,6 +483,7 @@ const PublicHome: React.FC = () => {
                   className="h-16 sm:h-20 md:h-24 lg:h-28 w-auto drop-shadow-xl"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 300 }}
+                  style={{ willChange: 'transform' }}
                 />
               </motion.div>
               <motion.h1 
@@ -553,10 +510,12 @@ const PublicHome: React.FC = () => {
                   transition={{ delay: 0.5, type: "spring" }}
                   whileHover={{ scale: 1.05, y: -5 }}
                   className="flex items-center gap-2 sm:gap-3 backdrop-blur-sm bg-white/50 dark:bg-gray-800/50 rounded-xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 dark:border-gray-700/40 shadow-lg hover:shadow-xl transition-shadow w-full sm:w-auto"
+                  style={{ willChange: 'transform' }}
                 >
                   <motion.div
                     animate={{ rotate: [0, 10, -10, 0] }}
                     transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                    style={{ willChange: 'transform' }}
                   >
                     <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                   </motion.div>
@@ -654,7 +613,7 @@ const PublicHome: React.FC = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.2 }}
                   whileHover={{ y: -10, scale: 1.02 }}
-                  className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 relative overflow-hidden group"
+                  className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 relative overflow-hidden group"
                 >
                   <div className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 bg-gradient-to-br ${item.color} opacity-10 rounded-full blur-3xl group-hover:opacity-20 transition-opacity`} />
                   <div className="relative z-10">
@@ -682,7 +641,7 @@ const PublicHome: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8 md:mb-12"
+            className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8 md:mb-12"
           >
           <div className="space-y-4 sm:space-y-6">
             {/* Gooey Search Field Tabs */}
@@ -910,7 +869,7 @@ const PublicHome: React.FC = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 sm:p-12 md:p-16 text-center"
+              className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 sm:p-12 md:p-16 text-center"
             >
               <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4 sm:mb-6" />
               <p className="text-2xl sm:text-2xl font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2">No papers found</p>
