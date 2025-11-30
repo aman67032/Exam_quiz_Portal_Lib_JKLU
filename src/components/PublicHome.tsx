@@ -794,13 +794,19 @@ const PublicHome: React.FC = () => {
                     Course Code
                   </label>
                   <div className="relative">
-                <input
-                  type="text"
+                    <input
+                      type="text"
                       list="courses-list"
                       placeholder="Type or select..."
-                  value={filters.course_code}
+                      value={filters.course_code}
                       onChange={(e) => {
                         const value = e.target.value.toUpperCase();
+                        handleFilterChange('course_code', value);
+                        setCourseSearchQuery(value);
+                      }}
+                      onInput={(e) => {
+                        // Handle datalist selection properly
+                        const value = (e.target as HTMLInputElement).value.toUpperCase();
                         handleFilterChange('course_code', value);
                         setCourseSearchQuery(value);
                       }}
@@ -825,18 +831,29 @@ const PublicHome: React.FC = () => {
                       </button>
                     )}
                     <datalist id="courses-list">
-                      {courses
-                        .filter((course) => 
-                          !courseSearchQuery || 
-                          course.code.toUpperCase().includes(courseSearchQuery) ||
-                          course.name.toUpperCase().includes(courseSearchQuery)
-                        )
-                        .slice(0, 50) // Limit to 50 for performance
-                        .map((course) => (
-                          <option key={course.id} value={course.code}>
-                            {course.code} - {course.name}
-                    </option>
-                  ))}
+                      {(() => {
+                        // Show all courses if input is empty or very short, otherwise filter
+                        const filteredCourses = !courseSearchQuery || courseSearchQuery.length < 2
+                          ? courses
+                          : courses.filter((course) => {
+                              const query = courseSearchQuery.toUpperCase();
+                              return course.code.toUpperCase().includes(query) || 
+                                     course.name.toUpperCase().includes(query);
+                            });
+                        
+                        // Sort by code for better UX
+                        const sortedCourses = [...filteredCourses].sort((a, b) => 
+                          a.code.localeCompare(b.code)
+                        );
+                        
+                        return sortedCourses
+                          .slice(0, 200) // Show up to 200 options
+                          .map((course) => (
+                            <option key={course.id} value={course.code}>
+                              {course.code} - {course.name}
+                            </option>
+                          ));
+                      })()}
                     </datalist>
                   </div>
                 </div>
