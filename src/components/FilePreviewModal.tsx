@@ -353,44 +353,119 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                         PDF Document
                       </h3>
                       <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                        PDF preview works best when opened directly. Choose an option below:
+                      PDF preview works best when accessed directly. For optimal display, please use a laptop. Choose an option below:
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center max-w-md mx-auto">
-                        <a
-                          href={getPreviewUrl(paperId)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation"
+                        <button
                           onClick={async (e) => {
+                            e.preventDefault();
                             const authToken = token || localStorage.getItem('token') || '';
-                            if (authToken) {
-                              // For authenticated users, fetch with auth and open blob URL
-                              e.preventDefault();
-                              try {
-                                const response = await fetch(getPreviewUrl(paperId), {
-                                  headers: { Authorization: `Bearer ${authToken}` }
-                                });
-                                if (response.ok) {
-                                  const blob = await response.blob();
-                                  const blobUrl = window.URL.createObjectURL(blob);
-                                  window.open(blobUrl, '_blank');
-                                  // Clean up blob URL after a delay
-                                  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+                            
+                            try {
+                              const response = await fetch(getPreviewUrl(paperId), {
+                                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
+                              });
+                              
+                              if (response.ok) {
+                                const blob = await response.blob();
+                                // Get content type from response or default to PDF
+                                const contentType = response.headers.get('content-type') || 'application/pdf';
+                                // Ensure blob has PDF MIME type
+                                const pdfBlob = new Blob([blob], { type: contentType });
+                                const blobUrl = window.URL.createObjectURL(pdfBlob);
+                                
+                                // Create a new window with an object tag to display PDF
+                                const newWindow = window.open('', '_blank');
+                                
+                                if (newWindow) {
+                                  // Write HTML to display PDF (using embed for better mobile support)
+                                  newWindow.document.write(`
+                                    <!DOCTYPE html>
+                                    <html>
+                                      <head>
+                                        <title>${fileName}</title>
+                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                        <style>
+                                          * { margin: 0; padding: 0; box-sizing: border-box; }
+                                          html, body { width: 100%; height: 100%; overflow: hidden; }
+                                          embed, iframe, object { 
+                                            width: 100%; 
+                                            height: 100vh; 
+                                            border: none;
+                                          }
+                                          .fallback {
+                                            display: flex;
+                                            flex-direction: column;
+                                            align-items: center;
+                                            justify-content: center;
+                                            height: 100vh;
+                                            padding: 20px;
+                                            text-align: center;
+                                          }
+                                        </style>
+                                      </head>
+                                      <body>
+                                        <embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" />
+                                        <noscript>
+                                          <div class="fallback">
+                                            <p>JavaScript is required to view PDFs.</p>
+                                            <a href="${blobUrl}" download="${fileName}" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Download PDF</a>
+                                          </div>
+                                        </noscript>
+                                      </body>
+                                    </html>
+                                  `);
+                                  newWindow.document.close();
+                                  
+                                  // Clean up blob URL after window is closed or after 10 minutes
+                                  const cleanup = () => {
+                                    try {
+                                      window.URL.revokeObjectURL(blobUrl);
+                                    } catch (err) {
+                                      console.warn('Error revoking blob URL:', err);
+                                    }
+                                  };
+                                  
+                                  // Try to detect when window closes
+                                  const checkClosed = setInterval(() => {
+                                    if (newWindow.closed) {
+                                      clearInterval(checkClosed);
+                                      cleanup();
+                                    }
+                                  }, 1000);
+                                  
+                                  // Fallback cleanup after 10 minutes
+                                  setTimeout(() => {
+                                    clearInterval(checkClosed);
+                                    cleanup();
+                                  }, 600000);
                                 } else {
-                                  // Fallback to direct link
-                                  window.open(getPreviewUrl(paperId), '_blank');
+                                  // Popup blocked, show error
+                                  showToast('Please allow popups to open PDF in new tab', 'error');
+                                  // Fallback: trigger download
+                                  const downloadUrl = window.URL.createObjectURL(pdfBlob);
+                                  const a = document.createElement('a');
+                                  a.href = downloadUrl;
+                                  a.download = fileName;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  document.body.removeChild(a);
+                                  window.URL.revokeObjectURL(downloadUrl);
                                 }
-                              } catch (error) {
-                                console.error('Error opening PDF:', error);
-                                // Fallback to direct link
-                                window.open(getPreviewUrl(paperId), '_blank');
+                              } else {
+                                showToast('Failed to load PDF. Please try downloading.', 'error');
                               }
+                            } catch (error) {
+                              console.error('Error opening PDF:', error);
+                              showToast('Failed to open PDF. Please try downloading.', 'error');
                             }
                           }}
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full sm:w-auto"
+                          type="button"
                         >
                           <FileText className="w-5 h-5" />
                           <span>Open in New Tab</span>
-                        </a>
+                        </button>
                         <button
                           onClick={handleDownload}
                           className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation"
