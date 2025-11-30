@@ -37,7 +37,7 @@
 - **Build Tool**: Vite
 
 **Deployment:**
-- **Backend**: Render.com (or compatible cloud platform)
+- **Backend**: Railway (or compatible cloud platform)
 - **Frontend**: Vercel (or compatible static hosting)
 - **Database**: Neon.tech (PostgreSQL)
 
@@ -1087,16 +1087,16 @@ UPLOAD_DIR=uploads
 
 ```bash
 # Backend API URL
-VITE_API_URL=https://your-backend.onrender.com
+VITE_API_URL=https://web-production-e22a6.up.railway.app
 # or
-VITE_BACKEND_URL=https://your-backend.onrender.com
+VITE_BACKEND_URL=https://web-production-e22a6.up.railway.app
 ```
 
 ---
 
 ## Deployment Notes
 
-### Backend (Render.com)
+### Backend (Railway)
 
 1. **Build Command:** (Not needed for Python)
 2. **Start Command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`

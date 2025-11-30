@@ -1,9 +1,9 @@
 /**
- * Keep-alive service to prevent Render backend from spinning down
+ * Keep-alive service to prevent Railway backend from spinning down
  * Pings the backend health endpoint every 5 minutes to keep it active
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://web-production-e22a6.up.railway.app';
 
 let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 let isActive = false;
@@ -11,7 +11,7 @@ let isActive = false;
 /**
  * Start the keep-alive service
  * Pings the backend every 5 minutes (300 seconds) to prevent spin-down
- * Render free tier spins down after 15 minutes of inactivity
+ * Railway free tier may spin down after inactivity
  */
 export const startKeepAlive = () => {
   if (isActive) {
@@ -26,7 +26,7 @@ export const startKeepAlive = () => {
   pingBackend();
 
   // Then ping every 5 minutes (300000ms)
-  // This ensures backend stays awake (Render spins down after 15 min)
+  // This ensures backend stays awake (Railway may spin down after inactivity)
   keepAliveInterval = setInterval(() => {
     pingBackend();
   }, 5 * 60 * 1000); // 5 minutes

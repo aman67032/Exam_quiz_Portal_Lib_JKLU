@@ -4,10 +4,10 @@
 
 ### ✅ Correct: Backend URL
 
-The `VITE_API_URL` should point to your **BACKEND** service (Render), not the frontend.
+The `VITE_API_URL` should point to your **BACKEND** service (Railway), not the frontend.
 
 ```env
-VITE_API_URL=https://your-backend-app.onrender.com
+VITE_API_URL=https://web-production-e22a6.up.railway.app
 ```
 
 ### ❌ Wrong: Frontend URL
@@ -17,13 +17,12 @@ VITE_API_URL=https://your-backend-app.onrender.com
 VITE_API_URL=https://your-frontend-app.vercel.app
 ```
 
-## How to Find Your Backend URL
+## Backend URL
 
-1. Go to **Render Dashboard**: https://dashboard.render.com
-2. Click on your **Backend Web Service** (the one running FastAPI)
-3. Your backend URL will be shown at the top, like:
-   - `https://exam-portal-backend-xyz.onrender.com`
-   - Or similar format
+Your backend is hosted on Railway:
+- **Backend URL**: `https://web-production-e22a6.up.railway.app`
+- **Health Check**: `https://web-production-e22a6.up.railway.app/health`
+- **API Docs**: `https://web-production-e22a6.up.railway.app/docs`
 
 ## Setup Steps
 
@@ -32,7 +31,7 @@ VITE_API_URL=https://your-frontend-app.vercel.app
 1. Create `.env` file in `ExamPaperPortalFrontend/` folder:
 
 ```env
-VITE_API_URL=https://your-backend-app.onrender.com
+VITE_API_URL=https://web-production-e22a6.up.railway.app
 ```
 
 2. Restart your dev server:
@@ -46,19 +45,19 @@ npm run dev
 2. Find **Environment Variables** settings
 3. Add:
    - **Key**: `VITE_API_URL`
-   - **Value**: `https://your-backend-app.onrender.com`
+   - **Value**: `https://web-production-e22a6.up.railway.app`
 4. Redeploy your frontend
 
 ## Example
 
-If your Render backend is at:
+Your Railway backend is at:
 ```
-https://exam-portal-backend-abc123.onrender.com
+https://web-production-e22a6.up.railway.app
 ```
 
 Then your `.env` should be:
 ```env
-VITE_API_URL=https://exam-portal-backend-abc123.onrender.com
+VITE_API_URL=https://web-production-e22a6.up.railway.app
 ```
 
 ## Verify It's Working
@@ -66,11 +65,11 @@ VITE_API_URL=https://exam-portal-backend-abc123.onrender.com
 1. Open browser DevTools (F12)
 2. Go to **Network** tab
 3. Try to login
-4. Check the request URL - it should go to your Render backend, not localhost
+4. Check the request URL - it should go to your Railway backend, not localhost
 
 Example request should be:
 ```
-POST https://exam-portal-backend-abc123.onrender.com/admin-login
+POST https://web-production-e22a6.up.railway.app/admin-login
 ```
 
 NOT:
@@ -84,10 +83,12 @@ After setting up, test in browser console:
 
 ```javascript
 console.log(import.meta.env.VITE_API_URL)
-// Should show: https://your-backend-app.onrender.com
+// Should show: https://web-production-e22a6.up.railway.app
 ```
 
 ---
 
-**Summary**: `VITE_API_URL` = Your **Backend** URL from Render ✅
+**Summary**: `VITE_API_URL` = Your **Backend** URL from Railway ✅
+
+**Current Backend URL**: `https://web-production-e22a6.up.railway.app`
 

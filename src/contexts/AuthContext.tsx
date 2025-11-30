@@ -4,7 +4,7 @@ import axios from 'axios';
 import { buildUploadUrl } from '../utils/uploads';
 import { wakeUpBackend } from '../utils/keepAlive';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://web-production-e22a6.up.railway.app';
 
 interface User {
   id: number;

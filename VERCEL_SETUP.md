@@ -1,4 +1,4 @@
-# Vercel Deployment Setup - Connect to Render Backend
+# Vercel Deployment Setup - Connect to Railway Backend
 
 ## ✅ Frontend Code Fixed
 
@@ -18,7 +18,7 @@ All hardcoded `localhost:8000` URLs have been updated to use environment variabl
 4. Click **Add New**
 5. Add:
    - **Name**: `VITE_API_URL`
-   - **Value**: `https://exam-portal-backend-jklu-solomaze.onrender.com`
+   - **Value**: `https://web-production-e22a6.up.railway.app`
    - **Environment**: Select all (Production, Preview, Development)
 6. Click **Save**
 
@@ -26,7 +26,7 @@ All hardcoded `localhost:8000` URLs have been updated to use environment variabl
 
 ```bash
 vercel env add VITE_API_URL
-# When prompted, enter: https://exam-portal-backend-jklu-solomaze.onrender.com
+# When prompted, enter: https://web-production-e22a6.up.railway.app
 # Select all environments
 ```
 
@@ -51,7 +51,7 @@ After adding the environment variable:
 2. Open browser DevTools (F12) → Console
 3. Try logging in or making an API call
 4. Check Network tab - requests should go to:
-   `https://exam-portal-backend-jklu-solomaze.onrender.com`
+   `https://web-production-e22a6.up.railway.app`
 
 ## 🔍 Troubleshooting
 
@@ -64,19 +64,19 @@ After adding the environment variable:
 ### Issue: CORS errors
 **Solution**: 
 - Backend already has CORS configured with `allow_origins=["*"]`
-- If you see CORS errors, check Render backend logs
+- If you see CORS errors, check Railway backend logs
 
 ### Issue: API not responding
 **Solution**:
-- Check if Render backend is running: https://exam-portal-backend-jklu-solomaze.onrender.com/health
-- Check Render logs for errors
-- Verify environment variables in Render are set correctly
+- Check if Railway backend is running: https://web-production-e22a6.up.railway.app/health
+- Check Railway logs for errors
+- Verify environment variables in Railway are set correctly
 
 ## 📝 Environment Variable Reference
 
 | Variable | Value | Required |
 |----------|-------|----------|
-| `VITE_API_URL` | `https://exam-portal-backend-jklu-solomaze.onrender.com` | Yes |
+| `VITE_API_URL` | `https://web-production-e22a6.up.railway.app` | Yes |
 | `VITE_BACKEND_URL` | Same as above (alternative) | Optional |
 
 ## 🎯 Quick Checklist
@@ -84,13 +84,13 @@ After adding the environment variable:
 - [ ] Added `VITE_API_URL` in Vercel Environment Variables
 - [ ] Redeployed frontend (automatic or manual)
 - [ ] Tested login/API calls
-- [ ] Verified requests go to Render backend
+- [ ] Verified requests go to Railway backend
 - [ ] Checked browser console for errors
 
 ## 🔗 Links
 
-- **Backend URL**: https://exam-portal-backend-jklu-solomaze.onrender.com
-- **Backend Health Check**: https://exam-portal-backend-jklu-solomaze.onrender.com/health
-- **Backend API Docs**: https://exam-portal-backend-jklu-solomaze.onrender.com/docs
+- **Backend URL**: https://web-production-e22a6.up.railway.app
+- **Backend Health Check**: https://web-production-e22a6.up.railway.app/health
+- **Backend API Docs**: https://web-production-e22a6.up.railway.app/docs
 - **Vercel Dashboard**: https://vercel.com/dashboard
 

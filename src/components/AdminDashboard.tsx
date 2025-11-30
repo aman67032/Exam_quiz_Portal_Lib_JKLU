@@ -7,7 +7,7 @@ import FilePreviewModal from './FilePreviewModal';
 import { buildUploadUrl } from '../utils/uploads';
 import JKLULogo from './JKLULogo';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://web-production-e22a6.up.railway.app';
 
 interface Stats {
   total_papers: number;
