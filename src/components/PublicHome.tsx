@@ -110,17 +110,32 @@ const PublicHome: React.FC = () => {
 
   const fetchPublicPapers = useCallback(async () => {
     try {
+      setLoading(true);
       // If user is logged in, fetch all papers (approved, pending, rejected)
       // If not logged in, fetch only approved papers (public)
       if (user) {
         const response = await API.getPapers({});
-        setPapers(response.data);
+        setPapers(response.data || []);
+        if (!response.data || response.data.length === 0) {
+          console.log('No papers found in database');
+        }
       } else {
         const response = await API.getPublicPapers();
-        setPapers(response.data);
+        setPapers(response.data || []);
+        if (!response.data || response.data.length === 0) {
+          console.log('No approved papers found in database');
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching papers:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        url: error.config?.url
+      });
+      showToast('Failed to load papers. Please check your connection.', 'error');
+      setPapers([]);
     } finally {
       setLoading(false);
     }
