@@ -10,9 +10,7 @@ import Loader from './components/Loader';
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
-const Login = lazy(() => import('./components/Login'));
 const Register = lazy(() => import('./components/Register'));
-const AdminLogin = lazy(() => import('./components/AdminLogin'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 const Profile = lazy(() => import('./components/Profile'));
@@ -87,16 +85,10 @@ function AppContent() {
               path="/home"
               element={<PublicHome />}
             />
-            {/* Auth pages - redirect to home if already logged in */}
+            {/* Auth pages - blocked for testing phase */}
             <Route
               path="/login"
-              element={
-                user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
-                ) : (
-                  <Login />
-                )
-              }
+              element={<Navigate to="/home" replace />}
             />
             <Route
               path="/register"
@@ -110,15 +102,7 @@ function AppContent() {
             />
             <Route
               path="/admin-login"
-              element={
-                user && user.is_admin ? (
-                  <Navigate to="/admin" replace />
-                ) : user ? (
-                  <Navigate to="/home" replace />
-                ) : (
-                  <AdminLogin />
-                )
-              }
+              element={<Navigate to="/home" replace />}
             />
             <Route
               path="/forgot-password"
@@ -130,14 +114,14 @@ function AppContent() {
                 )
               }
             />
-            {/* Protected routes - redirect to login if not logged in */}
+            {/* Protected routes - redirect to home if not logged in (login blocked for testing) */}
             <Route
               path="/dashboard"
               element={
                 user && !user.is_admin ? (
                   <StudentDashboard />
                 ) : (
-                  <Navigate to="/login" replace />
+                  <Navigate to="/home" replace />
                 )
               }
             />
@@ -147,7 +131,7 @@ function AppContent() {
                 user && !user.is_admin ? (
                   <Profile />
                 ) : (
-                  <Navigate to="/login" replace />
+                  <Navigate to="/home" replace />
                 )
               }
             />
@@ -157,7 +141,7 @@ function AppContent() {
                 user && user.is_admin ? (
                   <AdminDashboard />
                 ) : (
-                  <Navigate to="/admin-login" replace />
+                  <Navigate to="/home" replace />
                 )
               }
             />

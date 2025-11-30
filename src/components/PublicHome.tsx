@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, AlertCircle } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -16,6 +16,8 @@ import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import Loader from './Loader';
 import JKLULogo from './JKLULogo';
+import TestingPhaseNotice from './TestingPhaseNotice';
+import Footer from './Footer';
 
 // Lazy load heavy background component
 const ColorBends = lazy(() => import('./color_band_bg'));
@@ -52,13 +54,19 @@ const PublicHome: React.FC = () => {
     course_code: string;
     paper_type: string;
     year: string;
+    semester: string;
     department: string;
   }>({
     course_code: '',
     paper_type: '',
     year: '',
+    semester: '',
     department: '',
   });
+
+  // Courses for dropdown
+  const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string }>>([]);
+  const [courseSearchQuery, setCourseSearchQuery] = useState('');
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -75,9 +83,26 @@ const PublicHome: React.FC = () => {
     type: 'success' as 'success' | 'error' | 'info' 
   });
 
+  // Testing Phase Notice Modal
+  const [showTestingNotice, setShowTestingNotice] = useState(false);
+
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ show: true, message, type });
   }, []);
+
+  // Show testing phase notice on first visit (only if not logged in)
+  useEffect(() => {
+    if (!user) {
+      const hasSeenNotice = sessionStorage.getItem('testing-phase-notice-seen');
+      if (!hasSeenNotice) {
+        // Small delay to let page load first
+        const timer = setTimeout(() => {
+          setShowTestingNotice(true);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [user]);
 
   const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
   const years = ['2025', '2024', '2023', '2022'];
@@ -105,6 +130,19 @@ const PublicHome: React.FC = () => {
     fetchPublicPapers();
   }, [fetchPublicPapers]);
 
+  // Fetch courses from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await API.getCourses();
+        setCourses(response.data || []);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    };
+    fetchCourses();
+  }, []);
+
   const applyFilters = useCallback(() => {
     let filtered = papers.filter((paper) => paper.status?.toLowerCase() === 'approved');
 
@@ -125,9 +163,11 @@ const PublicHome: React.FC = () => {
       });
     }
 
-    // Course filter
+    // Course filter - support partial matching
     if (filters.course_code) {
-      filtered = filtered.filter((paper) => paper.course_code === filters.course_code);
+      filtered = filtered.filter((paper) => 
+        (paper.course_code || '').toUpperCase().includes(filters.course_code.toUpperCase())
+      );
     }
 
     // Paper type filter
@@ -144,6 +184,13 @@ const PublicHome: React.FC = () => {
     if (filters.department) {
       filtered = filtered.filter(
         (paper) => (paper.department || '').toUpperCase() === filters.department.toUpperCase()
+      );
+    }
+
+    // Semester filter
+    if (filters.semester) {
+      filtered = filtered.filter(
+        (paper) => (paper.semester || '').toLowerCase() === filters.semester.toLowerCase()
       );
     }
 
@@ -356,13 +403,45 @@ const PublicHome: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Toast Notification */}
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={toast.show}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
+
+      {/* Testing Phase Notice Modal */}
+      <TestingPhaseNotice
+        isVisible={showTestingNotice}
+        onClose={() => {
+          setShowTestingNotice(false);
+          sessionStorage.setItem('testing-phase-notice-seen', 'true');
+        }}
+      />
+
+        {/* Testing Phase Banner - Above Navigation */}
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="sticky top-0 z-[60] bg-gradient-to-r from-amber-500 to-amber-600 dark:from-amber-700 dark:to-amber-800 text-white shadow-lg border-b-2 border-amber-400 dark:border-amber-600"
+          >
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+              <div className="flex items-start sm:items-center gap-3 sm:gap-4">
+                <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0 mt-0.5 sm:mt-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm sm:text-base font-semibold mb-1">
+                    Testing Phase Update
+                  </p>
+                  <p className="text-xs sm:text-sm leading-relaxed opacity-95">
+                    Student login is currently unavailable as we've rolled out the platform early to support end-term exam paper uploads. Only available papers can be accessed for now. Student login and access to other papers will be enabled once our end-term exams are over 😉
+                  </p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* Header */}
         <motion.header
@@ -420,24 +499,8 @@ const PublicHome: React.FC = () => {
                     </button>
                   </>
                 ) : (
-                  <>
-                    <motion.a
-                      href="/login"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-3 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-1 sm:flex-initial text-center"
-                    >
-                      Student Login
-                    </motion.a>
-                    <motion.a
-                      href="/admin-login"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-3 sm:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-1 sm:flex-initial text-center"
-                    >
-                      Admin Login
-                    </motion.a>
-                  </>
+                  // Login buttons removed for testing phase
+                  null
                 )}
               </div>
             </div>
@@ -629,8 +692,8 @@ const PublicHome: React.FC = () => {
                 <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Search In
               </label>
-              <div className="overflow-hidden">
-                <div className="flex flex-wrap gap-2">
+              <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
                   <GooeyNav
                     items={[
                       { label: 'All', href: '#' },
@@ -655,26 +718,62 @@ const PublicHome: React.FC = () => {
                 <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Search Papers
               </label>
-              <input
-                type="text"
-                placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2.5 sm:py-3 pr-10 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+                    aria-label="Clear search"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Filters */}
             <div>
-              <div className="flex items-center space-x-2 mb-3 sm:mb-4">
-                <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                <label className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</label>
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                  <label className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</label>
+                </div>
+                {/* Clear Filters Button - Mobile Friendly */}
+                {(filters.year || filters.semester || filters.course_code || filters.department || filters.paper_type) && (
+                  <button
+                    onClick={() => {
+                      setFilters({
+                        course_code: '',
+                        paper_type: '',
+                        year: '',
+                        semester: '',
+                        department: '',
+                      });
+                      setCourseSearchQuery('');
+                    }}
+                    className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-2 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  >
+                    Clear All
+                  </button>
+                )}
               </div>
 
               {/* Gooey Paper Type Tabs */}
-              <div className="mb-3 sm:mb-4">
-                <div className="overflow-hidden">
-                  <div className="flex flex-wrap gap-2">
+              <div className="mb-4 sm:mb-5">
+                <label className="block text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                  Paper Type
+                </label>
+                <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                  <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
                     <GooeyNav
                       items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
                       initialActiveIndex={0}
@@ -687,40 +786,116 @@ const PublicHome: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                <select
-                  value={filters.year}
-                  onChange={(e) => handleFilterChange('year', e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">All Years</option>
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+              {/* Filter Grid - Optimized for Mobile */}
+              <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 sm:gap-4">
+                {/* Year Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                    Year
+                  </label>
+                  <select
+                    value={filters.year}
+                    onChange={(e) => handleFilterChange('year', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700"
+                  >
+                    <option value="">All Years</option>
+                    {years.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-                <input
-                  type="text"
-                  placeholder="Filter by course code..."
-                  value={filters.course_code}
-                  onChange={(e) => handleFilterChange('course_code', e.target.value.toUpperCase())}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
-                />
+                {/* Semester Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                    Semester
+                  </label>
+                  <select
+                    value={filters.semester}
+                    onChange={(e) => handleFilterChange('semester', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700"
+                  >
+                    <option value="">All Semesters</option>
+                    <option value="1">Semester 1</option>
+                    <option value="2">Semester 2</option>
+                    <option value="3">Semester 3</option>
+                    <option value="4">Semester 4</option>
+                    <option value="5">Semester 5</option>
+                    <option value="6">Semester 6</option>
+                    <option value="7">Semester 7</option>
+                    <option value="8">Semester 8</option>
+                  </select>
+                </div>
 
-                <select
-                  value={filters.department}
-                  onChange={(e) => handleFilterChange('department', e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">All Departments</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
+                {/* Course Code Filter - with datalist for dropdown */}
+                <div className="sm:col-span-2 lg:col-span-1">
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                    Course Code
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="courses-list"
+                      placeholder="Type or select..."
+                      value={filters.course_code}
+                      onChange={(e) => {
+                        const value = e.target.value.toUpperCase();
+                        handleFilterChange('course_code', value);
+                        setCourseSearchQuery(value);
+                      }}
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
+                    />
+                    {filters.course_code && (
+                      <button
+                        onClick={() => {
+                          handleFilterChange('course_code', '');
+                          setCourseSearchQuery('');
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+                        aria-label="Clear course code"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                    <datalist id="courses-list">
+                      {courses
+                        .filter((course) => 
+                          !courseSearchQuery || 
+                          course.code.toUpperCase().includes(courseSearchQuery) ||
+                          course.name.toUpperCase().includes(courseSearchQuery)
+                        )
+                        .slice(0, 50) // Limit to 50 for performance
+                        .map((course) => (
+                          <option key={course.id} value={course.code}>
+                            {course.code} - {course.name}
+                          </option>
+                        ))}
+                    </datalist>
+                  </div>
+                </div>
+
+                {/* Department Filter */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                    Department
+                  </label>
+                  <select
+                    value={filters.department}
+                    onChange={(e) => handleFilterChange('department', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700"
+                  >
+                    <option value="">All Departments</option>
+                    {departments.map((dept) => (
+                      <option key={dept} value={dept}>
+                        {dept}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
           </div>
@@ -796,6 +971,9 @@ const PublicHome: React.FC = () => {
           token={localStorage.getItem('token') || ''}
         />
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };

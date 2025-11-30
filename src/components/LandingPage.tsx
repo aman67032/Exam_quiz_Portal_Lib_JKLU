@@ -1,25 +1,43 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { BookOpen, Shield, ArrowRight, Upload } from 'lucide-react';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import logoImg from '../assets/logo (2).png';
 import JKLULogo from './JKLULogo';
+import TestingPhaseNotice from './TestingPhaseNotice';
+import Footer from './Footer';
 
 const LandingPage: React.FC = () => {
+  const [showTestingNotice, setShowTestingNotice] = useState(false);
+
+  // Show testing phase notice on first visit
+  useEffect(() => {
+    const hasSeenNotice = sessionStorage.getItem('testing-phase-notice-seen');
+    if (!hasSeenNotice) {
+      // Small delay to let page load first
+      const timer = setTimeout(() => {
+        setShowTestingNotice(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 md:py-12 relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      {/* JKLU Logo - Top Right */}
-      <div className="fixed top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 z-50">
-        <JKLULogo size="lg" className="opacity-90 hover:opacity-100" />
-      </div>
-      <MathPhysicsBackground />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="max-w-4xl w-full relative z-10"
-      >
+    <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* Main Content - 100vh */}
+      <div className="h-screen flex items-center justify-center px-3 sm:px-4 py-6 sm:py-8 md:py-12 relative overflow-hidden">
+        {/* JKLU Logo - Top Right */}
+        <div className="fixed top-4 right-4 sm:top-6 sm:right-6 lg:top-8 lg:right-8 z-50">
+          <JKLULogo size="lg" className="opacity-90 hover:opacity-100" />
+        </div>
+        <MathPhysicsBackground />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="max-w-4xl w-full relative z-10"
+        >
         <div className="text-center mb-6 sm:mb-8 md:mb-12">
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
@@ -127,9 +145,22 @@ const LandingPage: React.FC = () => {
           transition={{ delay: 0.7 }}
           className="text-center text-xs sm:text-sm text-amber-800 dark:text-amber-300 mt-6 sm:mt-8 px-2"
         >
-          Browse papers instantly. Login to upload and access your dashboard.
+          Browse papers instantly. Access your dashboard after registration.
         </motion.p>
-      </motion.div>
+        </motion.div>
+      </div>
+
+      {/* Testing Phase Notice Modal */}
+      <TestingPhaseNotice
+        isVisible={showTestingNotice}
+        onClose={() => {
+          setShowTestingNotice(false);
+          sessionStorage.setItem('testing-phase-notice-seen', 'true');
+        }}
+      />
+
+      {/* Footer - Below viewport, requires scrolling */}
+      <Footer />
     </div>
   );
 };
