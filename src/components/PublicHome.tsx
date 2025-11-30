@@ -458,8 +458,8 @@ const PublicHome: React.FC = () => {
                   </div>
                   <img src={logoImg} alt="Paper Portal Logo" className="h-10 sm:h-16 w-auto object-contain flex-shrink-0" />
                   <div className="min-w-0">
-                    <h1 className="text-xl sm:text-2xl font-bold text-amber-900 dark:text-white truncate">Paper Portal</h1>
-                    <p className="hidden sm:block text-xs sm:text-sm text-amber-800 dark:text-gray-400">Academic Resource Hub</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-amber-900 sm:text-gray-900 dark:text-white truncate">Paper Portal</h1>
+                    <p className="hidden sm:block text-xs sm:text-sm text-amber-800 sm:text-gray-600 dark:text-gray-400">Academic Resource Hub</p>
                   </div>
                 </div>
                 {/* Mobile JKLU logo on far right */}
@@ -478,7 +478,7 @@ const PublicHome: React.FC = () => {
                     </Link>
                     <Link
                       to="/profile"
-                      className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-white/30 dark:border-gray-700/40 text-xs sm:text-sm font-semibold text-amber-900 dark:text-gray-100 shadow-md hover:shadow-lg transition-all min-w-0 flex-1 sm:flex-initial min-h-[36px] sm:min-h-[40px] touch-manipulation"
+                      className="flex items-center space-x-1.5 sm:space-x-2 px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-lg border border-white/30 dark:border-gray-700/40 text-xs sm:text-sm font-semibold text-amber-900 sm:text-gray-800 dark:text-gray-100 shadow-md hover:shadow-lg transition-all min-w-0 flex-1 sm:flex-initial min-h-[36px] sm:min-h-[40px] touch-manipulation"
                     >
                       {profilePhoto ? (
                         <img src={profilePhoto} className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 rounded-full object-cover flex-shrink-0" alt="Profile" />
@@ -530,7 +530,7 @@ const PublicHome: React.FC = () => {
                 />
               </motion.div>
               <motion.h1 
-                className="text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-amber-900 dark:text-white mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 px-2"
+                className="text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 sm:from-indigo-600 sm:via-purple-600 sm:to-pink-600 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 px-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -538,7 +538,7 @@ const PublicHome: React.FC = () => {
                 Your Academic Resource Hub
               </motion.h1>
               <motion.p 
-                className="text-base sm:text-base md:text-lg lg:text-2xl text-amber-900 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2 font-medium"
+                className="text-base sm:text-base md:text-lg lg:text-2xl text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2 font-medium sm:font-normal"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
@@ -561,7 +561,7 @@ const PublicHome: React.FC = () => {
                     <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
                   </motion.div>
                   <div className="text-left min-w-0">
-                    <div className="font-bold text-base sm:text-base text-amber-900 dark:text-white">Verified Content</div>
+                    <div className="font-bold text-base sm:text-base text-amber-900 sm:text-gray-900 dark:text-white">Verified Content</div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Admin-reviewed papers</div>
                   </div>
                 </motion.div>
@@ -579,7 +579,7 @@ const PublicHome: React.FC = () => {
                     <Search className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                   </motion.div>
                   <div className="text-left min-w-0">
-                    <div className="font-bold text-base sm:text-base text-amber-900 dark:text-white">Smart Search</div>
+                    <div className="font-bold text-base sm:text-base text-amber-900 sm:text-gray-900 dark:text-white">Smart Search</div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Find papers instantly</div>
                   </div>
                 </motion.div>
@@ -597,7 +597,7 @@ const PublicHome: React.FC = () => {
                     <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-pink-600 dark:text-pink-400 flex-shrink-0" />
                   </motion.div>
                   <div className="text-left min-w-0">
-                    <div className="font-bold text-base sm:text-base text-amber-900 dark:text-white">Easy Upload</div>
+                    <div className="font-bold text-base sm:text-base text-amber-900 sm:text-gray-900 dark:text-white">Easy Upload</div>
                     <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Share your resources</div>
                   </div>
                 </motion.div>
@@ -616,7 +616,7 @@ const PublicHome: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="text-center mb-8 sm:mb-12"
             >
-              <h2 className="text-3xl sm:text-3xl md:text-4xl font-bold text-amber-900 dark:text-white mb-3 sm:mb-4 px-2">
+              <h2 className="text-3xl sm:text-3xl md:text-4xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-3 sm:mb-4 px-2">
                 How It Works
               </h2>
               <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-2">
@@ -666,7 +666,7 @@ const PublicHome: React.FC = () => {
                       <item.icon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                     </motion.div>
                     <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-200 dark:text-gray-700 mb-3 sm:mb-4">{item.step}</div>
-                    <h3 className="text-2xl sm:text-2xl font-bold text-amber-900 dark:text-white mb-2 sm:mb-3">{item.title}</h3>
+                    <h3 className="text-2xl sm:text-2xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-2 sm:mb-3">{item.title}</h3>
                     <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">{item.description}</p>
                   </div>
                 </motion.div>
@@ -687,7 +687,7 @@ const PublicHome: React.FC = () => {
           <div className="space-y-4 sm:space-y-6">
             {/* Gooey Search Field Tabs */}
             <div>
-              <label className="block text-sm sm:text-sm font-semibold text-amber-900 dark:text-gray-300 mb-2 sm:mb-3">
+              <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                 <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Search In
               </label>
@@ -713,7 +713,7 @@ const PublicHome: React.FC = () => {
 
             {/* Search Bar */}
             <div>
-              <label className="block text-sm sm:text-sm font-semibold text-amber-900 dark:text-gray-300 mb-2 sm:mb-3">
+              <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                 <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                 Search Papers
               </label>
@@ -746,7 +746,7 @@ const PublicHome: React.FC = () => {
               <div className="flex items-center justify-between mb-3 sm:mb-4">
                 <div className="flex items-center space-x-2">
                 <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                <label className="text-sm sm:text-sm font-semibold text-amber-900 dark:text-gray-300">Filters</label>
+                <label className="text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300">Filters</label>
                 </div>
                 {/* Clear Filters Button - Mobile Friendly */}
                 {(filters.year || filters.semester || filters.course_code || filters.paper_type) && (
@@ -790,7 +790,7 @@ const PublicHome: React.FC = () => {
               <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 sm:gap-4">
                 {/* Year Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-amber-900 dark:text-gray-400 mb-1.5 sm:mb-2">
+                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
                     Year
                   </label>
                 <select
@@ -809,7 +809,7 @@ const PublicHome: React.FC = () => {
 
                 {/* Semester Filter */}
                 <div>
-                  <label className="block text-sm font-medium text-amber-900 dark:text-gray-400 mb-1.5 sm:mb-2">
+                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
                     Semester
                   </label>
                   <select
@@ -831,7 +831,7 @@ const PublicHome: React.FC = () => {
 
                 {/* Course Code Filter - with datalist for dropdown */}
                 <div className="sm:col-span-2 lg:col-span-1">
-                  <label className="block text-sm font-medium text-amber-900 dark:text-gray-400 mb-1.5 sm:mb-2">
+                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
                     Course Code
                   </label>
                   <div className="relative">
@@ -892,7 +892,7 @@ const PublicHome: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-3xl sm:text-3xl font-bold text-amber-900 dark:text-white mb-2 flex items-center gap-2 sm:gap-3"
+              className="text-3xl sm:text-3xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-2 flex items-center gap-2 sm:gap-3"
             >
               <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
               <span>Browse Documents</span>
@@ -913,7 +913,7 @@ const PublicHome: React.FC = () => {
               className="backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 sm:p-12 md:p-16 text-center"
             >
               <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4 sm:mb-6" />
-              <p className="text-2xl sm:text-2xl font-semibold text-amber-900 dark:text-gray-300 mb-2">No papers found</p>
+              <p className="text-2xl sm:text-2xl font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2">No papers found</p>
               <p className="text-sm sm:text-base text-gray-500 dark:text-gray-500">Try adjusting your search or filter criteria</p>
             </motion.div>
           ) : (
@@ -938,9 +938,9 @@ const PublicHome: React.FC = () => {
               transition={{ delay: 0.5 }}
               className="mt-6 sm:mt-10 text-center backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-xl sm:rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-lg py-4 sm:py-6 px-4 sm:px-8"
             >
-              <p className="text-base sm:text-base text-amber-900 dark:text-gray-300">
-                Showing <span className="font-bold text-amber-700 dark:text-indigo-400">{filteredPapers.length}</span> of{' '}
-                <span className="font-bold text-amber-900 dark:text-white">{papers.length}</span> {user ? 'available' : 'approved'} papers
+              <p className="text-base sm:text-base text-amber-900 sm:text-gray-700 dark:text-gray-300">
+                Showing <span className="font-bold text-amber-700 sm:text-indigo-600 dark:text-indigo-400">{filteredPapers.length}</span> of{' '}
+                <span className="font-bold text-amber-900 sm:text-gray-900 dark:text-white">{papers.length}</span> {user ? 'available' : 'approved'} papers
               </p>
             </motion.div>
           )}
