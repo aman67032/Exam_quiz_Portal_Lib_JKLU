@@ -132,9 +132,27 @@ const PublicHome: React.FC = () => {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
-        url: error.config?.url
+        url: error.config?.url,
+        baseURL: error.config?.baseURL
       });
-      showToast('Failed to load papers. Please check your connection.', 'error');
+      
+      // More specific error messages
+      let errorMessage = 'Failed to load papers. ';
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
+        errorMessage += 'Backend server is not responding. Please check if the backend is running.';
+      } else if (error.response?.status === 500) {
+        errorMessage += 'Server error. Please try again later.';
+      } else if (error.response?.status === 404) {
+        errorMessage += 'API endpoint not found.';
+      } else if (error.response?.status === 403) {
+        errorMessage += 'Access denied.';
+      } else if (error.response?.data?.detail) {
+        errorMessage += error.response.data.detail;
+      } else {
+        errorMessage += 'Please check your connection.';
+      }
+      
+      showToast(errorMessage, 'error');
       setPapers([]);
     } finally {
       setLoading(false);
