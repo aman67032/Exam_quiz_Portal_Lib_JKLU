@@ -38,6 +38,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [retryKey, setRetryKey] = useState(0); // Force reload on retry
   const [errorMessage, setErrorMessage] = useState<string>(''); // Store specific error message
+  const [isMobile, setIsMobile] = useState(false);
   const pdfUrlRef = useRef<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const [toast, setToast] = useState({ 
@@ -45,6 +46,19 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     message: '', 
     type: 'success' as 'success' | 'error' | 'info' 
   });
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+        (window.innerWidth <= 768);
+      setIsMobile(isMobileDevice);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
     setToast({ show: true, message, type });
@@ -99,9 +113,13 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     }
   }, [isOpen, cleanupBlobUrl, isPdf]);
 
-  // Load PDF when modal opens or paperId changes
+  // Load PDF when modal opens or paperId changes (only for desktop)
   useEffect(() => {
-    if (!isOpen || !isPdf) {
+    if (!isOpen || !isPdf || isMobile) {
+      // On mobile, skip blob URL creation
+      if (isMobile) {
+        setPreviewLoading(false);
+      }
       return;
     }
 
@@ -170,7 +188,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     };
 
     loadPdfPreview();
-  }, [isOpen, isPdf, paperId, token, cleanupBlobUrl, retryKey]);
+  }, [isOpen, isPdf, paperId, token, cleanupBlobUrl, retryKey, isMobile]);
 
   const handleDownload = async () => {
     try {
@@ -216,7 +234,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4"
             onClick={onClose}
           >
           <motion.div
@@ -224,36 +242,38 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-between p-4 sm:p-5 md:p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                 {isImage ? (
-                  <Image className="w-6 h-6 text-blue-500" />
+                  <Image className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" />
                 ) : isPdf ? (
-                  <FileText className="w-6 h-6 text-red-500" />
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0" />
                 ) : (
-                  <FileText className="w-6 h-6 text-orange-500" />
+                  <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-orange-500 flex-shrink-0" />
                 )}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{fileName}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white truncate">{fileName}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     {isImage ? 'Image' : isPdf ? 'PDF Document' : 'Document'} Preview
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0 min-w-[40px] min-h-[40px] flex items-center justify-center touch-manipulation"
+                aria-label="Close"
+                type="button"
               >
-                <X className="w-6 h-6 text-gray-500" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
               </button>
             </div>
 
             {/* Preview Content */}
-            <div className="flex-1 overflow-auto p-6 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
               {previewError ? (
                 <div className="text-center p-8">
                   <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -325,50 +345,110 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                 )
               ) : isPdf ? (
                 <>
-                  {previewLoading ? (
-                    <div className="text-center p-8">
-                      <Loader />
+                  {isMobile ? (
+                    // Mobile: Show options to open in new tab or download
+                    <div className="text-center p-6 sm:p-8 w-full">
+                      <FileText className="w-20 h-20 sm:w-24 sm:h-24 text-red-500 mx-auto mb-4" />
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        PDF Document
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+                        PDF preview works best when opened directly. Choose an option below:
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center max-w-md mx-auto">
+                        <a
+                          href={getPreviewUrl(paperId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation"
+                          onClick={async (e) => {
+                            const authToken = token || localStorage.getItem('token') || '';
+                            if (authToken) {
+                              // For authenticated users, fetch with auth and open blob URL
+                              e.preventDefault();
+                              try {
+                                const response = await fetch(getPreviewUrl(paperId), {
+                                  headers: { Authorization: `Bearer ${authToken}` }
+                                });
+                                if (response.ok) {
+                                  const blob = await response.blob();
+                                  const blobUrl = window.URL.createObjectURL(blob);
+                                  window.open(blobUrl, '_blank');
+                                  // Clean up blob URL after a delay
+                                  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100);
+                                } else {
+                                  // Fallback to direct link
+                                  window.open(getPreviewUrl(paperId), '_blank');
+                                }
+                              } catch (error) {
+                                console.error('Error opening PDF:', error);
+                                // Fallback to direct link
+                                window.open(getPreviewUrl(paperId), '_blank');
+                              }
+                            }
+                          }}
+                        >
+                          <FileText className="w-5 h-5" />
+                          <span>Open in New Tab</span>
+                        </a>
+                        <button
+                          onClick={handleDownload}
+                          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation"
+                        >
+                          <Download className="w-5 h-5" />
+                          <span>Download PDF</span>
+                        </button>
+                      </div>
                     </div>
-                  ) : pdfUrl ? (
-                    <iframe
-                      key={pdfUrl} // Force re-render when URL changes
-                      src={`${pdfUrl}#toolbar=0`}
-                      className="w-full h-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"
-                      title={fileName}
-                      onLoad={() => {
-                        // Iframe loaded successfully
-                        setPreviewLoading(false);
-                      }}
-                      onError={() => {
-                        console.error('PDF iframe load error');
-                        // Try to reload after a short delay
-                        setTimeout(() => {
-                          if (pdfUrlRef.current) {
-                            // Blob URL might be invalid, try to reload
-                            const currentUrl = pdfUrlRef.current;
-                            setPdfUrl(''); // Clear to trigger reload
-                            setTimeout(() => {
-                              setPdfUrl(currentUrl);
-                            }, 100);
-                          } else {
-                            setPreviewError(true);
-                            showToast('Failed to display PDF. Please download to view.', 'error');
-                          }
-                        }, 1000);
-                      }}
-                    />
                   ) : (
-                    <div className="text-center p-8">
-                      <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-                      <p className="text-gray-600 dark:text-gray-400 mb-4">Unable to load PDF preview</p>
-                      <button
-                        onClick={handleDownload}
-                        className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span>Download PDF</span>
-                      </button>
-                    </div>
+                    // Desktop: Use iframe for preview
+                    <>
+                      {previewLoading ? (
+                        <div className="text-center p-8">
+                          <Loader />
+                        </div>
+                      ) : pdfUrl ? (
+                        <iframe
+                          key={pdfUrl} // Force re-render when URL changes
+                          src={`${pdfUrl}#toolbar=0`}
+                          className="w-full h-full min-h-[500px] rounded-lg border border-gray-200 dark:border-gray-700"
+                          title={fileName}
+                          onLoad={() => {
+                            // Iframe loaded successfully
+                            setPreviewLoading(false);
+                          }}
+                          onError={() => {
+                            console.error('PDF iframe load error');
+                            // Try to reload after a short delay
+                            setTimeout(() => {
+                              if (pdfUrlRef.current) {
+                                // Blob URL might be invalid, try to reload
+                                const currentUrl = pdfUrlRef.current;
+                                setPdfUrl(''); // Clear to trigger reload
+                                setTimeout(() => {
+                                  setPdfUrl(currentUrl);
+                                }, 100);
+                              } else {
+                                setPreviewError(true);
+                                showToast('Failed to display PDF. Please download to view.', 'error');
+                              }
+                            }, 1000);
+                          }}
+                        />
+                      ) : (
+                        <div className="text-center p-8">
+                          <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+                          <p className="text-gray-600 dark:text-gray-400 mb-4">Unable to load PDF preview</p>
+                          <button
+                            onClick={handleDownload}
+                            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors inline-flex items-center space-x-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download PDF</span>
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               ) : isDocument ? (
@@ -395,20 +475,22 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 p-4 sm:p-5 md:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
                 {isImage ? 'Image files support: JPG, PNG, GIF' : 'PDF and document files'}
               </p>
-              <div className="flex space-x-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:space-x-3 w-full sm:w-auto">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                  className="px-4 py-2.5 sm:py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400 dark:active:bg-gray-500 transition-colors font-medium min-h-[44px] sm:min-h-0 touch-manipulation"
+                  type="button"
                 >
                   Close
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center space-x-2"
+                  className="px-4 py-2.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium flex items-center justify-center space-x-2 min-h-[44px] sm:min-h-0 touch-manipulation"
+                  type="button"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download</span>
