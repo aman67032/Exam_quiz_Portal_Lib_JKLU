@@ -37,7 +37,7 @@
 - **Build Tool**: Vite
 
 **Deployment:**
-- **Backend**: Railway (or compatible cloud platform)
+- **Backend**: Vercel (or compatible cloud platform)
 - **Frontend**: Vercel (or compatible static hosting)
 - **Database**: Neon.tech (PostgreSQL)
 
@@ -1087,9 +1087,9 @@ UPLOAD_DIR=uploads
 
 ```bash
 # Backend API URL
-VITE_API_URL=https://web-production-e22a6.up.railway.app
+VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
 # or
-VITE_BACKEND_URL=https://web-production-e22a6.up.railway.app
+VITE_BACKEND_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
 ```
 
 ---

@@ -18,7 +18,7 @@ All hardcoded `localhost:8000` URLs have been updated to use environment variabl
 4. Click **Add New**
 5. Add:
    - **Name**: `VITE_API_URL`
-   - **Value**: `https://web-production-e22a6.up.railway.app`
+   - **Value**: `https://exam-portal-backend-jklu-solomaze.vercel.app`
    - **Environment**: Select all (Production, Preview, Development)
 6. Click **Save**
 
@@ -26,7 +26,7 @@ All hardcoded `localhost:8000` URLs have been updated to use environment variabl
 
 ```bash
 vercel env add VITE_API_URL
-# When prompted, enter: https://web-production-e22a6.up.railway.app
+# When prompted, enter: https://exam-portal-backend-jklu-solomaze.vercel.app
 # Select all environments
 ```
 
@@ -51,7 +51,7 @@ After adding the environment variable:
 2. Open browser DevTools (F12) → Console
 3. Try logging in or making an API call
 4. Check Network tab - requests should go to:
-   `https://web-production-e22a6.up.railway.app`
+   `https://exam-portal-backend-jklu-solomaze.vercel.app`
 
 ## 🔍 Troubleshooting
 
@@ -68,15 +68,15 @@ After adding the environment variable:
 
 ### Issue: API not responding
 **Solution**:
-- Check if Railway backend is running: https://web-production-e22a6.up.railway.app/health
-- Check Railway logs for errors
-- Verify environment variables in Railway are set correctly
+- Check if backend is running: https://exam-portal-backend-jklu-solomaze.vercel.app/health
+- Check backend logs for errors
+- Verify environment variables in Vercel are set correctly
 
 ## 📝 Environment Variable Reference
 
 | Variable | Value | Required |
 |----------|-------|----------|
-| `VITE_API_URL` | `https://web-production-e22a6.up.railway.app` | Yes |
+| `VITE_API_URL` | `https://exam-portal-backend-jklu-solomaze.vercel.app` | Yes |
 | `VITE_BACKEND_URL` | Same as above (alternative) | Optional |
 
 ## 🎯 Quick Checklist
@@ -89,8 +89,8 @@ After adding the environment variable:
 
 ## 🔗 Links
 
-- **Backend URL**: https://web-production-e22a6.up.railway.app
-- **Backend Health Check**: https://web-production-e22a6.up.railway.app/health
-- **Backend API Docs**: https://web-production-e22a6.up.railway.app/docs
+- **Backend URL**: https://exam-portal-backend-jklu-solomaze.vercel.app
+- **Backend Health Check**: https://exam-portal-backend-jklu-solomaze.vercel.app/health
+- **Backend API Docs**: https://exam-portal-backend-jklu-solomaze.vercel.app/docs
 - **Vercel Dashboard**: https://vercel.com/dashboard
 

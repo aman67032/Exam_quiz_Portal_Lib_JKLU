@@ -20,7 +20,7 @@
 4. Look for request to: `/papers/public/all`
 5. Check:
    - **Status Code**: Should be 200 (success) or 500 (server error)
-   - **Request URL**: Should be `https://web-production-e22a6.up.railway.app/papers/public/all`
+   - **Request URL**: Should be `https://exam-portal-backend-jklu-solomaze.vercel.app/papers/public/all`
    - **Response**: Check what the server returned
 
 ### Step 3: Test Backend Directly
@@ -29,19 +29,19 @@ Open these URLs in your browser:
 
 1. **Health Check:**
    ```
-   https://web-production-e22a6.up.railway.app/health
+   https://exam-portal-backend-jklu-solomaze.vercel.app/health
    ```
    Expected: `{"status": "ok"}`
 
 2. **Public Papers API:**
    ```
-   https://web-production-e22a6.up.railway.app/papers/public/all
+   https://exam-portal-backend-jklu-solomaze.vercel.app/papers/public/all
    ```
    Expected: `[]` (empty array) or `[{...}, {...}]` (array of papers)
 
 3. **Wake Endpoint:**
    ```
-   https://web-production-e22a6.up.railway.app/wake
+   https://exam-portal-backend-jklu-solomaze.vercel.app/wake
    ```
    Expected: `{"message": "Backend is awake"}` or similar
 
@@ -128,13 +128,13 @@ If API returns `[]` (empty array):
 
 ```bash
 # Test health
-curl https://web-production-e22a6.up.railway.app/health
+curl https://exam-portal-backend-jklu-solomaze.vercel.app/health
 
 # Test papers API
-curl https://web-production-e22a6.up.railway.app/papers/public/all
+curl https://exam-portal-backend-jklu-solomaze.vercel.app/papers/public/all
 
 # Test with verbose output
-curl -v https://web-production-e22a6.up.railway.app/papers/public/all
+curl -v https://exam-portal-backend-jklu-solomaze.vercel.app/papers/public/all
 ```
 
 ### Using Browser:

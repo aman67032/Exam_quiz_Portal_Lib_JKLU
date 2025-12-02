@@ -6,7 +6,7 @@ import axios from 'axios';
 import MathPhysicsBackground from './MathPhysicsBackground';
 import JKLULogo from './JKLULogo';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://web-production-e22a6.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://exam-portal-backend-jklu-solomaze.vercel.app';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
