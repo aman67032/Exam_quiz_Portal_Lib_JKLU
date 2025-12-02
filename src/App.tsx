@@ -9,6 +9,8 @@ import Loader from './components/Loader';
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
+const Login = lazy(() => import('./components/Login'));
+const AdminLogin = lazy(() => import('./components/AdminLogin'));
 const Register = lazy(() => import('./components/Register'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
 const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
@@ -68,10 +70,16 @@ function AppContent() {
               path="/home"
               element={<PublicHome />}
             />
-            {/* Auth pages - blocked for testing phase */}
+            {/* Auth pages */}
             <Route
               path="/login"
-              element={<Navigate to="/home" replace />}
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                ) : (
+                  <Login />
+                )
+              }
             />
             <Route
               path="/register"
@@ -85,7 +93,13 @@ function AppContent() {
             />
             <Route
               path="/admin-login"
-              element={<Navigate to="/home" replace />}
+              element={
+                user ? (
+                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                ) : (
+                  <AdminLogin />
+                )
+              }
             />
             <Route
               path="/forgot-password"
