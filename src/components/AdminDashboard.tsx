@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Database, Activity, Book } from 'lucide-react';
+import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Database, Activity, Book, Upload } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FilePreviewModal from './FilePreviewModal';
@@ -126,6 +126,22 @@ const AdminDashboard: React.FC = () => {
     isOpen: false,
     userId: 0,
     feedback: ''
+  });
+
+  // Upload form state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadForm, setUploadForm] = useState({
+    course_id: '',
+    courseText: '',
+    courseName: '',
+    title: '',
+    description: '',
+    paper_type: 'assignment',
+    quiz_set: '',
+    year: new Date().getFullYear().toString(),
+    yearText: '',
+    semester: '1st Sem'
   });
 
   const token = localStorage.getItem('token');
@@ -412,6 +428,96 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) {
+      showMessage('error', 'Please select a file to upload');
+      return;
+    }
+
+    // Validate course selection
+    if (!uploadForm.course_id && (!uploadForm.courseText || !uploadForm.courseName)) {
+      showMessage('error', 'Please select or enter both course code and name');
+      return;
+    }
+
+    // Validate quiz set if paper type is quiz
+    if (uploadForm.paper_type === 'quiz' && !uploadForm.quiz_set) {
+      showMessage('error', 'Please select a quiz set (A to F)');
+      return;
+    }
+
+    // Validate year selection
+    if (!uploadForm.year && !uploadForm.yearText) {
+      showMessage('error', 'Please select or enter a year');
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    
+    // Send course_id if selected from dropdown, otherwise send course_code and course_name
+    if (uploadForm.course_id) {
+      formData.append('course_id', uploadForm.course_id);
+    } else if (uploadForm.courseText && uploadForm.courseName) {
+      formData.append('course_code', uploadForm.courseText);
+      formData.append('course_name', uploadForm.courseName);
+    }
+    
+    formData.append('title', uploadForm.title);
+    formData.append('description', uploadForm.description);
+    formData.append('paper_type', uploadForm.paper_type);
+    
+    // Add quiz_set if paper type is quiz
+    if (uploadForm.paper_type === 'quiz' && uploadForm.quiz_set) {
+      formData.append('quiz_set', uploadForm.quiz_set);
+    }
+    
+    // Convert year to integer if provided
+    const yearValue = uploadForm.year || uploadForm.yearText;
+    if (yearValue) {
+      formData.append('year', yearValue.toString());
+    }
+    
+    formData.append('semester', uploadForm.semester);
+
+    try {
+      await axios.post(`${API_BASE_URL}/papers/upload`, formData, {
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      showMessage('success', 'Paper uploaded successfully!');
+      setSelectedFile(null);
+      setUploadForm({
+        course_id: '',
+        courseText: '',
+        courseName: '',
+        title: '',
+        description: '',
+        paper_type: 'assignment',
+        quiz_set: '',
+        year: new Date().getFullYear().toString(),
+        yearText: '',
+        semester: '1st Sem'
+      });
+      
+      // Refresh data
+      fetchDashboardData();
+      if (activeTab === 'all-papers') {
+        fetchAllPapers();
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.detail || 'Upload failed. Please try again.';
+      showMessage('error', errorMsg);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const verifyUser = async (userId: number, approve: boolean, reason?: string, adminFeedback?: { message: string }) => {
     try {
       const payload: any = { approve };
@@ -589,7 +695,7 @@ const AdminDashboard: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-1 flex space-x-1 shadow-lg shadow-green-500/10"
           >
-            {['dashboard', 'all-papers', 'pending', 'courses'].map(tab => (
+            {['dashboard', 'upload', 'all-papers', 'pending', 'courses'].map(tab => (
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -601,7 +707,7 @@ const AdminDashboard: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : 'COURSE_MANAGEMENT'}
+                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : 'COURSE_MANAGEMENT'}
               </motion.button>
             ))}
           </motion.div>
@@ -1094,6 +1200,241 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 )}
               </div>
+            </motion.div>
+          )}
+
+          {/* Upload Paper Tab */}
+          {activeTab === 'upload' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                <Upload className="text-green-400" size={32} />
+                UPLOAD_PAPER
+              </h2>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg"
+              >
+                <form onSubmit={handleUpload} className="space-y-6">
+                  {/* Course Selection */}
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      COURSE
+                    </label>
+                    <div className="space-y-2">
+                      <select
+                        value={uploadForm.course_id}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      >
+                        <option value="">Select from existing courses</option>
+                        {courses.map(course => (
+                          <option key={course.id} value={course.id}>
+                            {course.code} - {course.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="text-center text-xs text-green-400/50 font-mono">OR</div>
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={uploadForm.courseText}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
+                          placeholder="Course Code (e.g., CS1109)"
+                          className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                        />
+                        <input
+                          type="text"
+                          value={uploadForm.courseName}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
+                          placeholder="Course Name (e.g., Python)"
+                          className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-400/50 font-mono mt-2">
+                      {uploadForm.course_id 
+                        ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}` 
+                        : (uploadForm.courseText && uploadForm.courseName) 
+                          ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}` 
+                          : 'Choose one option'}
+                    </p>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      TITLE <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={uploadForm.title}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      placeholder="Paper title"
+                      required
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      DESCRIPTION
+                    </label>
+                    <textarea
+                      value={uploadForm.description}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50 resize-none"
+                      rows={3}
+                      placeholder="Optional description"
+                    />
+                  </div>
+
+                  {/* Paper Type and Year */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                        PAPER_TYPE <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        value={uploadForm.paper_type}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      >
+                        <option value="assignment">Assignment</option>
+                        <option value="quiz">Quiz</option>
+                        <option value="midterm">Midterm</option>
+                        <option value="endterm">Endterm</option>
+                        <option value="project">Project</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                        YEAR <span className="text-red-400">*</span>
+                      </label>
+                      <div className="space-y-1">
+                        <select
+                          value={uploadForm.year}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, year: e.target.value, yearText: '' }))}
+                          className="w-full px-3 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        >
+                          <option value="">Select year</option>
+                          <option value="2024">2024</option>
+                          <option value="2023">2023</option>
+                          <option value="2022">2022</option>
+                          <option value="2021">2021</option>
+                          <option value="2020">2020</option>
+                        </select>
+                        <input
+                          type="number"
+                          value={uploadForm.yearText}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, yearText: e.target.value, year: '' }))}
+                          placeholder="Or type year"
+                          className="w-full px-3 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                          min="2020"
+                          max="2030"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quiz Set (if quiz type) */}
+                  {uploadForm.paper_type === 'quiz' && (
+                    <div>
+                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                        QUIZ_SET <span className="text-red-400">*</span>
+                      </label>
+                      <select
+                        value={uploadForm.quiz_set}
+                        onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
+                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        required
+                      >
+                        <option value="">Select Set</option>
+                        <option value="A">Set A</option>
+                        <option value="B">Set B</option>
+                        <option value="C">Set C</option>
+                        <option value="D">Set D</option>
+                        <option value="E">Set E</option>
+                        <option value="F">Set F</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Semester */}
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      SEMESTER <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={uploadForm.semester}
+                      onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      required
+                    >
+                      <option value="1st Sem">1st Sem</option>
+                      <option value="2nd Sem">2nd Sem</option>
+                      <option value="3rd Sem">3rd Sem</option>
+                      <option value="4th Sem">4th Sem</option>
+                      <option value="5th Sem">5th Sem</option>
+                      <option value="6th Sem">6th Sem</option>
+                      <option value="7th Sem">7th Sem</option>
+                      <option value="8th Sem">8th Sem</option>
+                    </select>
+                  </div>
+
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      FILE <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-500/20 file:text-green-400 hover:file:bg-green-500/30 cursor-pointer"
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                      required
+                    />
+                    {selectedFile && (
+                      <p className="text-xs text-green-400/50 font-mono mt-2">
+                        Selected: {selectedFile.name}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <motion.button
+                    type="submit"
+                    disabled={uploading || !selectedFile}
+                    className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    whileHover={{ scale: uploading || !selectedFile ? 1 : 1.02 }}
+                    whileTap={{ scale: uploading || !selectedFile ? 1 : 0.98 }}
+                  >
+                    {uploading ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
+                        />
+                        <span>UPLOADING...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-5 w-5" />
+                        <span>UPLOAD_PAPER</span>
+                      </>
+                    )}
+                  </motion.button>
+                </form>
+              </motion.div>
             </motion.div>
           )}
 
