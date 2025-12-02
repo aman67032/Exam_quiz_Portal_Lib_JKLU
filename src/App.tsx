@@ -5,7 +5,6 @@ import ThemeToggle from './components/ThemeToggle';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { startKeepAlive, stopKeepAlive, wakeUpBackend } from './utils/keepAlive';
 import Loader from './components/Loader';
 
 // Lazy load heavy components for code splitting
@@ -48,22 +47,6 @@ const LoadingFallback = () => {
 
 function AppContent() {
   const { user, loading } = useAuth();
-
-  // Wake up backend when app loads and start keep-alive
-  useEffect(() => {
-    // Wake up backend immediately when app loads
-    wakeUpBackend().then((awake) => {
-      if (awake) {
-        // Start keep-alive service to prevent backend from sleeping
-        startKeepAlive();
-      }
-    });
-
-    // Cleanup: stop keep-alive when component unmounts
-    return () => {
-      stopKeepAlive();
-    };
-  }, []);
 
   if (loading) {
     return <LoadingFallback />;

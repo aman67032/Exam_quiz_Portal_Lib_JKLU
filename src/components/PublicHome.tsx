@@ -142,12 +142,27 @@ const PublicHome: React.FC = () => {
     fetchPublicPapers();
   }, [fetchPublicPapers]);
 
-  // Fetch courses from API
+  // Fetch courses from API - cache in sessionStorage to reduce API calls
   useEffect(() => {
     const fetchCourses = async () => {
       try {
+        // Check sessionStorage cache first (5 minute TTL)
+        const cached = sessionStorage.getItem('courses_cache');
+        const cacheTime = sessionStorage.getItem('courses_cache_time');
+        if (cached && cacheTime) {
+          const age = Date.now() - parseInt(cacheTime);
+          if (age < 5 * 60 * 1000) { // 5 minutes
+            setCourses(JSON.parse(cached));
+            return;
+          }
+        }
+        
         const response = await API.getCourses();
-        setCourses(response.data || []);
+        const coursesData = response.data || [];
+        setCourses(coursesData);
+        // Cache in sessionStorage
+        sessionStorage.setItem('courses_cache', JSON.stringify(coursesData));
+        sessionStorage.setItem('courses_cache_time', Date.now().toString());
       } catch (error) {
         console.error('Error fetching courses:', error);
       }
@@ -155,7 +170,8 @@ const PublicHome: React.FC = () => {
     fetchCourses();
   }, []);
 
-  const applyFilters = useCallback(() => {
+  // Memoize filtered papers to prevent unnecessary recalculations
+  const memoizedFilteredPapers = useMemo(() => {
     // For logged-in users: show all papers they have access to (approved + their own papers)
     // For non-logged-in users: only show approved papers
     let filtered = user 
@@ -203,12 +219,12 @@ const PublicHome: React.FC = () => {
       );
     }
 
-    setFilteredPapers(filtered);
-  }, [papers, debouncedSearchQuery, searchField, filters]);
+    return filtered;
+  }, [papers, debouncedSearchQuery, searchField, filters, user]);
 
   useEffect(() => {
-    applyFilters();
-  }, [applyFilters]);
+    setFilteredPapers(memoizedFilteredPapers);
+  }, [memoizedFilteredPapers]);
 
   // Responsive background tuning - dynamic hook that responds to window resize
   const [isSmallScreen, setIsSmallScreen] = useState(() => {
