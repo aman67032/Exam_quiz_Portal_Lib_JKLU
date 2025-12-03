@@ -7,6 +7,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Loader from './components/Loader';
+import MaintenanceMode from './components/MaintenanceMode';
+
+// Set this to true to enable maintenance mode
+const MAINTENANCE_MODE = true;
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -50,6 +54,11 @@ const LoadingFallback = () => {
 
 function AppContent() {
   const { user, loading } = useAuth();
+
+  // Show maintenance mode if enabled
+  if (MAINTENANCE_MODE) {
+    return <MaintenanceMode />;
+  }
 
   if (loading) {
     return <LoadingFallback />;
