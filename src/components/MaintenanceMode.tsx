@@ -1,7 +1,43 @@
 import { motion } from 'framer-motion';
-import { Clock, Zap, Heart } from 'lucide-react';
+import { Clock, Zap, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+
+const shayaris = [
+  {
+    id: 1,
+    lines: [
+      "Bichde jo tujhse humne muskuraana chhod diya",
+      "Dil toda jo tune humne dil lagana chhod diya",
+      "Har raat tere gum mein jaam uthaya humne",
+      "Aaj hosh mein aaye to mehkhana chhod diya"
+    ]
+  },
+  {
+    id: 2,
+    lines: [
+      "Baahon mein tu meri simat si jaaye,",
+      "Tujhe dekhu kisi aur ke saath, toh saansein tham jaaye.",
+      "Chhupa ke rakhi thi dil mein har ek baat,",
+      "Par khauf hai, kahin mujhse pehle koi aur na keh jaaye"
+    ]
+  }
+];
 
 const MaintenanceMode = () => {
+  const [currentShayari, setCurrentShayari] = useState(0);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setCurrentShayari((prev) => (prev === 0 ? shayaris.length - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentShayari((prev) => (prev === shayaris.length - 1 ? 0 : prev + 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 dark:from-gray-950 dark:via-purple-950 dark:to-indigo-950 overflow-hidden relative">
       {/* Animated background elements */}
@@ -62,7 +98,7 @@ const MaintenanceMode = () => {
           </p>
           <p className="text-lg text-purple-300 flex items-center justify-center gap-2">
             <Clock className="w-5 h-5" />
-            Wait "thodi se" der... We will be right back!
+            Wait "thodi si der" ... We will be right back!
           </p>
         </motion.div>
 
@@ -81,24 +117,63 @@ const MaintenanceMode = () => {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-400/30 rounded-2xl p-8 backdrop-blur-sm"
         >
-          <div className="flex items-start gap-3 mb-4">
-            <Heart className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
-            <div className="text-left">
-              <p className="text-purple-100 text-lg leading-relaxed italic font-light">
-                "Bichde jo tujhse humne muskuraana chhod diya
-              </p>
-              <p className="text-purple-100 text-lg leading-relaxed italic font-light">
-                Dil toda jo tune humne dil lagana chhod diya
-              </p>
-              <p className="text-purple-100 text-lg leading-relaxed italic font-light">
-                Har raat tere gum mein jaam uthaya humne
-              </p>
-              <p className="text-purple-100 text-lg leading-relaxed italic font-light">
-                Aaj hosh mein aaye to mehkhana chhod diya"
-              </p>
-            </div>
+          <div className="flex items-center justify-between gap-4">
+            {/* Left Arrow */}
+            <button
+              onClick={() => setCurrentShayari((prev) => (prev === 0 ? shayaris.length - 1 : prev - 1))}
+              className="p-2 hover:bg-purple-400/20 rounded-lg transition-colors text-purple-300 hover:text-purple-100"
+              aria-label="Previous shayari"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+
+            {/* Shayari Content */}
+            <motion.div
+              key={currentShayari}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4 }}
+              className="flex-1"
+            >
+              <div className="flex items-start gap-3 mb-4">
+                <Heart className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+                <div className="text-left">
+                  {shayaris[currentShayari].lines.map((line, idx) => (
+                    <p key={idx} className="text-purple-100 text-lg leading-relaxed italic font-light">
+                      {idx === 0 ? `"${line}` : line}
+                      {idx === shayaris[currentShayari].lines.length - 1 ? `"` : ""}
+                    </p>
+                  ))}
+                </div>
+              </div>
+              <p className="text-purple-300 text-sm">— Suryaansh Sharma 😂</p>
+              <p className="text-purple-400/60 text-xs mt-2">Use ← → arrow keys to switch</p>
+            </motion.div>
+
+            {/* Right Arrow */}
+            <button
+              onClick={() => setCurrentShayari((prev) => (prev === shayaris.length - 1 ? 0 : prev + 1))}
+              className="p-2 hover:bg-purple-400/20 rounded-lg transition-colors text-purple-300 hover:text-purple-100"
+              aria-label="Next shayari"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
           </div>
-          <p className="text-purple-300 text-sm mt-4">— Suryaansh Sharma 😂</p>
+
+          {/* Indicator dots */}
+          <div className="flex justify-center gap-2 mt-6">
+            {shayaris.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentShayari(idx)}
+                className={`h-2 rounded-full transition-all ${
+                  idx === currentShayari ? 'bg-purple-400 w-6' : 'bg-purple-600 w-2'
+                }`}
+                aria-label={`Go to shayari ${idx + 1}`}
+              />
+            ))}
+          </div>
         </motion.div>
 
         {/* Loading indicator */}
