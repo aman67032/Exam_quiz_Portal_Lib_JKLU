@@ -7,7 +7,7 @@
 The `VITE_API_URL` should point to your **BACKEND** service (Railway), not the frontend.
 
 ```env
-VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
+VITE_API_URL=https://web-production-6beea.up.railway.app
 ```
 
 ### ❌ Wrong: Frontend URL
@@ -20,9 +20,9 @@ VITE_API_URL=https://your-frontend-app.vercel.app
 ## Backend URL
 
 Your backend is hosted on Vercel:
-- **Backend URL**: `https://exam-portal-backend-jklu-solomaze.vercel.app`
-- **Health Check**: `https://exam-portal-backend-jklu-solomaze.vercel.app/health`
-- **API Docs**: `https://exam-portal-backend-jklu-solomaze.vercel.app/docs`
+- **Backend URL**: `https://web-production-6beea.up.railway.app`
+- **Health Check**: `https://web-production-6beea.up.railway.app/health`
+- **API Docs**: `https://web-production-6beea.up.railway.app/docs`
 
 ## Setup Steps
 
@@ -31,7 +31,7 @@ Your backend is hosted on Vercel:
 1. Create `.env` file in `ExamPaperPortalFrontend/` folder:
 
 ```env
-VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
+VITE_API_URL=https://web-production-6beea.up.railway.app
 ```
 
 2. Restart your dev server:
@@ -45,19 +45,19 @@ npm run dev
 2. Find **Environment Variables** settings
 3. Add:
    - **Key**: `VITE_API_URL`
-   - **Value**: `https://exam-portal-backend-jklu-solomaze.vercel.app`
+  - **Value**: `https://web-production-6beea.up.railway.app`
 4. Redeploy your frontend
 
 ## Example
 
 Your backend is at:
 ```
-https://exam-portal-backend-jklu-solomaze.vercel.app
+https://web-production-6beea.up.railway.app
 ```
 
 Then your `.env` should be:
 ```env
-VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
+VITE_API_URL=https://web-production-6beea.up.railway.app
 ```
 
 ## Verify It's Working
@@ -69,7 +69,7 @@ VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
 
 Example request should be:
 ```
-POST https://exam-portal-backend-jklu-solomaze.vercel.app/admin-login
+POST https://web-production-6beea.up.railway.app/admin-login
 ```
 
 NOT:
@@ -83,12 +83,12 @@ After setting up, test in browser console:
 
 ```javascript
 console.log(import.meta.env.VITE_API_URL)
-// Should show: https://exam-portal-backend-jklu-solomaze.vercel.app
+// Should show: https://web-production-6beea.up.railway.app
 ```
 
 ---
 
 **Summary**: `VITE_API_URL` = Your **Backend** URL on Vercel ✅
 
-**Current Backend URL**: `https://exam-portal-backend-jklu-solomaze.vercel.app`
+**Current Backend URL**: `https://web-production-6beea.up.railway.app`
 

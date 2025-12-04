@@ -1087,9 +1087,9 @@ UPLOAD_DIR=uploads
 
 ```bash
 # Backend API URL
-VITE_API_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
+VITE_API_URL=https://web-production-6beea.up.railway.app
 # or
-VITE_BACKEND_URL=https://exam-portal-backend-jklu-solomaze.vercel.app
+VITE_BACKEND_URL=https://web-production-6beea.up.railway.app
 ```
 
 ---

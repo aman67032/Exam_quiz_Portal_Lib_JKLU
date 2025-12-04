@@ -4,7 +4,7 @@ import type { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_BACKEND_URL ||
-  'https://exam-portal-backend-jklu-solomaze.vercel.app';
+  'https://web-production-6beea.up.railway.app';
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
