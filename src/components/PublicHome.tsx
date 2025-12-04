@@ -94,16 +94,18 @@ const PublicHome: React.FC = () => {
       // If not logged in, fetch only approved papers (public)
       if (user) {
         const response = await API.getPapers({});
-        setPapers(response.data || []);
-        if (!response.data || response.data.length === 0) {
-          console.log('No papers found in database');
+        const data = Array.isArray(response.data) ? response.data : [];
+        setPapers(data);
+        if (data.length === 0) {
+          console.log('No papers found in database (or response was not an array)');
         }
       } else {
         const response = await API.getPublicPapers();
-        setPapers(response.data || []);
-        if (!response.data || response.data.length === 0) {
-          console.log('No approved papers found in database');
-      }
+        const data = Array.isArray(response.data) ? response.data : [];
+        setPapers(data);
+        if (data.length === 0) {
+          console.log('No approved papers found in database (or response was not an array)');
+        }
       }
     } catch (error: any) {
       console.error('Error fetching papers:', error);
@@ -158,7 +160,7 @@ const PublicHome: React.FC = () => {
         }
         
         const response = await API.getCourses();
-        const coursesData = response.data || [];
+        const coursesData = Array.isArray(response.data) ? response.data : [];
         setCourses(coursesData);
         // Cache in sessionStorage
         sessionStorage.setItem('courses_cache', JSON.stringify(coursesData));
