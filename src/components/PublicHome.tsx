@@ -734,7 +734,6 @@ const PublicHome: React.FC = () => {
                         year: '',
                         semester: '',
                       });
-                      setCourseSearchQuery('');
                     }}
                     className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-3 py-2 sm:px-2 sm:py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors touch-manipulation min-h-[36px] sm:min-h-0 flex items-center justify-center"
                   >
