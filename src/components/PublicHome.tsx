@@ -63,7 +63,6 @@ const PublicHome: React.FC = () => {
 
   // Courses for dropdown
   const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string }>>([]);
-  const [courseSearchQuery, setCourseSearchQuery] = useState('');
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -806,74 +805,25 @@ const PublicHome: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Course Code Filter - with datalist for dropdown */}
+                {/* Course Code Filter - as a regular select so all options are visible */}
                 <div className="sm:col-span-2 lg:col-span-1">
                   <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
                     Course Code
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      list="courses-list"
-                      placeholder="Type or select..."
-                      value={filters.course_code}
-                      onChange={(e) => {
-                        const value = e.target.value.toUpperCase();
-                        handleFilterChange('course_code', value);
-                        setCourseSearchQuery(value);
-                      }}
-                      onInput={(e) => {
-                        // Handle datalist selection properly
-                        const value = (e.target as HTMLInputElement).value.toUpperCase();
-                        handleFilterChange('course_code', value);
-                        setCourseSearchQuery(value);
-                      }}
-                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation min-h-[44px] sm:min-h-0"
-                    />
-                    {filters.course_code && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleFilterChange('course_code', '');
-                          setCourseSearchQuery('');
-                        }}
-                        onTouchStart={(e) => e.stopPropagation()}
-                        className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1.5 sm:p-1 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center touch-manipulation"
-                        aria-label="Clear course code"
-                        type="button"
-                      >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                    <datalist id="courses-list">
-                      {(() => {
-                        // Show all courses if input is empty or very short, otherwise filter
-                        const filteredCourses = !courseSearchQuery || courseSearchQuery.length < 2
-                          ? courses
-                          : courses.filter((course) => {
-                              const query = courseSearchQuery.toUpperCase();
-                              return course.code.toUpperCase().includes(query) || 
-                                     course.name.toUpperCase().includes(query);
-                            });
-                        
-                        // Sort by code for better UX
-                        const sortedCourses = [...filteredCourses].sort((a, b) => 
-                          a.code.localeCompare(b.code)
-                        );
-                        
-                        return sortedCourses
-                          .slice(0, 200) // Show up to 200 options
-                          .map((course) => (
-                            <option key={course.id} value={course.code}>
-                              {course.code} - {course.name}
-                            </option>
-                          ));
-                      })()}
-                    </datalist>
-                  </div>
+                  <select
+                    value={filters.course_code}
+                    onChange={(e) => handleFilterChange('course_code', e.target.value)}
+                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
+                  >
+                    <option value="">All Courses</option>
+                    {[...courses]
+                      .sort((a, b) => a.code.localeCompare(b.code))
+                      .map((course) => (
+                        <option key={course.id} value={course.code}>
+                          {course.code} - {course.name}
+                        </option>
+                      ))}
+                  </select>
                 </div>
               </div>
             </div>
