@@ -8,7 +8,7 @@ import { buildUploadUrl } from '../utils/uploads';
 import Loader from './Loader';
 import JKLULogo from './JKLULogo';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://web-production-6beea.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://exampaperportal-production.up.railway.app';
 
 type Me = {
   id: number;
