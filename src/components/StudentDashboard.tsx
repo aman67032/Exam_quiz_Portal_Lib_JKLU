@@ -85,6 +85,12 @@ const StudentDashboard: React.FC = () => {
 
   const fetchPapers = useCallback(async () => {
     try {
+      // Don't fetch if user is not loaded yet
+      if (!user || !user.id) {
+        setLoading(false);
+        return;
+      }
+
       const params: any = {};
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params[key] = value;
@@ -92,12 +98,14 @@ const StudentDashboard: React.FC = () => {
 
       const response = await API.getPapers(params);
       // Filter to show only papers uploaded by the current user
+      // This ensures students only see their own papers, not papers from other users or admins
       const userPapers = response.data.filter((paper: Paper) => 
-        paper.uploaded_by === user?.id
+        paper.uploaded_by === user.id
       );
       setPapers(userPapers);
     } catch (error: any) {
       console.error('Error fetching papers:', error.message);
+      setPapers([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
