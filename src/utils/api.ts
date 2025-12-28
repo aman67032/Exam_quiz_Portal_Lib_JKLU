@@ -1,10 +1,19 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 
+// API Base URL Configuration
+// Priority: 1. VITE_API_URL env var, 2. VITE_BACKEND_URL env var, 3. Production backend (default)
+// For localhost development, this will use the production backend on Railway
+// To override, create a .env file with: VITE_API_URL=your-backend-url
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_BACKEND_URL ||
   'https://exampaperportal-production.up.railway.app';
+
+// Log backend URL in development mode for debugging
+if (import.meta.env.DEV) {
+  console.log('🔗 Backend API URL:', API_BASE_URL);
+}
 
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, AlertCircle } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -284,6 +284,110 @@ const PublicHome: React.FC = () => {
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
+      {/* Custom Login Button Styles */}
+      <style>{`
+        @keyframes floating-points {
+          0% { transform: translateY(0); }
+          85% { opacity: 0; }
+          100% { transform: translateY(-55px); opacity: 0; }
+        }
+        @keyframes dasharray {
+          from { stroke-dasharray: 0 0 0 0; }
+          to { stroke-dasharray: 68 68 0 0; }
+        }
+        @keyframes filled {
+          to { fill: white; }
+        }
+        @keyframes wind {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 50% 100%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes paper-slay-1 {
+          0% { transform: rotate(10deg); }
+          50% { transform: rotate(-5deg); }
+          100% { transform: rotate(10deg); }
+        }
+        @keyframes paper-slay-2 {
+          0% { transform: rotate(0deg); }
+          50% { transform: rotate(15deg); }
+          100% { transform: rotate(0deg); }
+        }
+        @keyframes paper-slay-3 {
+          0% { transform: rotate(0deg); }
+          50% { transform: rotate(-5deg); }
+          100% { transform: rotate(0deg); }
+        }
+        .signup-button {
+          filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.2));
+        }
+        .signup-button:hover {
+          background: linear-gradient(85deg, #fec195, #fcc196, #fabd92, #fac097, #fac39c);
+          background-size: 200% 200%;
+          animation: wind 2s ease-in-out infinite;
+        }
+        .signup-paper-icon-1 {
+          filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.3));
+        }
+        .signup-button:hover .signup-paper-icon-1 {
+          animation: paper-slay-1 3s cubic-bezier(0.52, 0, 0.58, 1) infinite;
+        }
+        .signup-paper-icon-2 {
+          filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.5));
+        }
+        .signup-button:hover .signup-paper-icon-2 {
+          animation: paper-slay-2 3s cubic-bezier(0.52, 0, 0.58, 1) 1s infinite;
+        }
+        .signup-paper-icon-3 {
+          filter: drop-shadow(2px 2px 3px rgba(0, 0, 0, 0.5));
+        }
+        .signup-button:hover .signup-paper-icon-3 {
+          animation: paper-slay-3 2s cubic-bezier(0.52, 0, 0.58, 1) 1s infinite;
+        }
+        .login-button-fold {
+          background: radial-gradient(100% 75% at 55%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%);
+          box-shadow: 0 0 3px black;
+        }
+        .login-button-fold::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 150%;
+          height: 150%;
+          transform: rotate(45deg) translateX(0%) translateY(-18px);
+          background-color: #e8e8e8;
+          pointer-events: none;
+        }
+        .login-button:hover .login-button-fold {
+          margin-top: -1rem;
+          margin-right: -1rem;
+        }
+        .login-button:hover .login-icon {
+          fill: transparent;
+          animation: dasharray 1s linear forwards, filled 0.1s linear forwards 0.95s;
+        }
+        .login-point {
+          bottom: -10px;
+          position: absolute;
+          animation: floating-points infinite ease-in-out;
+          pointer-events: none;
+          width: 2px;
+          height: 2px;
+          background-color: #fff;
+          border-radius: 9999px;
+        }
+        .login-point:nth-child(1) { left: 10%; opacity: 1; animation-duration: 2.35s; animation-delay: 0.2s; }
+        .login-point:nth-child(2) { left: 30%; opacity: 0.7; animation-duration: 2.5s; animation-delay: 0.5s; }
+        .login-point:nth-child(3) { left: 25%; opacity: 0.8; animation-duration: 2.2s; animation-delay: 0.1s; }
+        .login-point:nth-child(4) { left: 44%; opacity: 0.6; animation-duration: 2.05s; }
+        .login-point:nth-child(5) { left: 50%; opacity: 1; animation-duration: 1.9s; }
+        .login-point:nth-child(6) { left: 75%; opacity: 0.5; animation-duration: 1.5s; animation-delay: 1.5s; }
+        .login-point:nth-child(7) { left: 88%; opacity: 0.9; animation-duration: 2.2s; animation-delay: 0.2s; }
+        .login-point:nth-child(8) { left: 58%; opacity: 0.8; animation-duration: 2.25s; animation-delay: 0.2s; }
+        .login-point:nth-child(9) { left: 98%; opacity: 0.6; animation-duration: 2.6s; animation-delay: 0.1s; }
+        .login-point:nth-child(10) { left: 65%; opacity: 1; animation-duration: 2.5s; animation-delay: 0.2s; }
+      `}</style>
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
         {/* Mobile-optimized cool gradient background */}
@@ -393,32 +497,11 @@ const PublicHome: React.FC = () => {
           onClose={() => setToast({ ...toast, show: false })}
         />
 
-      {/* Testing Phase Banner - Above Navigation */}
-      {!user && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="sticky top-0 z-[60] bg-gradient-to-r from-amber-500 to-amber-600 dark:from-amber-700 dark:to-amber-800 text-white shadow-lg border-b-2 border-amber-400 dark:border-amber-600"
-        >
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4">
-            <div className="flex items-start sm:items-center justify-center gap-2 sm:gap-3">
-              <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 flex-shrink-0 mt-0.5 sm:mt-0" />
-              <div className="flex-1 text-center min-w-0">
-                <p className="text-xs sm:text-sm md:text-base font-medium leading-tight sm:leading-relaxed">
-                  <span className="font-bold">Test Phase Notice:</span> This platform has been launched early to support your end-term examinations. <span className="font-semibold">Only these papers are available till end term ends.</span> Features like student login, quiz papers, solutions etc will be added after end term. <span className="font-semibold">All the best for your exams!</span> 🎓
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`sticky ${!user ? 'top-[60px] sm:top-[72px]' : 'top-0'} z-50 backdrop-blur-md sm:backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg`}
+          className="sticky top-0 z-50 backdrop-blur-md sm:backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg"
         >
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
@@ -471,8 +554,69 @@ const PublicHome: React.FC = () => {
                     </button>
                   </>
                 ) : (
-                  // Login buttons removed for testing phase
-                  null
+                  <>
+                    <Link
+                      to="/login"
+                      className="login-button relative inline-flex items-center justify-center overflow-hidden transition-all duration-250 cursor-pointer rounded-lg border-none outline-none px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 min-h-[36px] sm:min-h-[40px] touch-manipulation active:scale-95"
+                      style={{
+                        background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)'
+                      }}
+                    >
+                      <span 
+                        className="login-button-fold absolute top-0 right-0 h-4 w-4 z-10 rounded-tr-lg rounded-bl-sm"
+                        style={{ transition: 'all 0.5s ease-in-out' }}
+                      />
+                      <div className="login-button-fold absolute inset-0 rounded-lg z-0" style={{
+                        background: 'linear-gradient(177.95deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0) 100%)',
+                        margin: '1px'
+                      }} />
+                      <div className="absolute inset-0 rounded-lg z-0" style={{
+                        background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)',
+                        margin: '2px',
+                        transition: 'all 0.5s ease-in-out'
+                      }} />
+                      <div className="overflow-hidden w-full h-full pointer-events-none absolute z-10">
+                        {[...Array(10)].map((_, i) => (
+                          <i key={i} className="login-point" />
+                        ))}
+                      </div>
+                      <span className="relative z-20 gap-1.5 text-white inline-flex items-center justify-center text-xs sm:text-sm font-medium leading-normal">
+                        <LogIn className="login-icon h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
+                        Login
+                      </span>
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="signup-button relative bg-amber-500 dark:bg-amber-600 border border-amber-400 dark:border-amber-500 text-gray-900 dark:text-white rounded-lg overflow-hidden px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 font-bold text-xs sm:text-sm whitespace-nowrap flex-shrink-0 min-h-[36px] sm:min-h-[40px] flex items-center justify-center gap-1.5 sm:gap-2 touch-manipulation transition-all duration-300 cursor-pointer"
+                    >
+                      {/* Paper Icon 1 - Top Right */}
+                      <div className="signup-paper-icon-1 absolute top-0 right-0 w-4 sm:w-5 h-auto z-10" style={{ transformOrigin: '0 0', transform: 'rotate(10deg)', transition: 'all 0.5s ease-in-out' }}>
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                          <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      {/* Paper Icon 2 - Left Side */}
+                      <div className="signup-paper-icon-2 absolute top-0 left-3 sm:left-4 w-2 sm:w-3 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(10deg)', transition: 'all 1s ease-in-out' }}>
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-700 dark:text-amber-800">
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      {/* Paper Icon 3 - Far Left */}
+                      <div className="signup-paper-icon-3 absolute top-0 left-0 w-3 sm:w-4 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(-5deg)', transition: 'all 1s ease-in-out' }}>
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                        </svg>
+                      </div>
+                      <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-20" />
+                      <span className="relative z-20">Sign Up</span>
+                    </Link>
+                  </>
                 )}
               </div>
             </div>
@@ -520,6 +664,76 @@ const PublicHome: React.FC = () => {
                 Discover, share, and access a comprehensive collection of exam papers, assignments, and study materials. 
                 Built for students, by students.
               </motion.p>
+              {!user && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.45 }}
+                  className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 mb-6 sm:mb-8"
+                >
+                  <Link
+                    to="/login"
+                    className="login-button relative inline-flex items-center justify-center overflow-hidden transition-all duration-250 cursor-pointer rounded-xl border-none outline-none px-6 sm:px-8 py-3 sm:py-3.5 min-h-[48px] sm:min-h-[52px] touch-manipulation active:scale-95"
+                    style={{
+                      background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)'
+                    }}
+                  >
+                    <span 
+                      className="login-button-fold absolute top-0 right-0 h-4 w-4 z-10 rounded-tr-xl rounded-bl-sm"
+                      style={{ transition: 'all 0.5s ease-in-out' }}
+                    />
+                    <div className="login-button-fold absolute inset-0 rounded-xl z-0" style={{
+                      background: 'linear-gradient(177.95deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0) 100%)',
+                      margin: '1px'
+                    }} />
+                    <div className="absolute inset-0 rounded-xl z-0" style={{
+                      background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)',
+                      margin: '2px',
+                      transition: 'all 0.5s ease-in-out'
+                    }} />
+                    <div className="overflow-hidden w-full h-full pointer-events-none absolute z-10">
+                      {[...Array(10)].map((_, i) => (
+                        <i key={i} className="login-point" />
+                      ))}
+                    </div>
+                    <span className="relative z-20 gap-2 text-white inline-flex items-center justify-center text-sm sm:text-base font-semibold leading-normal">
+                      <LogIn className="login-icon h-5 w-5 sm:h-6 sm:w-6" strokeWidth={2.5} />
+                      Login
+                    </span>
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="signup-button relative bg-amber-500 dark:bg-amber-600 border border-amber-400 dark:border-amber-500 text-gray-900 dark:text-white rounded-xl overflow-hidden px-6 sm:px-8 py-3 sm:py-3.5 font-bold text-sm sm:text-base whitespace-nowrap flex items-center justify-center gap-2 min-h-[48px] sm:min-h-[52px] touch-manipulation transition-all duration-300 cursor-pointer"
+                  >
+                    {/* Paper Icon 1 - Top Right */}
+                    <div className="signup-paper-icon-1 absolute top-0 right-0 w-5 sm:w-6 h-auto z-10" style={{ transformOrigin: '0 0', transform: 'rotate(10deg)', transition: 'all 0.5s ease-in-out' }}>
+                      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                        <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    {/* Paper Icon 2 - Left Side */}
+                    <div className="signup-paper-icon-2 absolute top-0 left-6 sm:left-8 w-3 sm:w-4 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(10deg)', transition: 'all 1s ease-in-out' }}>
+                      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-700 dark:text-amber-800">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
+                    {/* Paper Icon 3 - Far Left */}
+                    <div className="signup-paper-icon-3 absolute top-0 left-0 w-4 sm:w-5 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(-5deg)', transition: 'all 1s ease-in-out' }}>
+                      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                      </svg>
+                    </div>
+                    <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 relative z-20" />
+                    <span className="relative z-20">Sign Up</span>
+                  </Link>
+                </motion.div>
+              )}
               <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 sm:gap-6 mt-6 sm:mt-10">
                 <motion.div
                   initial={{ opacity: 0, x: -20, scale: 0.9 }}
