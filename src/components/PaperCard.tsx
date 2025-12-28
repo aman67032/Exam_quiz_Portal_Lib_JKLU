@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Eye, User, Shield } from 'lucide-react';
+import { Download, Eye, User, Shield, Share2 } from 'lucide-react';
 
 interface PaperCardProps {
   paper: {
@@ -16,6 +16,8 @@ interface PaperCardProps {
     course_name?: string;
     uploader_name?: string;
     uploaded_at: string;
+    public_link_id?: string;
+    public_url?: string;
   };
   index: number;
   onPreview: (paperId: number, fileName: string, filePath: string) => void;
@@ -23,6 +25,52 @@ interface PaperCardProps {
 }
 
 const PaperCard: React.FC<PaperCardProps> = memo(({ paper, index, onPreview, onDownload }) => {
+  const handleShareLink = async () => {
+    if (!paper.public_url) {
+      alert('Public link not available for this paper');
+      return;
+    }
+
+    if (navigator.share) {
+      // Use native share API on mobile
+      try {
+        await navigator.share({
+          title: paper.title,
+          text: `Check out this exam paper: ${paper.title}`,
+          url: paper.public_url,
+        });
+      } catch (err) {
+        // User cancelled or error occurred
+        if ((err as Error).name !== 'AbortError') {
+          copyToClipboard(paper.public_url);
+        }
+      }
+    } else {
+      // Fallback to clipboard
+      copyToClipboard(paper.public_url);
+    }
+  };
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('✓ Link copied to clipboard!');
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('✓ Link copied to clipboard!');
+    }
+  };
+
+
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -65,6 +113,27 @@ const PaperCard: React.FC<PaperCardProps> = memo(({ paper, index, onPreview, onD
           {paper.year && `Year ${paper.year}`}
         </div>
         <div className="flex space-x-1.5 sm:space-x-2 flex-shrink-0">
+          {/* Share Button - Only show if public_url exists */}
+          {paper.public_url && (
+            <motion.button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleShareLink();
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+              }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 sm:p-2.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg sm:rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all shadow-md touch-manipulation active:scale-95 flex items-center justify-center"
+              title="Share Link"
+              type="button"
+            >
+              <Share2 className="w-4 h-4 sm:w-4 sm:h-4" />
+            </motion.button>
+          )}
+          {/* Preview Button */}
           <motion.button
             onClick={(e) => {
               e.preventDefault();
@@ -82,6 +151,7 @@ const PaperCard: React.FC<PaperCardProps> = memo(({ paper, index, onPreview, onD
           >
             <Eye className="w-4 h-4 sm:w-4 sm:h-4" />
           </motion.button>
+          {/* Download Button */}
           <motion.button
             onClick={(e) => {
               e.preventDefault();
