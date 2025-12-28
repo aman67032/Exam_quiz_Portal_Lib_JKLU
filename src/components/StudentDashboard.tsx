@@ -32,6 +32,7 @@ interface Paper {
   file_size?: number;
   status: string;
   uploaded_at: string;
+  uploaded_by?: number;
   course_code?: string;
   course_name?: string;
   admin_feedback?: {
@@ -90,13 +91,17 @@ const StudentDashboard: React.FC = () => {
       });
 
       const response = await API.getPapers(params);
-      setPapers(response.data);
+      // Filter to show only papers uploaded by the current user
+      const userPapers = response.data.filter((paper: Paper) => 
+        paper.uploaded_by === user?.id
+      );
+      setPapers(userPapers);
     } catch (error: any) {
       console.error('Error fetching papers:', error.message);
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, user]);
 
   useEffect(() => {
     fetchCourses();
