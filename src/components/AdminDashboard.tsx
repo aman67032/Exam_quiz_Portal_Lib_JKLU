@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Database, Activity, Book, Upload } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import FilePreviewModal from './FilePreviewModal';
@@ -62,8 +63,22 @@ const getImageUrl = (filePath: string | undefined): string => {
 };
 
 const AdminDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  
+  // Admin permission check - redirect if not admin
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user) {
+        // Not logged in, redirect to admin login
+        navigate('/admin-login', { replace: true });
+      } else if (!user.is_admin) {
+        // Logged in but not admin, redirect to home
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [user, authLoading, navigate]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [pendingPapers, setPendingPapers] = useState<Paper[]>([]);
   const [allPapers, setAllPapers] = useState<Paper[]>([]);
@@ -581,6 +596,11 @@ const AdminDashboard: React.FC = () => {
     }
     setDiagnosticsLoading(false);
   };
+
+  // Don't render if not admin (will redirect via useEffect)
+  if (authLoading || !user || !user.is_admin) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">

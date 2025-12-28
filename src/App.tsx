@@ -7,6 +7,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Loader from './components/Loader';
+import AdminRoute from './components/AdminRoute';
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -133,14 +134,22 @@ function AppContent() {
                 )
               }
             />
+            {/* Admin route - protected with AdminRoute component */}
             <Route
               path="/admin"
               element={
-                user && user.is_admin ? (
+                <AdminRoute>
                   <AdminDashboard />
-                ) : (
-                  <Navigate to="/home" replace />
-                )
+                </AdminRoute>
+              }
+            />
+            {/* Also protect any /admin/* sub-routes */}
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
               }
             />
             {/* Catch all - redirect to landing page */}
