@@ -24,6 +24,8 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 30000, // 30 second timeout
 });
 
+
+
 // Simple in-memory cache for selected GET requests
 type CacheEntry<T = any> = {
   timestamp: number;
@@ -276,11 +278,14 @@ export const API = {
     semester?: string;
     status?: string;
     department?: string;
+    my_papers_only?: boolean;
   }) => {
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, String(value));
+        if (value !== undefined && value !== null && value !== '') {
+          params.append(key, String(value));
+        }
       });
     }
     // Shorter TTL for admin / filtered lists

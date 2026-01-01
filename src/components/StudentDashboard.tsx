@@ -91,18 +91,19 @@ const StudentDashboard: React.FC = () => {
         return;
       }
 
-      const params: any = {};
+      const params: any = {
+        my_papers_only: true  // Backend will filter to only return this user's papers
+      };
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params[key] = value;
       });
 
+      
+
       const response = await API.getPapers(params);
-      // Filter to show only papers uploaded by the current user
-      // This ensures students only see their own papers, not papers from other users or admins
-      const userPapers = response.data.filter((paper: Paper) => 
-        paper.uploaded_by === user.id
-      );
-      setPapers(userPapers);
+      // Backend already filters to only user's papers when my_papers_only=true
+      // No need for additional frontend filtering
+      setPapers(response.data);
     } catch (error: any) {
       console.error('Error fetching papers:', error.message);
       setPapers([]); // Set empty array on error
