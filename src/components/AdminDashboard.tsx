@@ -66,7 +66,7 @@ const AdminDashboard: React.FC = () => {
   const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+
   // Admin permission check - redirect if not admin
   useEffect(() => {
     if (!authLoading) {
@@ -88,7 +88,7 @@ const AdminDashboard: React.FC = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [fileDiagnostics, setFileDiagnostics] = useState<any>(null);
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
-  
+
   // Filters for all papers
   const [paperFilters, setPaperFilters] = useState({
     course_id: '',
@@ -242,7 +242,7 @@ const AdminDashboard: React.FC = () => {
       setPendingPapers(papersRes.data);
       setVerificationRequests(verificationRes.data);
       setCourses(coursesRes.data);
-      
+
       // Fetch all papers for the all documents tab
       fetchAllPapers();
     } catch (err) {
@@ -278,7 +278,7 @@ const AdminDashboard: React.FC = () => {
   const reviewPaper = async (paperId: number, status: string, reason?: string, adminFeedback?: { message: string }) => {
     try {
       const payload: any = { status };
-      
+
       if (status === 'rejected') {
         if (adminFeedback) {
           payload.admin_feedback = adminFeedback;
@@ -334,7 +334,7 @@ const AdminDashboard: React.FC = () => {
       });
 
       showMessage('success', response.data.message || `Successfully approved ${response.data.approved_count} paper(s)`);
-      
+
       // Refresh data in background without blocking
       Promise.all([
         fetchDashboardData(),
@@ -382,7 +382,7 @@ const AdminDashboard: React.FC = () => {
       if (editPaperForm.semester) formData.append('semester', editPaperForm.semester);
 
       await axios.put(`${API_BASE_URL}/papers/${paperId}/edit`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
@@ -400,6 +400,26 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const deletePaper = async (paperId: number) => {
+    if (!window.confirm('Are you sure you want to permanently delete this paper? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await axios.delete(`${API_BASE_URL}/papers/${paperId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      showMessage('success', 'Paper deleted successfully');
+      fetchDashboardData();
+      if (activeTab === 'all-papers') {
+        fetchAllPapers();
+      }
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to delete paper');
+    }
+  };
+
   const handleCourseSubmit = async () => {
     setLoading(true);
     try {
@@ -409,7 +429,7 @@ const AdminDashboard: React.FC = () => {
 
       const method = editingCourse ? 'put' : 'post';
       const config = {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         }
@@ -471,7 +491,7 @@ const AdminDashboard: React.FC = () => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
-    
+
     // Send course_id if selected from dropdown, otherwise send course_code and course_name
     if (uploadForm.course_id) {
       formData.append('course_id', uploadForm.course_id);
@@ -479,32 +499,32 @@ const AdminDashboard: React.FC = () => {
       formData.append('course_code', uploadForm.courseText);
       formData.append('course_name', uploadForm.courseName);
     }
-    
+
     formData.append('title', uploadForm.title);
     formData.append('description', uploadForm.description);
     formData.append('paper_type', uploadForm.paper_type);
-    
+
     // Add quiz_set if paper type is quiz
     if (uploadForm.paper_type === 'quiz' && uploadForm.quiz_set) {
       formData.append('quiz_set', uploadForm.quiz_set);
     }
-    
+
     // Convert year to integer if provided
     const yearValue = uploadForm.year || uploadForm.yearText;
     if (yearValue) {
       formData.append('year', yearValue.toString());
     }
-    
+
     formData.append('semester', uploadForm.semester);
 
     try {
       await axios.post(`${API_BASE_URL}/papers/upload`, formData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       showMessage('success', 'Paper uploaded successfully!');
       setSelectedFile(null);
       setUploadForm({
@@ -519,7 +539,7 @@ const AdminDashboard: React.FC = () => {
         yearText: '',
         semester: '1st Sem'
       });
-      
+
       // Refresh data
       fetchDashboardData();
       if (activeTab === 'all-papers') {
@@ -536,7 +556,7 @@ const AdminDashboard: React.FC = () => {
   const verifyUser = async (userId: number, approve: boolean, reason?: string, adminFeedback?: { message: string }) => {
     try {
       const payload: any = { approve };
-      
+
       if (!approve) {
         if (adminFeedback) {
           payload.admin_feedback = adminFeedback;
@@ -693,11 +713,10 @@ const AdminDashboard: React.FC = () => {
             exit={{ opacity: 0, y: -20 }}
             className="max-w-7xl mx-auto px-4 mt-4"
           >
-            <div className={`p-4 rounded-lg border-2 font-mono ${
-              message.type === 'success'
-                ? 'bg-green-500/10 border-green-500/50 text-green-400 shadow-lg shadow-green-500/20'
-                : 'bg-red-500/10 border-red-500/50 text-red-400 shadow-lg shadow-red-500/20'
-            }`}>
+            <div className={`p-4 rounded-lg border-2 font-mono ${message.type === 'success'
+              ? 'bg-green-500/10 border-green-500/50 text-green-400 shadow-lg shadow-green-500/20'
+              : 'bg-red-500/10 border-red-500/50 text-red-400 shadow-lg shadow-red-500/20'
+              }`}>
               <div className="flex items-center space-x-2">
                 {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                 <span className="font-bold">[{message.type.toUpperCase()}]</span>
@@ -719,11 +738,10 @@ const AdminDashboard: React.FC = () => {
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-6 py-3 rounded-md font-mono font-bold uppercase transition-all ${
-                  activeTab === tab
-                    ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-black shadow-lg shadow-green-500/50'
-                    : 'text-green-400 hover:bg-green-500/10 border border-transparent hover:border-green-500/30'
-                }`}
+                className={`flex-1 px-6 py-3 rounded-md font-mono font-bold uppercase transition-all ${activeTab === tab
+                  ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-black shadow-lg shadow-green-500/50'
+                  : 'text-green-400 hover:bg-green-500/10 border border-transparent hover:border-green-500/30'
+                  }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -929,11 +947,10 @@ const AdminDashboard: React.FC = () => {
                             </div>
                           </div>
                           <div className="flex flex-col gap-2 items-end">
-                            <span className={`px-3 py-1 border text-xs font-mono rounded-lg ${
-                              paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                            <span className={`px-3 py-1 border text-xs font-mono rounded-lg ${paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
                               paper.status === 'rejected' ? 'bg-red-500/20 border-red-500/50 text-red-400' :
-                              'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
-                            }`}>
+                                'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
+                              }`}>
                               {paper.status?.toUpperCase() || 'PENDING'}
                             </span>
                             <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-xs font-mono rounded-lg">
@@ -1016,6 +1033,15 @@ const AdminDashboard: React.FC = () => {
                                 <span>REJECT</span>
                               </motion.button>
                             )}
+                            <motion.button
+                              onClick={() => deletePaper(paper.id)}
+                              className="flex items-center space-x-2 px-4 py-2 bg-red-900/40 border border-red-500/70 text-red-200 hover:bg-red-800/60 rounded-lg font-mono transition-all"
+                              whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(239, 68, 68, 0.8)' }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <Trash2 size={18} />
+                              <span>DELETE</span>
+                            </motion.button>
                           </div>
                         </div>
                       </motion.div>
@@ -1279,10 +1305,10 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
                     <p className="text-xs text-green-400/50 font-mono mt-2">
-                      {uploadForm.course_id 
-                        ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}` 
-                        : (uploadForm.courseText && uploadForm.courseName) 
-                          ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}` 
+                      {uploadForm.course_id
+                        ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}`
+                        : (uploadForm.courseText && uploadForm.courseName)
+                          ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}`
                           : 'Choose one option'}
                     </p>
                   </div>
