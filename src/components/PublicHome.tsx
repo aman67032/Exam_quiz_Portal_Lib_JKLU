@@ -73,10 +73,10 @@ const PublicHome: React.FC = () => {
   });
 
   // Toast Notification
-  const [toast, setToast] = useState({ 
-    show: false, 
-    message: '', 
-    type: 'success' as 'success' | 'error' | 'info' 
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success' as 'success' | 'error' | 'info'
   });
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
@@ -115,7 +115,7 @@ const PublicHome: React.FC = () => {
         url: error.config?.url,
         baseURL: error.config?.baseURL
       });
-      
+
       // More specific error messages
       let errorMessage = 'Failed to load papers. ';
       if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
@@ -131,7 +131,7 @@ const PublicHome: React.FC = () => {
       } else {
         errorMessage += 'Please check your connection.';
       }
-      
+
       showToast(errorMessage, 'error');
       setPapers([]);
     } finally {
@@ -157,7 +157,7 @@ const PublicHome: React.FC = () => {
             return;
           }
         }
-        
+
         const response = await API.getCourses();
         const coursesData = Array.isArray(response.data) ? response.data : [];
         setCourses(coursesData);
@@ -175,9 +175,9 @@ const PublicHome: React.FC = () => {
   const memoizedFilteredPapers = useMemo(() => {
     // For logged-in users: show all papers they have access to (approved + their own papers)
     // For non-logged-in users: only show approved papers
-    let filtered = user 
-      ? papers // Logged-in users see all papers they fetched (backend already filters appropriately)
-      : papers.filter((paper) => paper.status?.toLowerCase() === 'approved'); // Non-logged-in: only approved
+    // Always filter for approved papers on the public home page, regardless of login status
+    // User's own rejected/pending papers should only be visible on the Dashboard
+    let filtered = papers.filter((paper) => paper.status?.toLowerCase() === 'approved');
 
     // Search filter - use debounced query
     if (debouncedSearchQuery.trim()) {
@@ -198,7 +198,7 @@ const PublicHome: React.FC = () => {
 
     // Course filter - support partial matching
     if (filters.course_code) {
-      filtered = filtered.filter((paper) => 
+      filtered = filtered.filter((paper) =>
         (paper.course_code || '').toUpperCase().includes(filters.course_code.toUpperCase())
       );
     }
@@ -237,7 +237,7 @@ const PublicHome: React.FC = () => {
     const handleResize = () => {
       setIsSmallScreen(window.innerWidth <= 640);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -404,8 +404,8 @@ const PublicHome: React.FC = () => {
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div
                   className="absolute w-72 h-72 bg-amber-200/20 rounded-full blur-2xl"
-                  style={{ 
-                    top: '5%', 
+                  style={{
+                    top: '5%',
                     left: '5%',
                     willChange: 'transform',
                     transform: 'translate(15px, 20px)'
@@ -413,8 +413,8 @@ const PublicHome: React.FC = () => {
                 />
                 <div
                   className="absolute w-56 h-56 bg-orange-200/15 rounded-full blur-2xl"
-                  style={{ 
-                    bottom: '15%', 
+                  style={{
+                    bottom: '15%',
                     right: '10%',
                     willChange: 'transform',
                     transform: 'translate(-12px, -17px)'
@@ -422,8 +422,8 @@ const PublicHome: React.FC = () => {
                 />
                 <div
                   className="absolute w-64 h-64 bg-yellow-200/15 rounded-full blur-2xl"
-                  style={{ 
-                    top: '55%', 
+                  style={{
+                    top: '55%',
                     left: '45%',
                     willChange: 'transform',
                     transform: 'translate(-15px, 15px)'
@@ -562,7 +562,7 @@ const PublicHome: React.FC = () => {
                         background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)'
                       }}
                     >
-                      <span 
+                      <span
                         className="login-button-fold absolute top-0 right-0 h-4 w-4 z-10 rounded-tr-lg rounded-bl-sm"
                         style={{ transition: 'all 0.5s ease-in-out' }}
                       />
@@ -592,25 +592,25 @@ const PublicHome: React.FC = () => {
                       {/* Paper Icon 1 - Top Right */}
                       <div className="signup-paper-icon-1 absolute top-0 right-0 w-4 sm:w-5 h-auto z-10" style={{ transformOrigin: '0 0', transform: 'rotate(10deg)', transition: 'all 0.5s ease-in-out' }}>
                         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
-                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
-                          <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round" />
+                          <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round" />
                         </svg>
                       </div>
                       {/* Paper Icon 2 - Left Side */}
                       <div className="signup-paper-icon-2 absolute top-0 left-3 sm:left-4 w-2 sm:w-3 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(10deg)', transition: 'all 1s ease-in-out' }}>
                         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-700 dark:text-amber-800">
-                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </div>
                       {/* Paper Icon 3 - Far Left */}
                       <div className="signup-paper-icon-3 absolute top-0 left-0 w-3 sm:w-4 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(-5deg)', transition: 'all 1s ease-in-out' }}>
                         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
-                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                          <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round" />
                         </svg>
                       </div>
                       <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4 relative z-20" />
@@ -647,7 +647,7 @@ const PublicHome: React.FC = () => {
                   style={{ willChange: 'transform' }}
                 />
               </motion.div>
-              <motion.h1 
+              <motion.h1
                 className="text-3xl sm:text-3xl md:text-4xl lg:text-6xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-4 sm:mb-6 bg-clip-text text-transparent bg-gradient-to-r from-amber-800 via-orange-700 to-amber-900 sm:from-indigo-600 sm:via-purple-600 sm:to-pink-600 dark:from-indigo-600 dark:via-purple-600 dark:to-pink-600 px-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -655,13 +655,13 @@ const PublicHome: React.FC = () => {
               >
                 Your Academic Resource Hub
               </motion.h1>
-              <motion.p 
+              <motion.p
                 className="text-base sm:text-base md:text-lg lg:text-2xl text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-6 sm:mb-8 max-w-3xl mx-auto leading-relaxed px-2 font-medium sm:font-normal"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
               >
-                Discover, share, and access a comprehensive collection of exam papers, assignments, and study materials. 
+                Discover, share, and access a comprehensive collection of exam papers, assignments, and study materials.
                 Built for students, by students.
               </motion.p>
               {!user && (
@@ -678,7 +678,7 @@ const PublicHome: React.FC = () => {
                       background: 'radial-gradient(65.28% 65.28% at 50% 100%, rgba(223, 113, 255, 0.8) 0%, rgba(223, 113, 255, 0) 100%), linear-gradient(0deg, #7a5af8, #7a5af8)'
                     }}
                   >
-                    <span 
+                    <span
                       className="login-button-fold absolute top-0 right-0 h-4 w-4 z-10 rounded-tr-xl rounded-bl-sm"
                       style={{ transition: 'all 0.5s ease-in-out' }}
                     />
@@ -708,25 +708,25 @@ const PublicHome: React.FC = () => {
                     {/* Paper Icon 1 - Top Right */}
                     <div className="signup-paper-icon-1 absolute top-0 right-0 w-5 sm:w-6 h-auto z-10" style={{ transformOrigin: '0 0', transform: 'rotate(10deg)', transition: 'all 0.5s ease-in-out' }}>
                       <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
-                        <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 12H16" stroke="white" strokeWidth="1" strokeLinecap="round" />
+                        <path d="M8 16H16" stroke="white" strokeWidth="1" strokeLinecap="round" />
                       </svg>
                     </div>
                     {/* Paper Icon 2 - Left Side */}
                     <div className="signup-paper-icon-2 absolute top-0 left-6 sm:left-8 w-3 sm:w-4 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(10deg)', transition: 'all 1s ease-in-out' }}>
                       <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-700 dark:text-amber-800">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                     {/* Paper Icon 3 - Far Left */}
                     <div className="signup-paper-icon-3 absolute top-0 left-0 w-4 sm:w-5 h-auto z-10" style={{ transformOrigin: '50% 0', transform: 'rotate(-5deg)', transition: 'all 1s ease-in-out' }}>
                       <svg viewBox="0 0 24 24" fill="none" className="w-full h-full text-amber-800 dark:text-amber-900">
-                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round"/>
+                        <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" fill="currentColor" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M14 2V8H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 12H12" stroke="white" strokeWidth="1" strokeLinecap="round" />
                       </svg>
                     </div>
                     <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 relative z-20" />
@@ -874,174 +874,174 @@ const PublicHome: React.FC = () => {
             transition={{ delay: 0.3 }}
             className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8 md:mb-12"
           >
-          <div className="space-y-4 sm:space-y-6">
-            {/* Gooey Search Field Tabs */}
-            <div>
-              <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                Search In
-              </label>
-              <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-                <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
-                  <GooeyNav
-                    items={[
-                      { label: 'All', href: '#' },
-                      { label: 'Title', href: '#' },
-                      { label: 'Description', href: '#' },
-                      { label: 'Course', href: '#' },
-                      { label: 'Uploader', href: '#' }
-                    ]}
-                    initialActiveIndex={0}
-                    onChange={(idx) => {
-                      const map = ['all', 'title', 'description', 'course', 'uploader'] as const;
-                      setSearchField(map[idx]);
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Search Bar */}
-            <div>
-              <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                Search Papers
-              </label>
-              <div className="relative">
-              <input
-                type="text"
-                placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation min-h-[44px] sm:min-h-0"
-              />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    onTouchStart={(e) => e.stopPropagation()}
-                    className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1.5 sm:p-1 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center touch-manipulation"
-                    aria-label="Clear search"
-                    type="button"
-                  >
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div>
-              <div className="flex items-center justify-between mb-3 sm:mb-4">
-                <div className="flex items-center space-x-2">
-                <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                <label className="text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300">Filters</label>
-                </div>
-                {/* Clear Filters Button - Mobile Friendly */}
-                {(filters.year || filters.semester || filters.course_code || filters.paper_type) && (
-                  <button
-                    onClick={() => {
-                      setFilters({
-                        course_code: '',
-                        paper_type: '',
-                        year: '',
-                        semester: '',
-                      });
-                    }}
-                    className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-3 py-2 sm:px-2 sm:py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors touch-manipulation min-h-[36px] sm:min-h-0 flex items-center justify-center"
-                  >
-                    Clear All
-                  </button>
-                )}
-              </div>
-
-              {/* Gooey Paper Type Tabs */}
-              <div className="mb-4 sm:mb-5">
-                <label className="block text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                  Paper Type
+            <div className="space-y-4 sm:space-y-6">
+              {/* Gooey Search Field Tabs */}
+              <div>
+                <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                  <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  Search In
                 </label>
                 <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
                   <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
                     <GooeyNav
-                      items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
+                      items={[
+                        { label: 'All', href: '#' },
+                        { label: 'Title', href: '#' },
+                        { label: 'Description', href: '#' },
+                        { label: 'Course', href: '#' },
+                        { label: 'Uploader', href: '#' }
+                      ]}
                       initialActiveIndex={0}
-                      onChange={(idx, item) => {
-                        const val = idx === 0 ? '' : item.label.toLowerCase();
-                        handleFilterChange('paper_type', val);
+                      onChange={(idx) => {
+                        const map = ['all', 'title', 'description', 'course', 'uploader'] as const;
+                        setSearchField(map[idx]);
                       }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Filter Grid - Optimized for Mobile */}
-              <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 sm:gap-4">
-                {/* Year Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                    Year
-                  </label>
-                <select
-                  value={filters.year}
-                  onChange={(e) => handleFilterChange('year', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                >
-                  <option value="">All Years</option>
-                  {years.map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
+              {/* Search Bar */}
+              <div>
+                <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
+                  <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  Search Papers
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation min-h-[44px] sm:min-h-0"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      onTouchStart={(e) => e.stopPropagation()}
+                      className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1.5 sm:p-1 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center touch-manipulation"
+                      aria-label="Clear search"
+                      type="button"
+                    >
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div>
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center space-x-2">
+                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                    <label className="text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300">Filters</label>
+                  </div>
+                  {/* Clear Filters Button - Mobile Friendly */}
+                  {(filters.year || filters.semester || filters.course_code || filters.paper_type) && (
+                    <button
+                      onClick={() => {
+                        setFilters({
+                          course_code: '',
+                          paper_type: '',
+                          year: '',
+                          semester: '',
+                        });
+                      }}
+                      className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-3 py-2 sm:px-2 sm:py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors touch-manipulation min-h-[36px] sm:min-h-0 flex items-center justify-center"
+                    >
+                      Clear All
+                    </button>
+                  )}
                 </div>
 
-                {/* Semester Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                    Semester
+                {/* Gooey Paper Type Tabs */}
+                <div className="mb-4 sm:mb-5">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                    Paper Type
                   </label>
-                  <select
-                    value={filters.semester}
-                    onChange={(e) => handleFilterChange('semester', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                  >
-                    <option value="">All Semesters</option>
-                    <option value="1">Semester 1</option>
-                    <option value="2">Semester 2</option>
-                    <option value="3">Semester 3</option>
-                    <option value="4">Semester 4</option>
-                    <option value="5">Semester 5</option>
-                    <option value="6">Semester 6</option>
-                    <option value="7">Semester 7</option>
-                    <option value="8">Semester 8</option>
-                  </select>
+                  <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+                    <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
+                      <GooeyNav
+                        items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
+                        initialActiveIndex={0}
+                        onChange={(idx, item) => {
+                          const val = idx === 0 ? '' : item.label.toLowerCase();
+                          handleFilterChange('paper_type', val);
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                {/* Course Code Filter - as a regular select so all options are visible */}
-                <div className="sm:col-span-2 lg:col-span-1">
-                  <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                    Course Code
-                  </label>
-                  <select
-                    value={filters.course_code}
-                    onChange={(e) => handleFilterChange('course_code', e.target.value)}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                  >
-                    <option value="">All Courses</option>
-                    {[...courses]
-                      .sort((a, b) => a.code.localeCompare(b.code))
-                      .map((course) => (
-                        <option key={course.id} value={course.code}>
-                          {course.code} - {course.name}
+                {/* Filter Grid - Optimized for Mobile */}
+                <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 sm:gap-4">
+                  {/* Year Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                      Year
+                    </label>
+                    <select
+                      value={filters.year}
+                      onChange={(e) => handleFilterChange('year', e.target.value)}
+                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
+                    >
+                      <option value="">All Years</option>
+                      {years.map((year) => (
+                        <option key={year} value={year}>
+                          {year}
                         </option>
                       ))}
-                  </select>
+                    </select>
+                  </div>
+
+                  {/* Semester Filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                      Semester
+                    </label>
+                    <select
+                      value={filters.semester}
+                      onChange={(e) => handleFilterChange('semester', e.target.value)}
+                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
+                    >
+                      <option value="">All Semesters</option>
+                      <option value="1">Semester 1</option>
+                      <option value="2">Semester 2</option>
+                      <option value="3">Semester 3</option>
+                      <option value="4">Semester 4</option>
+                      <option value="5">Semester 5</option>
+                      <option value="6">Semester 6</option>
+                      <option value="7">Semester 7</option>
+                      <option value="8">Semester 8</option>
+                    </select>
+                  </div>
+
+                  {/* Course Code Filter - as a regular select so all options are visible */}
+                  <div className="sm:col-span-2 lg:col-span-1">
+                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
+                      Course Code
+                    </label>
+                    <select
+                      value={filters.course_code}
+                      onChange={(e) => handleFilterChange('course_code', e.target.value)}
+                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
+                    >
+                      <option value="">All Courses</option>
+                      {[...courses]
+                        .sort((a, b) => a.code.localeCompare(b.code))
+                        .map((course) => (
+                          <option key={course.id} value={course.code}>
+                            {course.code} - {course.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
           {/* Papers Grid */}
           <div className="mb-6 sm:mb-8">
