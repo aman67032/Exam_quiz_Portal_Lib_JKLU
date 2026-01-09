@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, FileText, Filter, LogOut, User, Download, Sparkles } from 'lucide-react';
+import { Upload, FileText, Filter, LogOut, User, Download, Sparkles, Code } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API } from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -98,7 +98,7 @@ const StudentDashboard: React.FC = () => {
         if (value) params[key] = value;
       });
 
-      
+
 
       const response = await API.getPapers(params);
       // Backend already filters to only user's papers when my_papers_only=true
@@ -158,7 +158,7 @@ const StudentDashboard: React.FC = () => {
     setUploading(true);
     const formData = new FormData();
     formData.append('file', selectedFile);
-    
+
     // Send course_id if selected from dropdown, otherwise send course_code and course_name
     if (uploadForm.course_id) {
       formData.append('course_id', uploadForm.course_id);
@@ -166,22 +166,22 @@ const StudentDashboard: React.FC = () => {
       formData.append('course_code', uploadForm.courseText);
       formData.append('course_name', uploadForm.courseName);
     }
-    
+
     formData.append('title', uploadForm.title);
     formData.append('description', uploadForm.description);
     formData.append('paper_type', uploadForm.paper_type);
-    
+
     // Add quiz_set if paper type is quiz
     if (uploadForm.paper_type === 'quiz' && uploadForm.quiz_set) {
       formData.append('quiz_set', uploadForm.quiz_set);
     }
-    
+
     // Convert year to integer if provided
     const yearValue = uploadForm.year || uploadForm.yearText;
     if (yearValue) {
       formData.append('year', yearValue.toString());
     }
-    
+
     formData.append('semester', uploadForm.semester);
 
     try {
@@ -237,10 +237,10 @@ const StudentDashboard: React.FC = () => {
       showToast('File downloaded successfully!', 'success');
     } catch (error: any) {
       console.error('Download error:', error);
-      const errorMessage = error?.response?.data?.detail || 
-                          error?.response?.data?.message || 
-                          error?.message || 
-                          'Failed to download file. The file may not exist on the server.';
+      const errorMessage = error?.response?.data?.detail ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to download file. The file may not exist on the server.';
       showToast(errorMessage, 'error');
     }
   };
@@ -277,7 +277,7 @@ const StudentDashboard: React.FC = () => {
           />
         </Suspense>
       </div>
-      
+
       {/* Subtle Overlay under content but above page base */}
       <div className="fixed inset-0 z-0 bg-gradient-to-br from-white/40 via-purple-50/10 to-cyan-50/10 dark:from-gray-900/30 dark:via-gray-800/20 dark:to-gray-900/30 pointer-events-none" />
 
@@ -311,18 +311,18 @@ const StudentDashboard: React.FC = () => {
                 className="flex items-center space-x-3 sm:space-x-4"
               >
                 <div className="relative">
-                  <img 
-                    src={logoImg} 
-                    alt="Paper Portal Logo" 
+                  <img
+                    src={logoImg}
+                    alt="Paper Portal Logo"
                     className="h-12 sm:h-16 w-auto object-contain drop-shadow-lg"
                   />
                   <motion.div
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.1, 1],
                       opacity: [0.5, 0.8, 0.5]
                     }}
-                    transition={{ 
-                      duration: 3, 
+                    transition={{
+                      duration: 3,
                       repeat: Infinity,
                       ease: "easeInOut"
                     }}
@@ -385,236 +385,302 @@ const StudentDashboard: React.FC = () => {
         </motion.header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+          {/* Announcement Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 rounded-2xl backdrop-blur-sm flex items-start gap-4"
+          >
+            <div className="p-2 bg-indigo-500/20 rounded-lg shrink-0">
+              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg">New: Coding Hour Solutions Available!</h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+                Access daily coding challenges and their detailed solutions directly from your dashboard. Sharpen your skills with Python and DAA problems.
+              </p>
+            </div>
+          </motion.div>
+
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-            {/* Upload Section */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="xl:col-span-1"
-            >
-              <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 hover:shadow-purple-500/20 transition-all duration-300 relative overflow-hidden">
-                {/* Decorative gradient */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl -z-0" />
-                
-                <div className="relative z-10">
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                    <div className="p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl shadow-lg">
-                      <Upload className="h-6 w-6 text-white" />
-                    </div>
-                    <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                      Upload Paper
-                    </span>
-                  </h2>
 
-                  <form onSubmit={handleUpload} className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Course (Select or Type)
-                      </label>
-                      <div className="space-y-2">
-                        <select
-                          value={uploadForm.course_id}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                        >
-                          <option value="">Select from existing courses</option>
-                          {courses.map(course => (
-                            <option key={course.id} value={course.id}>
-                              {course.code} - {course.name}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium">OR</div>
-                        <div className="space-y-2">
-                          <input
-                            type="text"
-                            value={uploadForm.courseText}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
-                            placeholder="Course Code (e.g., CS1109)"
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                          />
-                          <input
-                            type="text"
-                            value={uploadForm.courseName}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
-                            placeholder="Course Name (e.g., Python)"
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                          />
-                        </div>
+            {/* Left Column: Coding Hour & Upload */}
+            <div className="xl:col-span-1 space-y-6">
+
+              {/* Coding Hour Section - Now at Top */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 hover:shadow-purple-500/20 transition-all duration-300 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
+
+                  <div className="relative z-10">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                      <div className="p-2 mr-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md">
+                        <Code className="h-5 w-5 text-white" />
                       </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                        {uploadForm.course_id 
-                          ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}` 
-                          : (uploadForm.courseText && uploadForm.courseName) 
-                            ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}` 
-                            : 'Choose one option'}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={uploadForm.title}
-                        onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                        placeholder="Paper title"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Description
-                      </label>
-                      <textarea
-                        value={uploadForm.description}
-                        onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 resize-none"
-                        rows={3}
-                        placeholder="Optional description"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Type
-                        </label>
-                        <select
-                          value={uploadForm.paper_type}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
-                        >
-                          <option value="assignment">Assignment</option>
-                          <option value="quiz">Quiz</option>
-                          <option value="midterm">Midterm</option>
-                          <option value="endterm">Endterm</option>
-                          <option value="project">Project</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Year (Select or Type)
-                        </label>
-                        <div className="space-y-1">
-                          <select
-                            value={uploadForm.year}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, year: e.target.value, yearText: '' }))}
-                            className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
+                      <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                        Coding Hour
+                      </span>
+                    </h2>
+                    <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+                      Practice daily coding challenges to improve your skills.
+                    </p>
+                    <div className="space-y-3">
+                      {courses.filter(c => c.name.startsWith('Coding Hour')).length > 0 ? (
+                        courses.filter(c => c.name.startsWith('Coding Hour')).map(course => (
+                          <button
+                            key={course.id}
+                            onClick={() => navigate(`/coding-hour/${course.id}`)}
+                            className="w-full py-3 px-4 bg-white/50 dark:bg-gray-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-left transition-all duration-200 flex items-center justify-between group/btn shadow-sm hover:shadow"
                           >
-                            <option value="">Select year</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                            <option value="2022">2022</option>
-                          </select>
-                          <input
-                            type="number"
-                            value={uploadForm.yearText}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, yearText: e.target.value, year: '' }))}
-                            placeholder="Or type year"
-                            className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 text-sm"
-                            min="2020"
-                            max="2030"
-                          />
-                        </div>
-                      </div>
+                            <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm group-hover/btn:text-purple-600 dark:group-hover/btn:text-purple-400 transition-colors">{course.name}</span>
+                            <span className="opacity-0 group-hover/btn:opacity-100 transition-opacity text-purple-600 dark:text-purple-400">→</span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-sm opacity-75 italic text-gray-500 dark:text-gray-400">No active coding courses found.</p>
+                      )}
                     </div>
+                  </div>
+                </div>
+              </motion.div>
 
-                    {uploadForm.paper_type === 'quiz' && (
+              {/* Upload Section */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+
+                <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 hover:shadow-purple-500/20 transition-all duration-300 relative overflow-hidden">
+                  {/* Decorative gradient */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl -z-0" />
+
+                  <div className="relative z-10">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                      <div className="p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl shadow-lg">
+                        <Upload className="h-6 w-6 text-white" />
+                      </div>
+                      <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                        Upload Paper
+                      </span>
+                    </h2>
+
+                    <form onSubmit={handleUpload} className="space-y-4">
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Quiz Set
+                          Course (Select or Type)
                         </label>
-                        <select
-                          value={uploadForm.quiz_set}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                          required
-                        >
-                          <option value="">Select Set</option>
-                          <option value="A">Set A</option>
-                          <option value="B">Set B</option>
-                          <option value="C">Set C</option>
-                          <option value="D">Set D</option>
-                          <option value="E">Set E</option>
-                          <option value="F">Set F</option>
-                        </select>
+                        <div className="space-y-2">
+                          <select
+                            value={uploadForm.course_id}
+                            onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
+                          >
+                            <option value="">Select from existing courses</option>
+                            {courses.map(course => (
+                              <option key={course.id} value={course.id}>
+                                {course.code} - {course.name}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium">OR</div>
+                          <div className="space-y-2">
+                            <input
+                              type="text"
+                              value={uploadForm.courseText}
+                              onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
+                              placeholder="Course Code (e.g., CS1109)"
+                              className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                            />
+                            <input
+                              type="text"
+                              value={uploadForm.courseName}
+                              onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
+                              placeholder="Course Name (e.g., Python)"
+                              className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                            />
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-medium">
+                          {uploadForm.course_id
+                            ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}`
+                            : (uploadForm.courseText && uploadForm.courseName)
+                              ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}`
+                              : 'Choose one option'}
+                        </p>
                       </div>
-                    )}
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        Semester
-                      </label>
-                      <select
-                        value={uploadForm.semester}
-                        onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                      >
-                        <option value="1st Sem">1st Sem</option>
-                        <option value="2nd Sem">2nd Sem</option>
-                        <option value="3rd Sem">3rd Sem</option>
-                        <option value="4th Sem">4th Sem</option>
-                        <option value="5th Sem">5th Sem</option>
-                        <option value="6th Sem">6th Sem</option>
-                        <option value="7th Sem">7th Sem</option>
-                        <option value="8th Sem">8th Sem</option>
-                      </select>
-                    </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        File
-                      </label>
-                      <div className="relative">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Title
+                        </label>
                         <input
-                          type="file"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-pink-500 file:to-purple-500 file:text-white hover:file:from-pink-600 hover:file:to-purple-600 cursor-pointer"
-                          accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                          type="text"
+                          value={uploadForm.title}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
+                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
+                          placeholder="Paper title"
                           required
                         />
-                        {selectedFile && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
-                            Selected: {selectedFile.name}
-                          </p>
-                        )}
                       </div>
-                    </div>
 
-                    <motion.button
-                      type="submit"
-                      disabled={uploading || !selectedFile}
-                      whileHover={{ scale: uploading || !selectedFile ? 1 : 1.02 }}
-                      whileTap={{ scale: uploading || !selectedFile ? 1 : 0.98 }}
-                      className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 relative overflow-hidden"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-shimmer" />
-                      {uploading ? (
-                        <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                          />
-                          <span>Uploading...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-5 w-5" />
-                          <span>Upload Paper</span>
-                        </>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Description
+                        </label>
+                        <textarea
+                          value={uploadForm.description}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
+                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 resize-none"
+                          rows={3}
+                          placeholder="Optional description"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Type
+                          </label>
+                          <select
+                            value={uploadForm.paper_type}
+                            onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
+                          >
+                            <option value="assignment">Assignment</option>
+                            <option value="quiz">Quiz</option>
+                            <option value="midterm">Midterm</option>
+                            <option value="endterm">Endterm</option>
+                            <option value="project">Project</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Year (Select or Type)
+                          </label>
+                          <div className="space-y-1">
+                            <select
+                              value={uploadForm.year}
+                              onChange={(e) => setUploadForm(prev => ({ ...prev, year: e.target.value, yearText: '' }))}
+                              className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
+                            >
+                              <option value="">Select year</option>
+                              <option value="2024">2024</option>
+                              <option value="2023">2023</option>
+                              <option value="2022">2022</option>
+                            </select>
+                            <input
+                              type="number"
+                              value={uploadForm.yearText}
+                              onChange={(e) => setUploadForm(prev => ({ ...prev, yearText: e.target.value, year: '' }))}
+                              placeholder="Or type year"
+                              className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 text-sm"
+                              min="2020"
+                              max="2030"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {uploadForm.paper_type === 'quiz' && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Quiz Set
+                          </label>
+                          <select
+                            value={uploadForm.quiz_set}
+                            onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
+                            required
+                          >
+                            <option value="">Select Set</option>
+                            <option value="A">Set A</option>
+                            <option value="B">Set B</option>
+                            <option value="C">Set C</option>
+                            <option value="D">Set D</option>
+                            <option value="E">Set E</option>
+                            <option value="F">Set F</option>
+                          </select>
+                        </div>
                       )}
-                    </motion.button>
-                  </form>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Semester
+                        </label>
+                        <select
+                          value={uploadForm.semester}
+                          onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
+                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
+                        >
+                          <option value="1st Sem">1st Sem</option>
+                          <option value="2nd Sem">2nd Sem</option>
+                          <option value="3rd Sem">3rd Sem</option>
+                          <option value="4th Sem">4th Sem</option>
+                          <option value="5th Sem">5th Sem</option>
+                          <option value="6th Sem">6th Sem</option>
+                          <option value="7th Sem">7th Sem</option>
+                          <option value="8th Sem">8th Sem</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          File
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="file"
+                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-pink-500 file:to-purple-500 file:text-white hover:file:from-pink-600 hover:file:to-purple-600 cursor-pointer"
+                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                            required
+                          />
+                          {selectedFile && (
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
+                              Selected: {selectedFile.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <motion.button
+                        type="submit"
+                        disabled={uploading || !selectedFile}
+                        whileHover={{ scale: uploading || !selectedFile ? 1 : 1.02 }}
+                        whileTap={{ scale: uploading || !selectedFile ? 1 : 0.98 }}
+                        className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 relative overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-shimmer" />
+                        {uploading ? (
+                          <>
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                            />
+                            <span>Uploading...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-5 w-5" />
+                            <span>Upload Paper</span>
+                          </>
+                        )}
+                      </motion.button>
+                    </form>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
+
+
 
             {/* Papers List */}
             <motion.div
@@ -626,7 +692,7 @@ const StudentDashboard: React.FC = () => {
               <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 relative overflow-hidden">
                 {/* Decorative gradient */}
                 <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-purple-500/20 via-cyan-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
-                
+
                 <div className="relative z-10">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -640,7 +706,7 @@ const StudentDashboard: React.FC = () => {
                         {papers.length}
                       </span>
                     </h2>
-                  <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50 text-xs sm:text-sm">
+                    <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50 text-xs sm:text-sm">
                       <Filter className="h-4 w-4 text-purple-500" />
                       <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</span>
                     </div>
@@ -732,7 +798,7 @@ const StudentDashboard: React.FC = () => {
                         >
                           {/* Hover gradient effect */}
                           <div className="absolute inset-0 bg-gradient-to-r from-pink-500/0 via-purple-500/0 to-cyan-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-cyan-500/5 transition-all duration-300 -z-0" />
-                          
+
                           <div className="relative z-10">
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
@@ -741,10 +807,10 @@ const StudentDashboard: React.FC = () => {
                                 </h3>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
                                   <span>📅</span>
-                                  Uploaded: {new Date(paper.uploaded_at).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'short', 
-                                    day: 'numeric' 
+                                  Uploaded: {new Date(paper.uploaded_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
                                   })}
                                 </p>
                               </div>

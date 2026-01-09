@@ -19,6 +19,8 @@ const StudentDashboard = lazy(() => import('./components/StudentDashboard'));
 const Profile = lazy(() => import('./components/Profile'));
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const PublicHome = lazy(() => import('./components/PublicHome'));
+const CodingHourPage = lazy(() => import('./components/CodingHourPage'));
+const ChallengePage = lazy(() => import('./components/ChallengePage'));
 
 // Loading fallback component with backend wake-up message
 const LoadingFallback = () => {
@@ -132,6 +134,23 @@ function AppContent() {
                 ) : (
                   <Navigate to="/home" replace />
                 )
+              }
+            />
+            {/* Coding Hour Routes - Publicly Accessible */}
+            <Route
+              path="/coding-hour/:courseId"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <CodingHourPage />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/coding-hour/:courseId/challenge/:challengeId"
+              element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ChallengePage />
+                </Suspense>
               }
             />
             {/* Admin route - protected with AdminRoute component */}

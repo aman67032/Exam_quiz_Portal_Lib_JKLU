@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, Calendar } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -8,7 +8,7 @@ import Squares from './square_bg';
 import PaperCard from './PaperCard';
 import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
@@ -41,6 +41,7 @@ interface Paper {
 
 const PublicHome: React.FC = () => {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [papers, setPapers] = useState<Paper[]>([]);
   const [filteredPapers, setFilteredPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +147,12 @@ const PublicHome: React.FC = () => {
   // Fetch courses from API - cache in sessionStorage to reduce API calls
   useEffect(() => {
     const fetchCourses = async () => {
+      // Hardcoded sample data for UI testing
+      const SAMPLE_COURSES = [
+        { id: 101, code: 'CH001', name: 'Coding Hour - Python', description: 'Master Python with daily challenges ranging from basic syntax to advanced algorithms.' },
+        { id: 102, code: 'CH002', name: 'Coding Hour - DAA', description: 'Deep dive into Design and Analysis of Algorithms. Optimize your logic.' },
+      ];
+
       try {
         // Check sessionStorage cache first (5 minute TTL)
         const cached = sessionStorage.getItem('courses_cache');
@@ -153,19 +160,27 @@ const PublicHome: React.FC = () => {
         if (cached && cacheTime) {
           const age = Date.now() - parseInt(cacheTime);
           if (age < 5 * 60 * 1000) { // 5 minutes
-            setCourses(JSON.parse(cached));
+            const cachedCourses = JSON.parse(cached);
+            // Ensure sample courses are present even in cache
+            const hasSample = cachedCourses.some((c: any) => c.code === 'CH001');
+            setCourses(hasSample ? cachedCourses : [...cachedCourses, ...SAMPLE_COURSES]);
             return;
           }
         }
 
         const response = await API.getCourses();
         const coursesData = Array.isArray(response.data) ? response.data : [];
-        setCourses(coursesData);
+        // Merge real data with sample data
+        const mergedCourses = [...coursesData, ...SAMPLE_COURSES];
+
+        setCourses(mergedCourses);
         // Cache in sessionStorage
-        sessionStorage.setItem('courses_cache', JSON.stringify(coursesData));
+        sessionStorage.setItem('courses_cache', JSON.stringify(mergedCourses));
         sessionStorage.setItem('courses_cache_time', Date.now().toString());
       } catch (error) {
         console.error('Error fetching courses:', error);
+        // Fallback to sample data on error
+        setCourses(SAMPLE_COURSES);
       }
     };
     fetchCourses();
@@ -797,6 +812,61 @@ const PublicHome: React.FC = () => {
         </section>
 
         {/* How It Works Section */}
+        {/* Coding Hour Section */}
+        <section className="relative py-4 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto">
+            {/* Announcement Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mb-8 p-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 rounded-2xl backdrop-blur-sm flex items-start gap-4"
+            >
+              <div className="p-2 bg-indigo-500/20 rounded-lg shrink-0">
+                <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg">New: Coding Hour Solutions Available!</h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+                  Access daily coding challenges and their detailed solutions. Open to everyone!
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Coding Hour Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {courses.filter(c => c.name.startsWith('Coding Hour')).map((course, index) => (
+                <motion.div
+                  key={course.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  onClick={() => navigate(`/coding-hour/${course.id}`)}
+                  className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/70 dark:bg-gray-800/70 p-6 shadow-lg border border-white/30 dark:border-gray-700/50 hover:shadow-purple-500/20 transition-all duration-300"
+                >                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div>
+                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl mb-4 w-fit group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
+                        <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                        {course.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        {course.description}
+                      </p>
+                    </div>
+                    <div className="p-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
+                      <span className="text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400">→</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section className="relative py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <motion.div
