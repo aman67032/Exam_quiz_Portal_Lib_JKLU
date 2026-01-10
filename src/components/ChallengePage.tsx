@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, BookOpen, Code, FileText, Image as ImageIcon, Menu } from 'lucide-react';
+import { ArrowLeft, BookOpen, Code, FileText, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -20,12 +19,12 @@ interface DailyChallenge {
 const ChallengePage: React.FC = () => {
     const { courseId, challengeId } = useParams<{ courseId: string; challengeId: string }>();
     const navigate = useNavigate();
-    const { token, user } = useAuth(); // Added user to destructuring to fix potential login check issues if needed later
+    const { token } = useAuth(); // Added user to destructuring to fix potential login check issues if needed later
 
     const [challenge, setChallenge] = useState<DailyChallenge | null>(null);
     const [loading, setLoading] = useState(true);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<string>('question');
 
     useEffect(() => {
@@ -148,8 +147,8 @@ const ChallengePage: React.FC = () => {
                                     key={section.id}
                                     onClick={() => scrollToSection(section.id)}
                                     className={`p-2 rounded-lg transition-colors ${activeSection === section.id
-                                            ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
-                                            : 'text-gray-500 dark:text-gray-400'
+                                        ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                                        : 'text-gray-500 dark:text-gray-400'
                                         }`}
                                 >
                                     <section.icon className="w-5 h-5" />
@@ -174,10 +173,10 @@ const ChallengePage: React.FC = () => {
                                     onClick={() => !section.disabled && scrollToSection(section.id)}
                                     disabled={section.disabled}
                                     className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all ${activeSection === section.id
-                                            ? 'bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 shadow-md border border-purple-100 dark:border-purple-900/50 transform scale-105'
-                                            : section.disabled
-                                                ? 'opacity-50 cursor-not-allowed text-gray-400'
-                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
+                                        ? 'bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 shadow-md border border-purple-100 dark:border-purple-900/50 transform scale-105'
+                                        : section.disabled
+                                            ? 'opacity-50 cursor-not-allowed text-gray-400'
+                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/50 dark:hover:bg-gray-800/50'
                                         }`}
                                 >
                                     <section.icon className={`w-5 h-5 ${activeSection === section.id ? 'text-purple-600 dark:text-purple-400' : ''}`} />

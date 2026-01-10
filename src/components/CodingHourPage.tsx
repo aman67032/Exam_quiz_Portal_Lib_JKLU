@@ -28,12 +28,12 @@ const CodingHourPage: React.FC = () => {
     const navigate = useNavigate();
     const { token, user } = useAuth();
     // Theme context might be different or unused in this component, but keeping imports consistent
-    const { theme } = useTheme();
+    useTheme();
 
     const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {

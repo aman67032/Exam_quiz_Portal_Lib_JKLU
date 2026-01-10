@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, Calendar } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -63,7 +63,7 @@ const PublicHome: React.FC = () => {
   });
 
   // Courses for dropdown
-  const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string }>>([]);
+  const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string; description?: string }>>([]);
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({

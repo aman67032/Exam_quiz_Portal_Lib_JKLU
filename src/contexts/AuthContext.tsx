@@ -21,6 +21,7 @@ interface AuthContextType {
   register: (email: string, name: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
+  token: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       // First, wake up backend if it's sleeping
       await wakeUpBackend();
-      
+
       const token = localStorage.getItem('token');
       if (token) {
         // Verify token and get user info
@@ -161,6 +162,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value = {
     user,
+    token: localStorage.getItem('token'),
     login,
     register,
     logout,
