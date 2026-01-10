@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles } from 'lucide-react';
+import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, ArrowLeft } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import GooeyNav from './Gooeyeffect';
@@ -843,22 +843,39 @@ const PublicHome: React.FC = () => {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   onClick={() => navigate(`/coding-hour/${course.id}`)}
-                  className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/70 dark:bg-gray-800/70 p-6 shadow-lg border border-white/30 dark:border-gray-700/50 hover:shadow-purple-500/20 transition-all duration-300"
-                >                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
-                  <div className="relative z-10 flex items-start justify-between">
-                    <div>
-                      <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl mb-4 w-fit group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
-                        <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                  className="cursor-pointer group relative overflow-hidden rounded-2xl bg-white/80 dark:bg-gray-800/80 p-1 shadow-xl hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300"
+                >
+                  {/* Gradient Border Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                  {/* Inner Content Container */}
+                  <div className="relative h-full bg-white dark:bg-gray-900 rounded-xl p-6 overflow-hidden">
+                    {/* Decorative Background Blob */}
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-purple-500/20 transition-colors duration-500" />
+
+                    <div className="relative z-10 flex flex-col h-full justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl group-hover:scale-110 transition-transform duration-300">
+                            <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <span className="px-2 py-1 bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm">
+                            Daily
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-purple-600 dark:group-hover:from-indigo-400 dark:group-hover:to-purple-400 transition-colors duration-300">
+                          {course.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                          {course.description}
+                        </p>
                       </div>
-                      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                        {course.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                        {course.description}
-                      </p>
-                    </div>
-                    <div className="p-2 bg-gray-100 dark:bg-gray-700/50 rounded-lg group-hover:bg-purple-100 dark:group-hover:bg-purple-900/30 transition-colors">
-                      <span className="text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400">→</span>
+
+                      <div className="mt-6 flex items-center text-sm font-medium text-purple-600 dark:text-purple-400 group-hover:translate-x-2 transition-transform duration-300">
+                        <span>Start Challenge</span>
+                        <ArrowLeft className="w-4 h-4 ml-2 rotate-180" />
+                      </div>
                     </div>
                   </div>
                 </motion.div>
