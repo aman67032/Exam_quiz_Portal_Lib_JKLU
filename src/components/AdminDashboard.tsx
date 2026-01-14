@@ -159,6 +159,9 @@ const AdminDashboard: React.FC = () => {
     semester: '1st Sem'
   });
 
+  // Host creation state
+  const [hostForm, setHostForm] = useState({ email: '', name: '', password: '' });
+
   const token = localStorage.getItem('token');
 
   // Matrix rain animation
@@ -615,6 +618,23 @@ const AdminDashboard: React.FC = () => {
       showMessage('error', err.response?.data?.detail || 'Failed to run diagnostics');
     }
     setDiagnosticsLoading(false);
+    setDiagnosticsLoading(false);
+  };
+
+  const handleCreateSubAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/admin/create-sub-admin`, hostForm, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showMessage('success', 'Sub Admin created successfully');
+      setHostForm({ email: '', name: '', password: '' });
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to create sub admin');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Don't render if not admin (will redirect via useEffect)
@@ -734,7 +754,7 @@ const AdminDashboard: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-1 flex space-x-1 shadow-lg shadow-green-500/10"
           >
-            {['dashboard', 'upload', 'all-papers', 'pending', 'courses'].map(tab => (
+            {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts'].map(tab => (
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -745,7 +765,7 @@ const AdminDashboard: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : 'COURSE_MANAGEMENT'}
+                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : tab === 'courses' ? 'COURSE_MANAGEMENT' : 'HOST_MANAGEMENT'}
               </motion.button>
             ))}
           </motion.div>
@@ -1620,6 +1640,104 @@ const AdminDashboard: React.FC = () => {
                 ))}
               </div>
             </motion.div>
+
+          )}
+
+          {/* Hosts Tab */}
+          {activeTab === 'hosts' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                <User className="text-green-400" size={32} />
+                HOST_MANAGEMENT
+              </h2>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg"
+              >
+                <div className="mb-6 border-b border-green-500/20 pb-4">
+                  <h3 className="text-xl font-bold text-green-400 font-mono mb-2">CREATE_NEW_HOST</h3>
+                  <p className="text-green-400/50 font-mono text-sm">
+                    Hosts (Sub-Admins) can create and manage daily coding challenges but cannot access full system administration.
+                  </p>
+                </div>
+
+                <form onSubmit={handleCreateSubAdmin} className="space-y-6 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      EMAIL_ADDRESS <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={hostForm.email}
+                      onChange={(e) => setHostForm({ ...hostForm, email: e.target.value })}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      placeholder="host@jklu.edu.in"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      FULL_NAME <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={hostForm.name}
+                      onChange={(e) => setHostForm({ ...hostForm, name: e.target.value })}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      PASSWORD <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      value={hostForm.password}
+                      onChange={(e) => setHostForm({ ...hostForm, password: e.target.value })}
+                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      placeholder="Min 6 characters"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+
+                  <motion.button
+                    type="submit"
+                    disabled={loading || !hostForm.email || !hostForm.name || !hostForm.password}
+                    className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    whileHover={{ scale: loading ? 1 : 1.02 }}
+                    whileTap={{ scale: loading ? 1 : 0.98 }}
+                  >
+                    {loading ? (
+                      <>
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="w-5 h-5 border-2 border-black border-t-transparent rounded-full"
+                        />
+                        <span>CREATING...</span>
+                      </>
+                    ) : (
+                      <>
+                        <User className="h-5 w-5" />
+                        <span>CREATE_HOST</span>
+                      </>
+                    )}
+                  </motion.button>
+                </form>
+              </motion.div>
+            </motion.div>
           )}
         </div>
 
@@ -1987,100 +2105,104 @@ const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Rejection Feedback Modal for Papers */}
-      {rejectionModal.isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
-        >
+      {
+        rejectionModal.isOpen && (
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
           >
-            <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PAPER</h3>
-            <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
-              REJECTION FEEDBACK (REQUIRED)
-            </label>
-            <textarea
-              value={rejectionModal.feedback}
-              onChange={(e) => setRejectionModal({ ...rejectionModal, feedback: e.target.value })}
-              placeholder="Enter feedback for rejection (e.g., 'Incomplete information', 'File format not supported', etc.)"
-              className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
-              rows={5}
-              autoFocus
-            />
-            <div className="flex space-x-4 justify-end mt-4">
-              <motion.button
-                onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
-                className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                CANCEL
-              </motion.button>
-              <motion.button
-                onClick={submitRejection}
-                className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                SUBMIT REJECTION
-              </motion.button>
-            </div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PAPER</h3>
+              <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
+                REJECTION FEEDBACK (REQUIRED)
+              </label>
+              <textarea
+                value={rejectionModal.feedback}
+                onChange={(e) => setRejectionModal({ ...rejectionModal, feedback: e.target.value })}
+                placeholder="Enter feedback for rejection (e.g., 'Incomplete information', 'File format not supported', etc.)"
+                className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                rows={5}
+                autoFocus
+              />
+              <div className="flex space-x-4 justify-end mt-4">
+                <motion.button
+                  onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
+                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  CANCEL
+                </motion.button>
+                <motion.button
+                  onClick={submitRejection}
+                  className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  SUBMIT REJECTION
+                </motion.button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )
+      }
 
       {/* Rejection Feedback Modal for Profiles */}
-      {profileRejectionModal.isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
-        >
+      {
+        profileRejectionModal.isOpen && (
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
           >
-            <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PROFILE</h3>
-            <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
-              REJECTION FEEDBACK (REQUIRED)
-            </label>
-            <textarea
-              value={profileRejectionModal.feedback}
-              onChange={(e) => setProfileRejectionModal({ ...profileRejectionModal, feedback: e.target.value })}
-              placeholder="Enter feedback for rejection (e.g., 'ID card not clear', 'Missing information', etc.)"
-              className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
-              rows={5}
-              autoFocus
-            />
-            <div className="flex space-x-4 justify-end mt-4">
-              <motion.button
-                onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
-                className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                CANCEL
-              </motion.button>
-              <motion.button
-                onClick={submitProfileRejection}
-                className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                SUBMIT REJECTION
-              </motion.button>
-            </div>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PROFILE</h3>
+              <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
+                REJECTION FEEDBACK (REQUIRED)
+              </label>
+              <textarea
+                value={profileRejectionModal.feedback}
+                onChange={(e) => setProfileRejectionModal({ ...profileRejectionModal, feedback: e.target.value })}
+                placeholder="Enter feedback for rejection (e.g., 'ID card not clear', 'Missing information', etc.)"
+                className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                rows={5}
+                autoFocus
+              />
+              <div className="flex space-x-4 justify-end mt-4">
+                <motion.button
+                  onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
+                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  CANCEL
+                </motion.button>
+                <motion.button
+                  onClick={submitProfileRejection}
+                  className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  SUBMIT REJECTION
+                </motion.button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
+        )
+      }
 
       {/* Add CSS for glitch animation */}
       <style>{`
@@ -2092,7 +2214,7 @@ const AdminDashboard: React.FC = () => {
           80% { transform: translate(2px, -2px); }
         }
       `}</style>
-    </div>
+    </div >
   );
 };
 

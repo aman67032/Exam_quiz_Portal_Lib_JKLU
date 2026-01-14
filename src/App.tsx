@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const PublicHome = lazy(() => import('./components/PublicHome'));
 const CodingHourPage = lazy(() => import('./components/CodingHourPage'));
 const ChallengePage = lazy(() => import('./components/ChallengePage'));
+const HostDashboard = lazy(() => import('./components/HostDashboard'));
 
 // Loading fallback component with backend wake-up message
 const LoadingFallback = () => {
@@ -74,12 +75,11 @@ function AppContent() {
               path="/home"
               element={<PublicHome />}
             />
-            {/* Auth pages */}
             <Route
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Login />
                 )
@@ -89,7 +89,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Register />
                 )
@@ -99,7 +99,7 @@ function AppContent() {
               path="/admin-login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <AdminLogin />
                 )
@@ -109,7 +109,7 @@ function AppContent() {
               path="/forgot-password"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <ForgotPassword />
                 )
@@ -119,7 +119,7 @@ function AppContent() {
             <Route
               path="/dashboard"
               element={
-                user && !user.is_admin ? (
+                user && !user.is_admin && !user.is_sub_admin ? (
                   <StudentDashboard />
                 ) : (
                   <Navigate to="/home" replace />
@@ -129,8 +129,19 @@ function AppContent() {
             <Route
               path="/profile"
               element={
-                user && !user.is_admin ? (
+                user && !user.is_admin && !user.is_sub_admin ? (
                   <Profile />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
+              }
+            />
+            {/* Host Dashboard - for Sub Admins */}
+            <Route
+              path="/host-dashboard"
+              element={
+                user && (user.is_admin || user.is_sub_admin) ? (
+                  <HostDashboard />
                 ) : (
                   <Navigate to="/home" replace />
                 )
@@ -176,7 +187,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )
