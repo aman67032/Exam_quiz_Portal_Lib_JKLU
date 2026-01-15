@@ -147,6 +147,17 @@ function AppContent() {
                 )
               }
             />
+            {/* Legacy/Alias route for coding hour admin */}
+            <Route
+              path="/admin/coding-hour"
+              element={
+                user && (user.is_admin || user.is_sub_admin) ? (
+                  <HostDashboard />
+                ) : (
+                  <Navigate to="/home" replace />
+                )
+              }
+            />
             {/* Coding Hour Routes - Publicly Accessible */}
             <Route
               path="/coding-hour/:courseId"
@@ -187,7 +198,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : (user.is_sub_admin || user.admin_role === 'coding_ta') ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )

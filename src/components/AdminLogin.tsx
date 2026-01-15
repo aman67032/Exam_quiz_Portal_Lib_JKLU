@@ -41,7 +41,7 @@ const AdminLogin: React.FC = () => {
       });
       const user = userRes.data;
 
-      if (user.admin_role === 'coding_ta') {
+      if (user.is_sub_admin || user.admin_role === 'coding_ta') {
         window.location.href = '/host-dashboard';
       } else {
         window.location.href = '/admin';

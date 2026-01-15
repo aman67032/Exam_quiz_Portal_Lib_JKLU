@@ -145,14 +145,9 @@ const PublicHome: React.FC = () => {
   }, [fetchPublicPapers]);
 
   // Fetch courses from API - cache in sessionStorage to reduce API calls
+  // Fetch courses from API - cache in sessionStorage to reduce API calls
   useEffect(() => {
     const fetchCourses = async () => {
-      // Hardcoded sample data for UI testing
-      const SAMPLE_COURSES = [
-        { id: 101, code: 'CH001', name: 'Coding Hour - Python', description: 'Master Python with daily challenges ranging from basic syntax to advanced algorithms.' },
-        { id: 102, code: 'CH002', name: 'Coding Hour - DAA', description: 'Deep dive into Design and Analysis of Algorithms. Optimize your logic.' },
-      ];
-
       try {
         // Check sessionStorage cache first (5 minute TTL)
         const cached = sessionStorage.getItem('courses_cache');
@@ -160,27 +155,22 @@ const PublicHome: React.FC = () => {
         if (cached && cacheTime) {
           const age = Date.now() - parseInt(cacheTime);
           if (age < 5 * 60 * 1000) { // 5 minutes
-            const cachedCourses = JSON.parse(cached);
-            // Ensure sample courses are present even in cache
-            const hasSample = cachedCourses.some((c: any) => c.code === 'CH001');
-            setCourses(hasSample ? cachedCourses : [...cachedCourses, ...SAMPLE_COURSES]);
+            setCourses(JSON.parse(cached));
             return;
           }
         }
 
         const response = await API.getCourses();
         const coursesData = Array.isArray(response.data) ? response.data : [];
-        // Merge real data with sample data
-        const mergedCourses = [...coursesData, ...SAMPLE_COURSES];
 
-        setCourses(mergedCourses);
+        setCourses(coursesData);
         // Cache in sessionStorage
-        sessionStorage.setItem('courses_cache', JSON.stringify(mergedCourses));
+        sessionStorage.setItem('courses_cache', JSON.stringify(coursesData));
         sessionStorage.setItem('courses_cache_time', Date.now().toString());
       } catch (error) {
         console.error('Error fetching courses:', error);
-        // Fallback to sample data on error
-        setCourses(SAMPLE_COURSES);
+        // Fallback to empty array on error
+        setCourses([]);
       }
     };
     fetchCourses();

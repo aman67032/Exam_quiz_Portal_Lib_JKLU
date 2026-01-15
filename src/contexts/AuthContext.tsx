@@ -12,13 +12,14 @@ interface User {
   name: string;
   is_admin: boolean;
   admin_role?: string;
+  is_sub_admin: boolean;
   id_verified?: boolean;
   photo_path?: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User>;
   register: (email: string, name: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
@@ -119,6 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         localStorage.removeItem('profile.photo');
       }
+      return userResponse.data;
     } catch (error: any) {
       const message = error.response?.data?.detail || 'Login failed';
       throw new Error(message);
