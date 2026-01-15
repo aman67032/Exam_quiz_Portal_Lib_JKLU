@@ -43,7 +43,7 @@ const HostDashboard: React.FC = () => {
 
     useEffect(() => {
         // Redirect if not a host (admin or sub_admin)
-        if (!user?.is_admin && !user?.is_sub_admin) {
+        if (!user?.is_admin && user?.admin_role !== 'coding_ta') {
             navigate('/');
             return;
         }

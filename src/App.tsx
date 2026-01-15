@@ -187,7 +187,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )

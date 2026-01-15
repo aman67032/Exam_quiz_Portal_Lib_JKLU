@@ -11,7 +11,7 @@ interface User {
   email: string;
   name: string;
   is_admin: boolean;
-  is_sub_admin?: boolean;
+  admin_role?: string;
   id_verified?: boolean;
   photo_path?: string;
 }
@@ -22,7 +22,7 @@ interface AuthContextType {
   register: (email: string, name: string, password: string, confirmPassword: string) => Promise<void>;
   logout: () => void;
   loading: boolean;
-  token: string | null; 
+  token: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);

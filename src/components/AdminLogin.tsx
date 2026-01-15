@@ -34,9 +34,18 @@ const AdminLogin: React.FC = () => {
 
       const token = response.data.access_token;
       localStorage.setItem('token', token);
-      
-      // Trigger page reload to update auth context
-      window.location.href = '/admin';
+
+      // Fetch user profile to determine role
+      const userRes = await axios.get(`${API_BASE_URL}/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const user = userRes.data;
+
+      if (user.admin_role === 'coding_ta') {
+        window.location.href = '/host-dashboard';
+      } else {
+        window.location.href = '/admin';
+      }
     } catch (err: any) {
       if (err.response?.status === 403) {
         setError('Access denied. This login is for administrators only.');
