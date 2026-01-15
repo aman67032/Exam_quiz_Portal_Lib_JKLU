@@ -32,7 +32,9 @@ const Login: React.FC = () => {
       const user = await login(email, password);
       if (user.is_admin) {
         navigate('/admin');
-      } else if (user.is_sub_admin || user.admin_role === 'coding_ta') {
+      } else if (user.admin_role === 'coding_ta') {
+        navigate('/admin/coding-hour');
+      } else if (user.is_sub_admin) {
         navigate('/host-dashboard');
       } else {
         navigate('/home');

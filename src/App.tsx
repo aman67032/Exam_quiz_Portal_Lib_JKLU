@@ -79,7 +79,7 @@ function AppContent() {
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Login />
                 )
@@ -89,7 +89,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Register />
                 )
@@ -99,7 +99,7 @@ function AppContent() {
               path="/admin-login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <AdminLogin />
                 )
@@ -109,7 +109,7 @@ function AppContent() {
               path="/forgot-password"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <ForgotPassword />
                 )
@@ -198,7 +198,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : (user.is_sub_admin || user.admin_role === 'coding_ta') ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )
