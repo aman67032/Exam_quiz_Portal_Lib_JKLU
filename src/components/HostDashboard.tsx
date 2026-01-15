@@ -5,8 +5,8 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, X, FileText, Loader2, Code, Calendar,
-    Terminal, Clock, Trash2, Edit2, CheckCircle,
-    AlertCircle, LogOut
+    Terminal, Trash2, Edit2, CheckCircle,
+    LogOut
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
 
