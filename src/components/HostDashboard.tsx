@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    Plus, X, FileText, Loader2, Code, Calendar,
-    Terminal, Trash2, Edit2, CheckCircle,
+Plus, X, Loader2, Code, Calendar,
+    Terminal, Trash2,
     LogOut, ChevronDown, ChevronUp
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
@@ -68,7 +67,7 @@ const HostDashboard: React.FC = () => {
         media_link: ''
     }]);
 
-    const [uploadingFile, setUploadingFile] = useState(false);
+
 
     // Matrix Rain Effect
     useEffect(() => {
@@ -632,8 +631,8 @@ const HostDashboard: React.FC = () => {
                                                                     <label
                                                                         key={lang}
                                                                         className={`px-4 py-2 rounded-lg border cursor-pointer transition-all ${question.code_snippets[lang]
-                                                                                ? 'bg-green-600/30 border-green-500 text-green-300'
-                                                                                : 'bg-gray-800/50 border-gray-600 text-gray-400 hover:border-gray-500'
+                                                                            ? 'bg-green-600/30 border-green-500 text-green-300'
+                                                                            : 'bg-gray-800/50 border-gray-600 text-gray-400 hover:border-gray-500'
                                                                             }`}
                                                                     >
                                                                         <input
