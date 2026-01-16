@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Code, Calendar, Sparkles, Clock } from 'lucide-react';
+import { ArrowLeft, Code, Calendar, Sparkles, Clock, HelpCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import logoImg from '../assets/logo (2).png';
 import JKLULogo from './JKLULogo';
 
-interface DailyChallenge {
+interface Question {
+    id: number;
+    title: string;
+}
+
+interface DailyContest {
     id: number;
     course_id: number;
     date: string;
-    question: string;
-    code_snippet: string;
-    explanation: string;
-    media_link: string | null;
+    title: string | null;
+    description: string | null;
     created_at: string;
+    questions: Question[];
 }
 
 interface Course {
@@ -29,10 +33,9 @@ const CodingHourPage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
     const navigate = useNavigate();
     const { token, user } = useAuth();
-    // Theme context might be different or unused in this component, but keeping imports consistent
     useTheme();
 
-    const [challenges, setChallenges] = useState<DailyChallenge[]>([]);
+    const [contests, setContests] = useState<DailyContest[]>([]);
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
     const [error] = useState<string | null>(null);
@@ -41,7 +44,6 @@ const CodingHourPage: React.FC = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                // Auth header optional for these read-only public endpoints
                 const headers: HeadersInit = {};
                 if (token) {
                     headers.Authorization = `Bearer ${token}`;
@@ -56,23 +58,28 @@ const CodingHourPage: React.FC = () => {
                     setCourse(courseData);
                 } catch (e) {
                     console.error('Failed to fetch course:', e);
-                    // No fallback to sample data
                 }
 
-                // Fetch challenges
+                // Fetch contests (New Endpoint)
                 try {
-                    const challengesRes = await fetch(`${apiUrl}/challenges/course/${courseId}`, { headers });
-                    if (!challengesRes.ok) throw new Error('Failed to fetch challenges');
-                    const challengesData = await challengesRes.json();
-                    setChallenges(challengesData);
+                    // Start checking for new contests first
+                    const contestsRes = await fetch(`${apiUrl}/contests/course/${courseId}`, { headers });
+                    if (contestsRes.ok) {
+                        const contestsData = await contestsRes.json();
+                        setContests(contestsData);
+                    } else {
+                        // Fallback to legacy challenges if needed, or just show empty
+                        // But for now, we want to migrate fully to contests.
+                        console.warn('Failed to fetch contests');
+                        setContests([]);
+                    }
                 } catch (e) {
-                    console.error('Failed to fetch challenges:', e);
-                    setChallenges([]);
+                    console.error('Failed to fetch contests:', e);
+                    setContests([]);
                 }
             } catch (err) {
                 console.error(err);
-                // Ensure no sample data fallback
-                setChallenges([]);
+                setContests([]);
             } finally {
                 setLoading(false);
             }
@@ -108,7 +115,7 @@ const CodingHourPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-sans">
-            {/* Navbar - Reusing style from PublicHome */}
+            {/* Navbar */}
             <motion.header
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -188,14 +195,13 @@ const CodingHourPage: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Stats or Action Card - Decorative for visual balance */}
                         <div className="hidden lg:block p-6 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 dark:border-gray-700/30 shadow-xl">
                             <div className="flex items-center gap-4 mb-2">
                                 <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl">
                                     <Code className="w-6 h-6 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{challenges.length}</div>
+                                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{contests.length}</div>
                                     <div className="text-xs text-gray-500 dark:text-gray-400">Total Challenges</div>
                                 </div>
                             </div>
@@ -213,13 +219,13 @@ const CodingHourPage: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {challenges.map((challenge, index) => (
+                    {contests.map((contest, index) => (
                         <motion.div
-                            key={challenge.id}
+                            key={contest.id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05 }}
-                            onClick={() => navigate(`/coding-hour/${courseId}/challenge/${challenge.id}`)}
+                            onClick={() => navigate(`/coding-hour/${courseId}/challenge/${contest.id}`)}
                             className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700/50 hover:shadow-2xl hover:border-purple-500/30 transition-all duration-300 cursor-pointer overflow-hidden z-0"
                         >
                             {/* Hover Gradient Background */}
@@ -234,18 +240,32 @@ const CodingHourPage: React.FC = () => {
                                 </span>
                             </div>
 
-                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                {challenge.date}
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-1">
+                                {contest.title || contest.date}
                             </h3>
 
-                            <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 mb-6 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-                                {challenge.question.split('\n')[0] || "Click to view challenge details..."}
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 font-mono">
+                                {contest.date}
                             </p>
+
+                            <div className="space-y-1 mb-6">
+                                {contest.questions.slice(0, 2).map((q, i) => (
+                                    <div key={i} className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-300">
+                                        <HelpCircle className="w-3 h-3 text-purple-500/70" />
+                                        <span className="truncate">{q.title}</span>
+                                    </div>
+                                ))}
+                                {contest.questions.length > 2 && (
+                                    <p className="text-xs text-purple-500 font-medium pl-5">
+                                        +{contest.questions.length - 2} more...
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="flex items-center justify-between pt-4 border-t border-gray-50 dark:border-gray-700 group-hover:border-purple-100 dark:group-hover:border-purple-900/30 transition-colors">
                                 <div className="flex items-center gap-2 text-xs font-medium text-gray-400 group-hover:text-purple-500 dark:group-hover:text-purple-400 transition-colors">
                                     <Clock className="w-3.5 h-3.5" />
-                                    <span>View Solution</span>
+                                    <span>{contest.questions.length} Questions</span>
                                 </div>
                                 <div className="w-8 h-8 rounded-full bg-gray-50 dark:bg-gray-700 flex items-center justify-center text-gray-400 group-hover:bg-purple-600 group-hover:text-white transition-all transform group-hover:translate-x-1">
                                     <ArrowLeft className="w-4 h-4 rotate-180" />
@@ -255,7 +275,7 @@ const CodingHourPage: React.FC = () => {
                     ))}
                 </div>
 
-                {challenges.length === 0 && (
+                {contests.length === 0 && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -265,8 +285,8 @@ const CodingHourPage: React.FC = () => {
                             <div className="absolute inset-0 bg-purple-500/20 rounded-full animate-ping opacity-20" />
                             <Calendar className="w-10 h-10 text-gray-300 dark:text-gray-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">No challenges yet</h3>
-                        <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">Check back later for new coding challenges. We add new problems every week!</p>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">No Contests Available</h3>
+                        <p className="text-gray-500 dark:text-gray-400 mt-2 max-w-md mx-auto">Check back later for new coding contests. We add new problems every week!</p>
                     </motion.div>
                 )}
             </div>
@@ -275,3 +295,4 @@ const CodingHourPage: React.FC = () => {
 };
 
 export default CodingHourPage;
+
