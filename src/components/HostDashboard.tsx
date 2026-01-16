@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-Plus, X, Loader2, Code, Calendar,
+import {
+    Plus, X, Loader2, Code, Calendar,
     Terminal, Trash2,
     LogOut, ChevronDown, ChevronUp
 } from 'lucide-react';
