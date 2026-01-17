@@ -818,7 +818,7 @@ const PublicHome: React.FC = () => {
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-white text-lg">New: Coding Hour Solutions Available!</h3>
                 <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-                  Access daily coding challenges and their detailed solutions. Open to everyone!
+                  Access weekly coding challenges and their detailed solutions. Open to everyone!
                 </p>
               </div>
             </motion.div>
@@ -850,7 +850,7 @@ const PublicHome: React.FC = () => {
                             <Code className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                           </div>
                           <span className="px-2 py-1 bg-gradient-to-r from-amber-200 to-yellow-400 text-amber-900 text-[10px] font-bold uppercase tracking-wider rounded-full shadow-sm">
-                            Daily
+                            Weekly
                           </span>
                         </div>
 

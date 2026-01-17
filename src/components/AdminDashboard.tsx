@@ -1664,7 +1664,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="mb-6 border-b border-green-500/20 pb-4">
                   <h3 className="text-xl font-bold text-green-400 font-mono mb-2">CREATE_NEW_HOST</h3>
                   <p className="text-green-400/50 font-mono text-sm">
-                    Hosts (Sub-Admins) can create and manage daily coding challenges but cannot access full system administration.
+                    Hosts (Sub-Admins) can create and manage weekly coding challenges but cannot access full system administration.
                   </p>
                 </div>
 

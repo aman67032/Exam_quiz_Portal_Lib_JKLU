@@ -398,7 +398,7 @@ const StudentDashboard: React.FC = () => {
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white text-lg">New: Coding Hour Solutions Available!</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-                Access daily coding challenges and their detailed solutions directly from your dashboard. Sharpen your skills with Python and DAA problems.
+                Access weekly coding challenges and their detailed solutions directly from your dashboard. Sharpen your skills with Python and DAA problems.
               </p>
             </div>
           </motion.div>
@@ -427,7 +427,7 @@ const StudentDashboard: React.FC = () => {
                       </span>
                     </h2>
                     <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-                      Practice daily coding challenges to improve your skills.
+                      Practice weekly coding challenges to improve your skills.
                     </p>
                     <div className="space-y-3">
                       {courses.filter(c => c.name.startsWith('Coding Hour')).length > 0 ? (

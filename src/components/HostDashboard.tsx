@@ -285,12 +285,29 @@ const HostDashboard: React.FC = () => {
             // AND ensure 'c' is present for Coding Hour C if we want to be strict,
             // or just ensure 'c' is generally present as requested.
             // User requested: "make 'c' as mandatory instead of python"
+            // Conditional validation for Language Enforcement
+            const selectedCourseId = parseInt(contestForm.course_id);
+            const selectedCourse = courses.find(c => c.id === selectedCourseId);
+
+            // User requested: "make C compulsory for the 'Coding Hour - C' course only"
+            const isCodingHourC = selectedCourse?.name === 'Coding Hour - C' || selectedCourse?.code === 'CODING_C';
+
             for (let i = 0; i < questions.length; i++) {
                 const q = questions[i];
-                if (!q.code_snippets['c'] || q.code_snippets['c'].trim() === '') {
-                    alert(`Question ${i + 1} must have C code snippet (Mandatory).`);
-                    setLoading(false);
-                    return;
+                if (isCodingHourC) {
+                    if (!q.code_snippets['c'] || q.code_snippets['c'].trim() === '') {
+                        alert(`Question ${i + 1} must have C code snippet (Mandatory for Coding Hour - C).`);
+                        setLoading(false);
+                        return;
+                    }
+                } else {
+                    // For other courses, enforce at least one language is present?
+                    // Or "dont make python compulsory" implies no strict check, or just check if *any* snippet exists.
+                    if (Object.keys(q.code_snippets).length === 0 || Object.values(q.code_snippets).every(val => !val || val.trim() === '')) {
+                        alert(`Question ${i + 1} must have at least one code snippet.`);
+                        setLoading(false);
+                        return;
+                    }
                 }
             }
 
@@ -458,7 +475,7 @@ const HostDashboard: React.FC = () => {
                             <Terminal className="text-green-500" />
                             Active Contests
                         </h2>
-                        <p className="text-gray-400">Manage daily coding problems for students.</p>
+                        <p className="text-gray-400">Manage weekly coding problems for students.</p>
                     </div>
                     <div className="flex-1 flex justify-end gap-3 self-end md:self-auto">
                         <button
