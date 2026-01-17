@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Code, Calendar, Sparkles, Clock, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Code, Calendar, Sparkles, Clock, HelpCircle, Megaphone, FileText, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import logoImg from '../assets/logo (2).png';
@@ -29,6 +29,15 @@ interface Course {
     description: string;
 }
 
+interface Announcement {
+    id: number;
+    course_id?: number | null;
+    title: string;
+    content: string;
+    attachment_url?: string;
+    created_at: string;
+}
+
 const CodingHourPage: React.FC = () => {
     const { courseId } = useParams<{ courseId: string }>();
     const navigate = useNavigate();
@@ -36,6 +45,7 @@ const CodingHourPage: React.FC = () => {
     useTheme();
 
     const [contests, setContests] = useState<DailyContest[]>([]);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
     const [error] = useState<string | null>(null);
@@ -76,6 +86,17 @@ const CodingHourPage: React.FC = () => {
                 } catch (e) {
                     console.error('Failed to fetch contests:', e);
                     setContests([]);
+                }
+
+                // Fetch Announcements
+                try {
+                    const annRes = await fetch(`${apiUrl}/coding-announcements?course_id=${courseId}`, { headers });
+                    if (annRes.ok) {
+                        const annData = await annRes.json();
+                        setAnnouncements(annData);
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch announcements:', e);
                 }
             } catch (err) {
                 console.error(err);
@@ -131,7 +152,7 @@ const CodingHourPage: React.FC = () => {
                                 <img src={logoImg} alt="Paper Portal Logo" className="h-10 w-auto object-contain" />
                                 <div className="hidden md:block">
                                     <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">Paper Portal</h1>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Coding Hour</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Weekly Coding Hour</p>
                                 </div>
                             </Link>
                         </div>
@@ -212,9 +233,51 @@ const CodingHourPage: React.FC = () => {
 
             {/* Challenges Grid */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+                {/* Announcements Section */}
+                {announcements.length > 0 && (
+                    <div className="mb-12">
+                        <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400 mb-6 flex items-center gap-2">
+                            <Megaphone className="text-blue-400" />
+                            Announcements
+                        </h2>
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {announcements.map((ann, idx) => (
+                                <motion.div
+                                    key={ann.id}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className="bg-gray-800/50 backdrop-blur-sm border border-blue-500/20 rounded-xl p-6 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                                >
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-mono border border-blue-500/20">
+                                            {new Date(ann.created_at).toLocaleDateString()}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-white mb-2">{ann.title}</h3>
+                                    <p className="text-gray-400 text-sm mb-4 line-clamp-4">{ann.content}</p>
+
+                                    {ann.attachment_url && (
+                                        <a
+                                            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/uploads/${ann.attachment_url}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors bg-blue-900/20 px-3 py-2 rounded-lg w-fit border border-blue-500/20 hover:bg-blue-900/30"
+                                        >
+                                            <FileText size={14} />
+                                            <span>View Attachment</span>
+                                            <Download size={14} className="ml-1" />
+                                        </a>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex items-center gap-3 mb-8">
                     <Calendar className="w-5 h-5 text-gray-400" />
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Daily Challenges</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Weekly Challenges</h2>
                     <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
                 </div>
 

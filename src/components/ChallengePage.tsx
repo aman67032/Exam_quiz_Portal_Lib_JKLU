@@ -38,7 +38,7 @@ const ChallengePage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [activeSection, setActiveSection] = useState<string>('question');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [selectedLanguage, setSelectedLanguage] = useState<string>('python');
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('c');
 
     useEffect(() => {
         const fetchContest = async () => {

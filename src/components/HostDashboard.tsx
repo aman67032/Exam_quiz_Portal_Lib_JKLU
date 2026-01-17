@@ -5,8 +5,9 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, X, Loader2, Code, Calendar,
-    Terminal, Trash2,
-    LogOut, ChevronDown, ChevronUp
+    Terminal, Trash2, Edit,
+    LogOut, ChevronDown, ChevronUp,
+    Megaphone, FileText, Upload
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
 
@@ -37,7 +38,16 @@ interface Contest {
     questions: Question[];
 }
 
-const SUPPORTED_LANGUAGES = ['python', 'c', 'cpp', 'java', 'javascript'];
+interface Announcement {
+    id: number;
+    course_id?: number | null;
+    title: string;
+    content: string;
+    attachment_url?: string;
+    created_at: string;
+}
+
+const SUPPORTED_LANGUAGES = ['c', 'python', 'cpp', 'java', 'javascript'];
 
 const HostDashboard: React.FC = () => {
     const { user, token, logout } = useAuth();
@@ -47,6 +57,15 @@ const HostDashboard: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [expandedQuestion, setExpandedQuestion] = useState<number | null>(0);
+    const [editingContestId, setEditingContestId] = useState<number | null>(null);
+    const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [announcementForm, setAnnouncementForm] = useState({
+        title: '',
+        content: '',
+        course_id: '',
+        file: null as File | null
+    });
 
     // Matrix Rain Ref
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -143,6 +162,7 @@ const HostDashboard: React.FC = () => {
             // If user is a Coding TA, only show specific Coding Hour courses
             if (user?.admin_role === 'coding_ta' || user?.is_sub_admin) {
                 coursesData = coursesData.filter((c: Course) =>
+                    c.code === 'CODING_C' ||
                     c.code === 'CODING_PYTHON' ||
                     c.code === 'CODING_DAA' ||
                     c.name.toLowerCase().includes('coding hour')
@@ -166,6 +186,17 @@ const HostDashboard: React.FC = () => {
             console.error('Failed to fetch contests:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAnnouncements = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/coding-announcements`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setAnnouncements(res.data);
+        } catch (error) {
+            console.error('Failed to fetch announcements:', error);
         }
     };
 
@@ -227,17 +258,37 @@ const HostDashboard: React.FC = () => {
         setQuestions(newQuestions);
     };
 
+    const handleEdit = (contest: Contest) => {
+        setEditingContestId(contest.id);
+        setContestForm({
+            course_id: contest.course_id.toString(),
+            date: contest.date,
+            title: contest.title || '',
+            description: contest.description || ''
+        });
+
+        // Deep copy questions to avoid reference issues
+        setQuestions(contest.questions.map(q => ({
+            ...q,
+            code_snippets: { ...q.code_snippets } // Ensure deep copy of nested object
+        })));
+
+        setShowCreateModal(true);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
 
         try {
             // Validate that all questions have at least one language with code
+            // AND ensure 'c' is present for Coding Hour C if we want to be strict,
+            // or just ensure 'c' is generally present as requested.
+            // User requested: "make 'c' as mandatory instead of python"
             for (let i = 0; i < questions.length; i++) {
                 const q = questions[i];
-                const hasCode = Object.values(q.code_snippets).some(code => code.trim() !== '');
-                if (!hasCode) {
-                    alert(`Question ${i + 1} must have code in at least one language`);
+                if (!q.code_snippets['c'] || q.code_snippets['c'].trim() === '') {
+                    alert(`Question ${i + 1} must have C code snippet (Mandatory).`);
                     setLoading(false);
                     return;
                 }
@@ -251,18 +302,73 @@ const HostDashboard: React.FC = () => {
                 questions: questions
             };
 
-            await axios.post(`${API_BASE_URL}/contests`, contestData, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            if (editingContestId) {
+                await axios.put(`${API_BASE_URL}/contests/${editingContestId}`, contestData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                alert('Contest updated successfully!');
+            } else {
+                await axios.post(`${API_BASE_URL}/contests`, contestData, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                alert('Contest created successfully!');
+            }
 
-            alert('Contest created successfully!');
             setShowCreateModal(false);
             resetForm();
             fetchContests();
         } catch (error: any) {
-            alert(error.response?.data?.detail || 'Failed to create contest');
+            console.error('Submit error:', error);
+            alert(error.response?.data?.detail || 'Failed to save contest');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAnnouncementSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        try {
+            const formData = new FormData();
+            formData.append('title', announcementForm.title);
+            formData.append('content', announcementForm.content);
+            if (announcementForm.course_id) {
+                formData.append('course_id', announcementForm.course_id);
+            }
+            if (announcementForm.file) {
+                formData.append('file', announcementForm.file);
+            }
+
+            await axios.post(`${API_BASE_URL}/admin/coding-announcements`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            alert('Announcement posted successfully!');
+            setShowAnnouncementModal(false);
+            setAnnouncementForm({ title: '', content: '', course_id: '', file: null });
+            fetchAnnouncements();
+        } catch (error: any) {
+            console.error('Announcement submit error:', error);
+            alert(error.response?.data?.detail || 'Failed to post announcement');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteAnnouncement = async (id: number) => {
+        if (!window.confirm('Are you sure you want to delete this announcement?')) return;
+        try {
+            await axios.delete(`${API_BASE_URL}/admin/coding-announcements/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            fetchAnnouncements();
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Failed to delete announcement');
         }
     };
 
@@ -282,6 +388,7 @@ const HostDashboard: React.FC = () => {
             media_link: ''
         }]);
         setExpandedQuestion(0);
+        setEditingContestId(null);
     };
 
     const handleDelete = async (id: number) => {
@@ -353,379 +460,533 @@ const HostDashboard: React.FC = () => {
                         </h2>
                         <p className="text-gray-400">Manage daily coding problems for students.</p>
                     </div>
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg shadow-green-900/30 transition-all font-medium border border-green-400/30"
-                    >
-                        <Plus size={20} />
-                        Deploy New Contest
-                    </motion.button>
+                    <div className="flex-1 flex justify-end gap-3 self-end md:self-auto">
+                        <button
+                            onClick={() => setShowAnnouncementModal(true)}
+                            className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition-all flex items-center gap-2"
+                        >
+                            <Megaphone size={18} />
+                            Announce
+                        </button>
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg shadow-green-900/40 transition-all flex items-center gap-2"
+                        >
+                            <Plus size={18} />
+                            New Contest
+                        </button>
+                    </div>
+
+                    {loading && !showCreateModal ? (
+                        <div className="flex flex-col items-center justify-center h-64 gap-4">
+                            <Loader2 className="animate-spin text-green-500" size={48} />
+                            <p className="text-green-400 font-mono text-sm animate-pulse">Wait... Accessing Database...</p>
+                        </div>
+                    ) : (
+                        <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                            {contests.map((contest, index) => (
+                                <motion.div
+                                    key={contest.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                    className="group bg-gray-900/60 backdrop-blur-sm border border-green-500/20 rounded-xl p-6 hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] transition-all duration-300"
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <Calendar className="w-4 h-4 text-green-500" />
+                                            <span className="font-mono text-green-400 font-bold">{contest.date}</span>
+                                        </div>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleEdit(contest)}
+                                                className="p-1.5 text-gray-400 hover:text-green-400 transition-colors"
+                                                title="Edit"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(contest.id)}
+                                                className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                                                title="Delete"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-white mb-2 line-clamp-1" title={contest.title || contest.date}>
+                                        {contest.title || contest.date}
+                                    </h3>
+
+                                    <div className="mb-4">
+                                        <div className="text-sm text-gray-400 mb-2">
+                                            {contest.questions.length} Question{contest.questions.length !== 1 ? 's' : ''}
+                                        </div>
+                                        {contest.questions.slice(0, 2).map((q, i) => (
+                                            <div key={i} className="text-xs text-gray-500 mb-1 flex items-center gap-2">
+                                                <Code className="w-3 h-3" />
+                                                <span className="line-clamp-1">{q.title}</span>
+                                            </div>
+                                        ))}
+                                        {contest.questions.length > 2 && (
+                                            <div className="text-xs text-gray-600">
+                                                +{contest.questions.length - 2} more...
+                                            </div>
+                                        )}
+                                    </div>
+
+
+
+                                    <div className="flex justify-between items-center text-xs text-gray-500 border-t border-white/5 pt-4">
+                                        <span className="flex items-center gap-1.5">
+                                            <Code className="w-3 h-3" />
+                                            ID: {contest.id}
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {loading && !showCreateModal ? (
-                    <div className="flex flex-col items-center justify-center h-64 gap-4">
-                        <Loader2 className="animate-spin text-green-500" size={48} />
-                        <p className="text-green-400 font-mono text-sm animate-pulse">Wait... Accessing Database...</p>
-                    </div>
-                ) : (
-                    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-                        {contests.map((contest, index) => (
-                            <motion.div
-                                key={contest.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.05 }}
-                                className="group bg-gray-900/60 backdrop-blur-sm border border-green-500/20 rounded-xl p-6 hover:border-green-500/50 hover:shadow-[0_0_20px_rgba(34,197,94,0.1)] transition-all duration-300"
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-green-500" />
-                                        <span className="font-mono text-green-400 font-bold">{contest.date}</span>
-                                    </div>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Announcements Section (Optional view for admins) */}
+                {announcements.length > 0 && (
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+                        <h3 className="text-xl font-bold text-white flex items-center gap-2 mb-6">
+                            <Megaphone className="text-blue-500" />
+                            Active Announcements
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {announcements.map((ann) => (
+                                <div key={ann.id} className="bg-gray-800/50 border border-blue-500/20 rounded-xl p-6 hover:bg-gray-800 transition-all">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <h4 className="text-lg font-bold text-white">{ann.title}</h4>
                                         <button
-                                            onClick={() => handleDelete(contest.id)}
-                                            className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
-                                            title="Delete"
+                                            onClick={() => handleDeleteAnnouncement(ann.id)}
+                                            className="text-gray-400 hover:text-red-400"
                                         >
                                             <Trash2 size={16} />
                                         </button>
                                     </div>
-                                </div>
-
-                                <h3 className="text-lg font-bold text-white mb-2 line-clamp-1" title={contest.title || contest.date}>
-                                    {contest.title || contest.date}
-                                </h3>
-
-                                <div className="mb-4">
-                                    <div className="text-sm text-gray-400 mb-2">
-                                        {contest.questions.length} Question{contest.questions.length !== 1 ? 's' : ''}
-                                    </div>
-                                    {contest.questions.slice(0, 2).map((q, i) => (
-                                        <div key={i} className="text-xs text-gray-500 mb-1 flex items-center gap-2">
-                                            <Code className="w-3 h-3" />
-                                            <span className="line-clamp-1">{q.title}</span>
-                                        </div>
-                                    ))}
-                                    {contest.questions.length > 2 && (
-                                        <div className="text-xs text-gray-600">
-                                            +{contest.questions.length - 2} more...
+                                    <p className="text-gray-400 text-sm mb-4 line-clamp-3">{ann.content}</p>
+                                    {ann.attachment_url && (
+                                        <div className="flex items-center gap-2 text-xs text-blue-400 bg-blue-900/20 px-3 py-1.5 rounded-lg w-fit">
+                                            <FileText size={14} />
+                                            Attachment
                                         </div>
                                     )}
                                 </div>
-
-                                <div className="flex justify-between items-center text-xs text-gray-500 border-t border-white/5 pt-4">
-                                    <span className="flex items-center gap-1.5">
-                                        <Code className="w-3 h-3" />
-                                        ID: {contest.id}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 )}
-            </div>
 
-            {/* Create Modal */}
-            <AnimatePresence>
-                {showCreateModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
-                    >
+                {/* Create Modal */}
+                <AnimatePresence>
+                    {showCreateModal && (
                         <motion.div
-                            initial={{ scale: 0.95, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.95, y: 20 }}
-                            className="bg-gray-900 border border-green-500/30 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(34,197,94,0.1)] scrollbar-thin scrollbar-thumb-gray-700 my-8"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
                         >
-                            <div className="sticky top-0 bg-gray-900/95 backdrop-blur border-b border-green-500/20 p-6 flex justify-between items-center z-10">
-                                <h2 className="text-2xl font-bold text-white flex items-center gap-3">
-                                    <Terminal className="text-green-500" />
-                                    Initialize Contest
-                                </h2>
-                                <button
-                                    onClick={() => {
-                                        setShowCreateModal(false);
-                                        resetForm();
-                                    }}
-                                    className="text-gray-400 hover:text-white transition-colors"
-                                >
-                                    <X size={24} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                                {/* Contest Metadata */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {/* Course Selection */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
-                                            TARGET_COURSE
-                                        </label>
-                                        <select
-                                            value={contestForm.course_id}
-                                            onChange={(e) => setContestForm({ ...contestForm, course_id: e.target.value })}
-                                            className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
-                                            required
-                                        >
-                                            <option value="">SELECT COURSE...</option>
-                                            {courses.map((course) => (
-                                                <option key={course.id} value={course.id}>
-                                                    [{course.code}] {course.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Date */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
-                                            EXECUTION_DATE
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={contestForm.date}
-                                            onChange={(e) => setContestForm({ ...contestForm, date: e.target.value })}
-                                            className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
-                                            placeholder="Week 1 - Day 1"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Title */}
-                                <div>
-                                    <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
-                                        CONTEST_TITLE (Optional)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={contestForm.title}
-                                        onChange={(e) => setContestForm({ ...contestForm, title: e.target.value })}
-                                        className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
-                                        placeholder="Introduction to Algorithms"
-                                    />
-                                </div>
-
-                                {/* Description */}
-                                <div>
-                                    <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
-                                        DESCRIPTION (Optional)
-                                    </label>
-                                    <textarea
-                                        value={contestForm.description}
-                                        onChange={(e) => setContestForm({ ...contestForm, description: e.target.value })}
-                                        className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 min-h-[80px]"
-                                        placeholder="Brief description of the contest..."
-                                    />
-                                </div>
-
-                                {/* Questions Section */}
-                                <div className="border-t border-green-500/20 pt-6">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                                            <Code className="text-green-500" />
-                                            Questions ({questions.length})
-                                        </h3>
-                                        <button
-                                            type="button"
-                                            onClick={addQuestion}
-                                            className="flex items-center gap-2 px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg border border-green-500/30 transition-all"
-                                        >
-                                            <Plus size={16} />
-                                            Add Question
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        {questions.map((question, qIndex) => (
-                                            <div
-                                                key={qIndex}
-                                                className="border border-green-500/20 rounded-lg overflow-hidden bg-black/20"
-                                            >
-                                                {/* Question Header */}
-                                                <div
-                                                    className="flex justify-between items-center p-4 bg-green-900/10 cursor-pointer hover:bg-green-900/20 transition-colors"
-                                                    onClick={() => setExpandedQuestion(expandedQuestion === qIndex ? null : qIndex)}
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-green-400 font-mono font-bold">Q{qIndex + 1}</span>
-                                                        <span className="text-white font-medium">
-                                                            {question.title || 'Untitled Question'}
-                                                        </span>
-                                                        <div className="flex gap-1">
-                                                            {Object.keys(question.code_snippets).map(lang => (
-                                                                <span
-                                                                    key={lang}
-                                                                    className="px-2 py-0.5 bg-green-600/20 text-green-400 text-xs rounded border border-green-500/30"
-                                                                >
-                                                                    {lang.toUpperCase()}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        {questions.length > 1 && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    removeQuestion(qIndex);
-                                                                }}
-                                                                className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
-                                                            >
-                                                                <Trash2 size={16} />
-                                                            </button>
-                                                        )}
-                                                        {expandedQuestion === qIndex ? (
-                                                            <ChevronUp className="text-green-400" size={20} />
-                                                        ) : (
-                                                            <ChevronDown className="text-green-400" size={20} />
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Question Details */}
-                                                {expandedQuestion === qIndex && (
-                                                    <div className="p-4 space-y-4">
-                                                        {/* Title */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                Question Title
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={question.title}
-                                                                onChange={(e) => updateQuestion(qIndex, 'title', e.target.value)}
-                                                                className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500"
-                                                                placeholder="e.g., Binary Search Implementation"
-                                                                required
-                                                            />
-                                                        </div>
-
-                                                        {/* Problem Statement */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                Problem Statement
-                                                            </label>
-                                                            <textarea
-                                                                value={question.question}
-                                                                onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
-                                                                className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 min-h-[100px]"
-                                                                placeholder="Describe the problem..."
-                                                                required
-                                                            />
-                                                        </div>
-
-                                                        {/* Language Selection */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                Programming Languages
-                                                            </label>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                {SUPPORTED_LANGUAGES.map(lang => (
-                                                                    <label
-                                                                        key={lang}
-                                                                        className={`px-4 py-2 rounded-lg border cursor-pointer transition-all ${question.code_snippets[lang]
-                                                                            ? 'bg-green-600/30 border-green-500 text-green-300'
-                                                                            : 'bg-gray-800/50 border-gray-600 text-gray-400 hover:border-gray-500'
-                                                                            }`}
-                                                                    >
-                                                                        <input
-                                                                            type="checkbox"
-                                                                            checked={!!question.code_snippets[lang]}
-                                                                            onChange={() => toggleLanguage(qIndex, lang)}
-                                                                            className="sr-only"
-                                                                        />
-                                                                        {lang.toUpperCase()}
-                                                                    </label>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Code Editors for Selected Languages */}
-                                                        <div className="space-y-3">
-                                                            {Object.keys(question.code_snippets).map(lang => (
-                                                                <div key={lang}>
-                                                                    <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                        {lang.toUpperCase()} Code
-                                                                    </label>
-                                                                    <textarea
-                                                                        value={question.code_snippets[lang]}
-                                                                        onChange={(e) => updateCodeSnippet(qIndex, lang, e.target.value)}
-                                                                        className="w-full px-4 py-2 bg-black/60 border border-green-500/20 rounded-lg text-green-300 font-mono text-sm focus:outline-none focus:border-green-500 min-h-[150px]"
-                                                                        placeholder={`Enter ${lang} code...`}
-                                                                        required
-                                                                    />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-
-                                                        {/* Explanation */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                Explanation
-                                                            </label>
-                                                            <textarea
-                                                                value={question.explanation}
-                                                                onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
-                                                                className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 min-h-[100px]"
-                                                                placeholder="Explain the approach, time complexity, etc..."
-                                                                required
-                                                            />
-                                                        </div>
-
-                                                        {/* Media Link */}
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-green-400 mb-2">
-                                                                Media Link (Optional)
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                value={question.media_link || ''}
-                                                                onChange={(e) => updateQuestion(qIndex, 'media_link', e.target.value)}
-                                                                className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500"
-                                                                placeholder="https://example.com/diagram.png"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Submit */}
-                                <div className="flex gap-4 pt-4 border-t border-green-500/20">
+                            <motion.div
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                className="bg-gray-900 border border-green-500/30 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-[0_0_50px_rgba(34,197,94,0.1)] scrollbar-thin scrollbar-thumb-gray-700 my-8"
+                            >
+                                <div className="sticky top-0 bg-gray-900/95 backdrop-blur border-b border-green-500/20 p-6 flex justify-between items-center z-10">
+                                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                        <Terminal className="text-green-500" />
+                                        {editingContestId ? 'Edit Contest' : 'Initialize Contest'}
+                                    </h2>
                                     <button
-                                        type="button"
                                         onClick={() => {
                                             setShowCreateModal(false);
                                             resetForm();
                                         }}
-                                        className="flex-1 px-6 py-3 bg-transparent border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-all font-mono"
+                                        className="text-gray-400 hover:text-white transition-colors"
                                     >
-                                        CANCEL
+                                        <X size={24} />
                                     </button>
+                                </div>
+
+                                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                                    {/* Contest Metadata */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Course Selection */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
+                                                TARGET_COURSE
+                                            </label>
+                                            <select
+                                                value={contestForm.course_id}
+                                                onChange={(e) => setContestForm({ ...contestForm, course_id: e.target.value })}
+                                                className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
+                                                required
+                                            >
+                                                <option value="">SELECT COURSE...</option>
+                                                {courses.map((course) => (
+                                                    <option key={course.id} value={course.id}>
+                                                        [{course.code}] {course.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Date */}
+                                        <div>
+                                            <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
+                                                EXECUTION_DATE
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={contestForm.date}
+                                                onChange={(e) => setContestForm({ ...contestForm, date: e.target.value })}
+                                                className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
+                                                placeholder="Week 1 - Day 1"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Title */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
+                                            CONTEST_TITLE (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={contestForm.title}
+                                            onChange={(e) => setContestForm({ ...contestForm, title: e.target.value })}
+                                            className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-all font-mono"
+                                            placeholder="Introduction to Algorithms"
+                                        />
+                                    </div>
+
+                                    {/* Description */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-green-400 mb-2 font-mono">
+                                            DESCRIPTION (Optional)
+                                        </label>
+                                        <textarea
+                                            value={contestForm.description}
+                                            onChange={(e) => setContestForm({ ...contestForm, description: e.target.value })}
+                                            className="w-full px-4 py-3 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 min-h-[80px]"
+                                            placeholder="Brief description of the contest..."
+                                        />
+                                    </div>
+
+                                    {/* Questions Section */}
+                                    <div className="border-t border-green-500/20 pt-6">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                                <Code className="text-green-500" />
+                                                Questions ({questions.length})
+                                            </h3>
+                                            <button
+                                                type="button"
+                                                onClick={addQuestion}
+                                                className="flex items-center gap-2 px-4 py-2 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-lg border border-green-500/30 transition-all"
+                                            >
+                                                <Plus size={16} />
+                                                Add Question
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            {questions.map((question, qIndex) => (
+                                                <div
+                                                    key={qIndex}
+                                                    className="border border-green-500/20 rounded-lg overflow-hidden bg-black/20"
+                                                >
+                                                    {/* Question Header */}
+                                                    <div
+                                                        className="flex justify-between items-center p-4 bg-green-900/10 cursor-pointer hover:bg-green-900/20 transition-colors"
+                                                        onClick={() => setExpandedQuestion(expandedQuestion === qIndex ? null : qIndex)}
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-green-400 font-mono font-bold">Q{qIndex + 1}</span>
+                                                            <span className="text-white font-medium">
+                                                                {question.title || 'Untitled Question'}
+                                                            </span>
+                                                            <div className="flex gap-1">
+                                                                {Object.keys(question.code_snippets).map(lang => (
+                                                                    <span
+                                                                        key={lang}
+                                                                        className="px-2 py-0.5 bg-green-600/20 text-green-400 text-xs rounded border border-green-500/30"
+                                                                    >
+                                                                        {lang.toUpperCase()}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {questions.length > 1 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        removeQuestion(qIndex);
+                                                                    }}
+                                                                    className="p-1.5 text-gray-400 hover:text-red-400 transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
+                                                            {expandedQuestion === qIndex ? (
+                                                                <ChevronUp className="text-green-400" size={20} />
+                                                            ) : (
+                                                                <ChevronDown className="text-green-400" size={20} />
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Question Details */}
+                                                    {expandedQuestion === qIndex && (
+                                                        <div className="p-4 space-y-4">
+                                                            {/* Title */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                    Question Title
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={question.title}
+                                                                    onChange={(e) => updateQuestion(qIndex, 'title', e.target.value)}
+                                                                    className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500"
+                                                                    placeholder="e.g., Binary Search Implementation"
+                                                                    required
+                                                                />
+                                                            </div>
+
+                                                            {/* Problem Statement */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                    Problem Statement
+                                                                </label>
+                                                                <textarea
+                                                                    value={question.question}
+                                                                    onChange={(e) => updateQuestion(qIndex, 'question', e.target.value)}
+                                                                    className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 min-h-[100px]"
+                                                                    placeholder="Describe the problem..."
+                                                                    required
+                                                                />
+                                                            </div>
+
+                                                            {/* Language Selection */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                    Programming Languages
+                                                                </label>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {SUPPORTED_LANGUAGES.map(lang => (
+                                                                        <label
+                                                                            key={lang}
+                                                                            className={`px-4 py-2 rounded-lg border cursor-pointer transition-all ${question.code_snippets[lang]
+                                                                                ? 'bg-green-600/30 border-green-500 text-green-300'
+                                                                                : 'bg-gray-800/50 border-gray-600 text-gray-400 hover:border-gray-500'
+                                                                                }`}
+                                                                        >
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={!!question.code_snippets[lang]}
+                                                                                onChange={() => toggleLanguage(qIndex, lang)}
+                                                                                className="sr-only"
+                                                                            />
+                                                                            {lang.toUpperCase()}
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Code Editors for Selected Languages */}
+                                                            <div className="space-y-3">
+                                                                {Object.keys(question.code_snippets).map(lang => (
+                                                                    <div key={lang}>
+                                                                        <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                            {lang.toUpperCase()} Code
+                                                                        </label>
+                                                                        <textarea
+                                                                            value={question.code_snippets[lang]}
+                                                                            onChange={(e) => updateCodeSnippet(qIndex, lang, e.target.value)}
+                                                                            className="w-full px-4 py-2 bg-black/60 border border-green-500/20 rounded-lg text-green-300 font-mono text-sm focus:outline-none focus:border-green-500 min-h-[150px]"
+                                                                            placeholder={`Enter ${lang} code...`}
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+
+                                                            {/* Explanation */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                    Explanation
+                                                                </label>
+                                                                <textarea
+                                                                    value={question.explanation}
+                                                                    onChange={(e) => updateQuestion(qIndex, 'explanation', e.target.value)}
+                                                                    className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500 min-h-[100px]"
+                                                                    placeholder="Explain the approach, time complexity, etc..."
+                                                                    required
+                                                                />
+                                                            </div>
+
+                                                            {/* Media Link */}
+                                                            <div>
+                                                                <label className="block text-sm font-medium text-green-400 mb-2">
+                                                                    Media Link (Optional)
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={question.media_link || ''}
+                                                                    onChange={(e) => updateQuestion(qIndex, 'media_link', e.target.value)}
+                                                                    className="w-full px-4 py-2 bg-black/40 border border-green-500/20 rounded-lg text-white focus:outline-none focus:border-green-500"
+                                                                    placeholder="https://example.com/diagram.png"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Submit */}
+                                    <div className="flex gap-4 pt-4 border-t border-green-500/20">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowCreateModal(false);
+                                                resetForm();
+                                            }}
+                                            className="flex-1 px-6 py-3 bg-transparent border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-all font-mono"
+                                        >
+                                            CANCEL
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={loading}
+                                            className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg shadow-green-900/40 transition-all font-bold tracking-wide font-mono disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                                        >
+                                            {loading ? <Loader2 className="animate-spin" size={20} /> : <Terminal size={18} />}
+                                            {editingContestId ? 'UPDATE' : 'DEPLOY'}
+                                        </button>
+                                    </div>
+                                </form>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Announcement Modal */}
+                <AnimatePresence>
+                    {showAnnouncementModal && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.95, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                exit={{ scale: 0.95, y: 20 }}
+                                className="bg-gray-900 border border-blue-500/30 rounded-2xl max-w-2xl w-full p-6 shadow-2xl shadow-blue-500/10"
+                            >
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-2xl font-bold text-white flex items-center gap-3">
+                                        <Megaphone className="text-blue-500" />
+                                        Post Announcement
+                                    </h2>
+                                    <button
+                                        onClick={() => setShowAnnouncementModal(false)}
+                                        className="text-gray-400 hover:text-white"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-blue-400 mb-2">
+                                            Title
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={announcementForm.title}
+                                            onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
+                                            className="w-full px-4 py-3 bg-black/40 border border-blue-500/20 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                            required
+                                            placeholder="Announcement Title"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-blue-400 mb-2">
+                                            Content
+                                        </label>
+                                        <textarea
+                                            value={announcementForm.content}
+                                            onChange={(e) => setAnnouncementForm({ ...announcementForm, content: e.target.value })}
+                                            className="w-full px-4 py-3 bg-black/40 border border-blue-500/20 rounded-lg text-white focus:outline-none focus:border-blue-500 min-h-[120px]"
+                                            required
+                                            placeholder="Announcement details..."
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-blue-400 mb-2">
+                                                Course (Optional)
+                                            </label>
+                                            <select
+                                                value={announcementForm.course_id}
+                                                onChange={(e) => setAnnouncementForm({ ...announcementForm, course_id: e.target.value })}
+                                                className="w-full px-4 py-3 bg-black/40 border border-blue-500/20 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                            >
+                                                <option value="">All Courses / General</option>
+                                                {courses.map((course) => (
+                                                    <option key={course.id} value={course.id}>
+                                                        {course.code}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-blue-400 mb-2">
+                                                Attachment (PDF, JPG, DOCX)
+                                            </label>
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    onChange={(e) => setAnnouncementForm({ ...announcementForm, file: e.target.files ? e.target.files[0] : null })}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    accept=".pdf,.jpg,.jpeg,.png,.docx,.doc"
+                                                />
+                                                <div className="w-full px-4 py-3 bg-black/40 border border-blue-500/20 rounded-lg text-gray-400 flex items-center gap-2 truncate">
+                                                    <Upload size={16} />
+                                                    {announcementForm.file ? announcementForm.file.name : 'Choose file (< 2MB)'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <button
                                         type="submit"
                                         disabled={loading}
-                                        className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-lg shadow-green-900/40 transition-all font-bold tracking-wide font-mono disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold transition-all disabled:opacity-50"
                                     >
-                                        {loading ? <Loader2 className="animate-spin" size={20} /> : <Terminal size={18} />}
-                                        DEPLOY
+                                        {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Post Announcement'}
                                     </button>
-                                </div>
-                            </form>
+                                </form>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 };

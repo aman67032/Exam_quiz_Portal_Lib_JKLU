@@ -30,6 +30,12 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <Navigate to="/home" replace />;
   }
 
+  // If user is coding_ta, redirect to coding hour admin dashboard
+  // They are technically admins but restricted from the main admin dashboard
+  if (user.admin_role === 'coding_ta') {
+    return <Navigate to="/admin/coding-hour" replace />;
+  }
+
   // User is admin, allow access
   return <>{children}</>;
 };
