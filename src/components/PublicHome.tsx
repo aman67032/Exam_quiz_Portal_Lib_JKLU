@@ -88,57 +88,9 @@ const PublicHome: React.FC = () => {
   const years = ['2025', '2024', '2023', '2022'];
 
   const fetchPublicPapers = useCallback(async () => {
-    try {
-      setLoading(true);
-      // If user is logged in, fetch all papers (approved, pending, rejected)
-      // If not logged in, fetch only approved papers (public)
-      if (user) {
-        const response = await API.getPapers({});
-        const data = Array.isArray(response.data) ? response.data : [];
-        setPapers(data);
-        if (data.length === 0) {
-          console.log('No papers found in database (or response was not an array)');
-        }
-      } else {
-        const response = await API.getPublicPapers();
-        const data = Array.isArray(response.data) ? response.data : [];
-        setPapers(data);
-        if (data.length === 0) {
-          console.log('No approved papers found in database (or response was not an array)');
-        }
-      }
-    } catch (error: any) {
-      console.error('Error fetching papers:', error);
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL
-      });
-
-      // More specific error messages
-      let errorMessage = 'Failed to load papers. ';
-      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
-        errorMessage += 'Backend server is not responding. Please check if the backend is running.';
-      } else if (error.response?.status === 500) {
-        errorMessage += 'Server error. Please try again later.';
-      } else if (error.response?.status === 404) {
-        errorMessage += 'API endpoint not found.';
-      } else if (error.response?.status === 403) {
-        errorMessage += 'Access denied.';
-      } else if (error.response?.data?.detail) {
-        errorMessage += error.response.data.detail;
-      } else {
-        errorMessage += 'Please check your connection.';
-      }
-
-      showToast(errorMessage, 'error');
-      setPapers([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    // Skipping exam paper fetching as per current requirements
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     fetchPublicPapers();
@@ -399,7 +351,7 @@ const PublicHome: React.FC = () => {
         {isSmallScreen ? (
           <>
             {/* Mobile: Warm cream gradient - optimized for performance */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-orange-50 via-yellow-50 to-amber-100 dark:from-indigo-950 dark:via-purple-950 dark:via-pink-950 dark:to-rose-950">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 via-pink-950 to-rose-950">
               {/* Static radial gradient overlay - no animation for better performance */}
               <div className="absolute inset-0 opacity-60" style={{
                 background: 'radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.1) 0%, transparent 60%)',
@@ -444,7 +396,7 @@ const PublicHome: React.FC = () => {
               </div>
             </div>
             {/* Mobile readability overlay - lighter for cream theme */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/10 to-white/30 dark:from-gray-900/75 dark:via-gray-900/60 dark:to-gray-900/85" />
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/75 dark:from-gray-900/75 dark:via-gray-900/60 dark:to-gray-900/85" />
           </>
         ) : (
           <>
@@ -506,7 +458,7 @@ const PublicHome: React.FC = () => {
         <motion.header
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
-          className="sticky top-0 z-50 backdrop-blur-md sm:backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-b border-white/20 dark:border-gray-700/40 shadow-lg"
+          className="sticky top-0 z-50 backdrop-blur-md sm:backdrop-blur-xl bg-gray-900/70 border-b border-gray-700/40 shadow-lg"
         >
           <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-2.5 sm:py-3 md:py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
@@ -942,242 +894,45 @@ const PublicHome: React.FC = () => {
           </div>
         </section>
 
-        {/* Search and Documents Section */}
+        {/* Search and Documents Section - Maintenance State */}
         <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-20">
-          {/* Search and Filters */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-4 sm:p-6 md:p-8 lg:p-10 mb-6 sm:mb-8 md:mb-12"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="backdrop-blur-lg sm:backdrop-blur-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl sm:rounded-3xl border border-indigo-500/20 shadow-2xl p-8 sm:p-12 md:p-16 text-center overflow-hidden relative group"
           >
-            <div className="space-y-4 sm:space-y-6">
-              {/* Gooey Search Field Tabs */}
-              <div>
-                <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                  <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  Search In
-                </label>
-                <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-                  <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
-                    <GooeyNav
-                      items={[
-                        { label: 'All', href: '#' },
-                        { label: 'Title', href: '#' },
-                        { label: 'Description', href: '#' },
-                        { label: 'Course', href: '#' },
-                        { label: 'Uploader', href: '#' }
-                      ]}
-                      initialActiveIndex={0}
-                      onChange={(idx) => {
-                        const map = ['all', 'title', 'description', 'course', 'uploader'] as const;
-                        setSearchField(map[idx]);
-                      }}
-                    />
-                  </div>
-                </div>
+            {/* Animated background element */}
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
+
+            <div className="relative z-10">
+              <div className="inline-flex p-4 sm:p-6 rounded-full bg-indigo-500/20 mb-6 sm:mb-8 animate-pulse">
+                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-600 dark:text-indigo-400" />
               </div>
 
-              {/* Search Bar */}
-              <div>
-                <label className="block text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                  <Search className="inline w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
-                  Search Papers
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder={`Search by ${searchField === 'all' ? 'title, description, course, or uploader' : searchField}...`}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-3 pr-10 sm:pr-12 text-sm sm:text-base border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 touch-manipulation min-h-[44px] sm:min-h-0"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      onTouchStart={(e) => e.stopPropagation()}
-                      className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1.5 sm:p-1 min-w-[32px] min-h-[32px] sm:min-w-0 sm:min-h-0 flex items-center justify-center touch-manipulation"
-                      aria-label="Clear search"
-                      type="button"
-                    >
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+                Exam Papers Vault
+              </h2>
+
+              <div className="max-w-2xl mx-auto">
+                <p className="text-xl sm:text-2xl font-medium text-gray-700 dark:text-gray-300 mb-4">
+                  Stay Tuned! 🚀
+                </p>
+                <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 leading-relaxed font-semibold">
+                  Exams papers will be back before <span className="text-indigo-600 dark:text-indigo-400">1st midterm</span>. We are currently curating and verifying fresh resources for you.
+                </p>
               </div>
 
-              {/* Filters */}
-              <div>
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <div className="flex items-center space-x-2">
-                    <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
-                    <label className="text-sm sm:text-sm font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300">Filters</label>
-                  </div>
-                  {/* Clear Filters Button - Mobile Friendly */}
-                  {(filters.year || filters.semester || filters.course_code || filters.paper_type) && (
-                    <button
-                      onClick={() => {
-                        setFilters({
-                          course_code: '',
-                          paper_type: '',
-                          year: '',
-                          semester: '',
-                        });
-                      }}
-                      className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-3 py-2 sm:px-2 sm:py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors touch-manipulation min-h-[36px] sm:min-h-0 flex items-center justify-center"
-                    >
-                      Clear All
-                    </button>
-                  )}
+              <div className="mt-10 flex justify-center gap-4">
+                <div className="px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-medium">
+                  Verified Resources
                 </div>
-
-                {/* Gooey Paper Type Tabs */}
-                <div className="mb-4 sm:mb-5">
-                  <label className="block text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                    Paper Type
-                  </label>
-                  <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
-                    <div className="flex flex-wrap gap-2 min-w-max sm:min-w-0">
-                      <GooeyNav
-                        items={[{ label: 'All Types', href: '#' }, ...paperTypes.map(t => ({ label: t.charAt(0).toUpperCase() + t.slice(1), href: '#' }))]}
-                        initialActiveIndex={0}
-                        onChange={(idx, item) => {
-                          const val = idx === 0 ? '' : item.label.toLowerCase();
-                          handleFilterChange('paper_type', val);
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Filter Grid - Optimized for Mobile */}
-                <div className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-3 sm:gap-4">
-                  {/* Year Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                      Year
-                    </label>
-                    <select
-                      value={filters.year}
-                      onChange={(e) => handleFilterChange('year', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                    >
-                      <option value="">All Years</option>
-                      {years.map((year) => (
-                        <option key={year} value={year}>
-                          {year}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Semester Filter */}
-                  <div>
-                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                      Semester
-                    </label>
-                    <select
-                      value={filters.semester}
-                      onChange={(e) => handleFilterChange('semester', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                    >
-                      <option value="">All Semesters</option>
-                      <option value="1">Semester 1</option>
-                      <option value="2">Semester 2</option>
-                      <option value="3">Semester 3</option>
-                      <option value="4">Semester 4</option>
-                      <option value="5">Semester 5</option>
-                      <option value="6">Semester 6</option>
-                      <option value="7">Semester 7</option>
-                      <option value="8">Semester 8</option>
-                    </select>
-                  </div>
-
-                  {/* Course Code Filter - as a regular select so all options are visible */}
-                  <div className="sm:col-span-2 lg:col-span-1">
-                    <label className="block text-sm font-medium text-amber-900 sm:text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2">
-                      Course Code
-                    </label>
-                    <select
-                      value={filters.course_code}
-                      onChange={(e) => handleFilterChange('course_code', e.target.value)}
-                      className="w-full px-3 sm:px-4 py-3 sm:py-2.5 md:py-2 text-sm sm:text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-gray-700 dark:text-white appearance-none bg-white dark:bg-gray-700 touch-manipulation min-h-[44px] sm:min-h-0"
-                    >
-                      <option value="">All Courses</option>
-                      {[...courses]
-                        .sort((a, b) => a.code.localeCompare(b.code))
-                        .map((course) => (
-                          <option key={course.id} value={course.code}>
-                            {course.code} - {course.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
+                <div className="px-4 py-2 bg-purple-500/10 rounded-full border border-purple-500/20 text-purple-600 dark:text-purple-400 text-sm font-medium">
+                  Coming Soon
                 </div>
               </div>
             </div>
           </motion.div>
-
-          {/* Papers Grid */}
-          <div className="mb-6 sm:mb-8">
-            <motion.h2
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-3xl sm:text-3xl font-bold text-amber-900 sm:text-gray-900 dark:text-white mb-2 flex items-center gap-2 sm:gap-3"
-            >
-              <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-              <span>Browse Documents</span>
-            </motion.h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Explore our collection of verified academic papers and study materials
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center items-center py-12 sm:py-20">
-              <Loader />
-            </div>
-          ) : filteredPapers.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-8 sm:p-12 md:p-16 text-center"
-            >
-              <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-300 dark:text-gray-600 mx-auto mb-4 sm:mb-6" />
-              <p className="text-2xl sm:text-2xl font-semibold text-amber-900 sm:text-gray-700 dark:text-gray-300 mb-2">No papers found</p>
-              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-500">Try adjusting your search or filter criteria</p>
-            </motion.div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {filteredPapers.map((paper, index) => (
-                <PaperCard
-                  key={paper.id}
-                  paper={paper}
-                  index={index}
-                  onPreview={handlePreview}
-                  onDownload={handleDownload}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Results Summary */}
-          {!loading && filteredPapers.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-6 sm:mt-10 text-center backdrop-blur-xl bg-white/60 dark:bg-gray-900/60 rounded-xl sm:rounded-2xl border border-white/30 dark:border-gray-700/40 shadow-lg py-4 sm:py-6 px-4 sm:px-8"
-            >
-              <p className="text-base sm:text-base text-amber-900 sm:text-gray-700 dark:text-gray-300">
-                Showing <span className="font-bold text-amber-700 sm:text-indigo-600 dark:text-indigo-400">{filteredPapers.length}</span> of{' '}
-                <span className="font-bold text-amber-900 sm:text-gray-900 dark:text-white">{papers.length}</span> {user ? 'available' : 'approved'} papers
-              </p>
-            </motion.div>
-          )}
         </div>
 
         {/* File Preview Modal */}
