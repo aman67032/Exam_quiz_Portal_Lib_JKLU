@@ -1,20 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, Filter, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, ArrowLeft } from 'lucide-react';
+import { FileText, Search, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, ArrowLeft } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
-import GooeyNav from './Gooeyeffect';
 import Squares from './square_bg';
-import PaperCard from './PaperCard';
-import Toast from './Toast';
 import logoImg from '../assets/logo (2).png';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useDebounce } from '../hooks/useDebounce';
 import { lazy, Suspense } from 'react';
 import { buildUploadUrl } from '../utils/uploads';
 import MathPhysicsBackground from './MathPhysicsBackground';
-import Loader from './Loader';
 import JKLULogo from './JKLULogo';
 import Footer from './Footer';
 
@@ -22,45 +17,10 @@ import Footer from './Footer';
 const ColorBends = lazy(() => import('./color_band_bg'));
 
 
-interface Paper {
-  id: number;
-  title: string;
-  description?: string;
-  paper_type: string;
-  year?: number;
-  semester?: string;
-  department?: string;
-  file_name: string;
-  file_path?: string;
-  course_code?: string;
-  course_name?: string;
-  uploader_name?: string;
-  uploaded_at: string;
-  status?: string;
-}
-
 const PublicHome: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [papers, setPapers] = useState<Paper[]>([]);
-  const [filteredPapers, setFilteredPapers] = useState<Paper[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchField, setSearchField] = useState<'all' | 'title' | 'description' | 'course' | 'uploader'>('all');
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Filters
-  const [filters, setFilters] = useState<{
-    course_code: string;
-    paper_type: string;
-    year: string;
-    semester: string;
-  }>({
-    course_code: '',
-    paper_type: '',
-    year: '',
-    semester: '',
-  });
 
   // Courses for dropdown
   const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string; description?: string }>>([]);
@@ -73,28 +33,7 @@ const PublicHome: React.FC = () => {
     paperId: 0
   });
 
-  // Toast Notification
-  const [toast, setToast] = useState({
-    show: false,
-    message: '',
-    type: 'success' as 'success' | 'error' | 'info'
-  });
 
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ show: true, message, type });
-  }, []);
-
-  const paperTypes = ['quiz', 'midterm', 'endterm', 'assignment', 'project'];
-  const years = ['2025', '2024', '2023', '2022'];
-
-  const fetchPublicPapers = useCallback(async () => {
-    // Skipping exam paper fetching as per current requirements
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchPublicPapers();
-  }, [fetchPublicPapers]);
 
   // Fetch courses from API - cache in sessionStorage to reduce API calls
   // Fetch courses from API - cache in sessionStorage to reduce API calls
@@ -128,61 +67,6 @@ const PublicHome: React.FC = () => {
     fetchCourses();
   }, []);
 
-  // Memoize filtered papers to prevent unnecessary recalculations
-  const memoizedFilteredPapers = useMemo(() => {
-    // For logged-in users: show all papers they have access to (approved + their own papers)
-    // For non-logged-in users: only show approved papers
-    // Always filter for approved papers on the public home page, regardless of login status
-    // User's own rejected/pending papers should only be visible on the Dashboard
-    let filtered = papers.filter((paper) => paper.status?.toLowerCase() === 'approved');
-
-    // Search filter - use debounced query
-    if (debouncedSearchQuery.trim()) {
-      const query = debouncedSearchQuery.toLowerCase();
-      filtered = filtered.filter((paper) => {
-        if (searchField === 'title') return paper.title.toLowerCase().includes(query);
-        if (searchField === 'description') return (paper.description || '').toLowerCase().includes(query);
-        if (searchField === 'course') return (paper.course_code || '').toLowerCase().includes(query);
-        if (searchField === 'uploader') return (paper.uploader_name || '').toLowerCase().includes(query);
-        return (
-          paper.title.toLowerCase().includes(query) ||
-          (paper.description || '').toLowerCase().includes(query) ||
-          (paper.course_code || '').toLowerCase().includes(query) ||
-          (paper.uploader_name || '').toLowerCase().includes(query)
-        );
-      });
-    }
-
-    // Course filter - support partial matching
-    if (filters.course_code) {
-      filtered = filtered.filter((paper) =>
-        (paper.course_code || '').toUpperCase().includes(filters.course_code.toUpperCase())
-      );
-    }
-
-    // Paper type filter
-    if (filters.paper_type) {
-      filtered = filtered.filter((paper) => paper.paper_type === filters.paper_type);
-    }
-
-    // Year filter
-    if (filters.year) {
-      filtered = filtered.filter((paper) => paper.year?.toString() === filters.year);
-    }
-
-    // Semester filter
-    if (filters.semester) {
-      filtered = filtered.filter(
-        (paper) => (paper.semester || '').toLowerCase() === filters.semester.toLowerCase()
-      );
-    }
-
-    return filtered;
-  }, [papers, debouncedSearchQuery, searchField, filters, user]);
-
-  useEffect(() => {
-    setFilteredPapers(memoizedFilteredPapers);
-  }, [memoizedFilteredPapers]);
 
   // Responsive background tuning - dynamic hook that responds to window resize
   const [isSmallScreen, setIsSmallScreen] = useState(() => {
@@ -199,18 +83,6 @@ const PublicHome: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const handleFilterChange = useCallback((key: string, value: string) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handlePreview = useCallback((paperId: number, fileName: string, filePath: string) => {
-    setPreviewModal({
-      isOpen: true,
-      fileName,
-      filePath,
-      paperId
-    });
-  }, []);
 
   const profilePhoto = useMemo(() => {
     const direct = localStorage.getItem('profile.photo');
@@ -219,25 +91,6 @@ const PublicHome: React.FC = () => {
     return legacy ? buildUploadUrl(legacy) : '';
   }, []);
 
-  const handleDownload = useCallback(async (paperId: number, fileName: string) => {
-    try {
-      const response = await API.downloadPaper(paperId);
-      const blob = new Blob([response.data]);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      showToast('Paper downloaded successfully!', 'success');
-    } catch (error: any) {
-      console.error('Download error:', error);
-      const errorMessage = error?.response?.data?.detail || error?.message || 'Failed to download paper. Please try again.';
-      showToast(errorMessage, 'error');
-    }
-  }, [showToast]);
 
   return (
     <div className="min-h-screen relative overflow-hidden pt-[env(safe-area-inset-top)]">
@@ -446,14 +299,6 @@ const PublicHome: React.FC = () => {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Toast Notification */}
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={toast.show}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
-
         {/* Header */}
         <motion.header
           initial={{ opacity: 0, y: -50 }}

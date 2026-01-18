@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Code, FileText, Image as ImageIcon, ChevronRight }
 import { useAuth } from '../contexts/AuthContext';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { API } from '../utils/api';
 
 interface Question {
     id: number;
@@ -48,7 +49,7 @@ const ChallengePage: React.FC = () => {
                 if (token) {
                     headers.Authorization = `Bearer ${token}`;
                 }
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                const apiUrl = API.baseURL;
 
                 try {
                     const res = await fetch(`${apiUrl}/contests/${challengeId}`, { headers });

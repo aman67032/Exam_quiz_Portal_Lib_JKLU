@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import logoImg from '../assets/logo (2).png';
 import JKLULogo from './JKLULogo';
+import { API } from '../utils/api';
 
 interface Question {
     id: number;
@@ -48,6 +49,7 @@ const CodingHourPage: React.FC = () => {
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
+    const [expandedAnnId, setExpandedAnnId] = useState<number | null>(null);
     const [error] = useState<string | null>(null);
 
     useEffect(() => {
@@ -58,7 +60,7 @@ const CodingHourPage: React.FC = () => {
                 if (token) {
                     headers.Authorization = `Bearer ${token}`;
                 }
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+                const apiUrl = API.baseURL;
 
                 // Fetch course details
                 try {
@@ -247,7 +249,9 @@ const CodingHourPage: React.FC = () => {
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className="bg-gray-800/50 backdrop-blur-sm border border-blue-500/20 rounded-xl p-6 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300"
+                                    layout
+                                    onClick={() => setExpandedAnnId(expandedAnnId === ann.id ? null : ann.id)}
+                                    className="bg-gray-800/50 backdrop-blur-sm border border-blue-500/20 rounded-xl p-6 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer"
                                 >
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs font-mono border border-blue-500/20">
@@ -255,11 +259,13 @@ const CodingHourPage: React.FC = () => {
                                         </span>
                                     </div>
                                     <h3 className="text-lg font-bold text-white mb-2">{ann.title}</h3>
-                                    <p className="text-gray-400 text-sm mb-4 line-clamp-4">{ann.content}</p>
+                                    <p className={`text-gray-400 text-sm mb-4 transition-all duration-300 ${expandedAnnId === ann.id ? 'line-clamp-none' : 'line-clamp-4'}`}>
+                                        {ann.content}
+                                    </p>
 
                                     {ann.attachment_url && (
                                         <a
-                                            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/uploads/${ann.attachment_url}`}
+                                            href={`${API.baseURL}/uploads/${ann.attachment_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors bg-blue-900/20 px-3 py-2 rounded-lg w-fit border border-blue-500/20 hover:bg-blue-900/30"
