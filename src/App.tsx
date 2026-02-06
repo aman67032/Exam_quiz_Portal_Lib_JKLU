@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Loader from './components/Loader';
 import AdminRoute from './components/AdminRoute';
+import MaintenanceMode from './components/MaintenanceMode';
 
 // Lazy load heavy components for code splitting
 const LandingPage = lazy(() => import('./components/LandingPage'));
@@ -56,6 +57,12 @@ function AppContent() {
 
   if (loading) {
     return <LoadingFallback />;
+  }
+
+  const MAINTENANCE_MODE = true;
+
+  if (MAINTENANCE_MODE) {
+    return <MaintenanceMode />;
   }
 
   return (

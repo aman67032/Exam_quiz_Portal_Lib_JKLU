@@ -1,25 +1,40 @@
 import { motion } from 'framer-motion';
 import { Clock, Zap, Heart, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
+import Squares from './square_bg';
+import MathPhysicsBackground from './MathPhysicsBackground';
+
+const ColorBends = lazy(() => import('./color_band_bg'));
 
 const shayaris = [
   {
     id: 1,
     lines: [
-      "Bichde jo tujhse humne muskuraana chhod diya",
-      "Dil toda jo tune humne dil lagana chhod diya",
-      "Har raat tere gum mein jaam uthaya humne",
-      "Aaj hosh mein aaye to mehkhana chhod diya"
+      "Tere jaaney ke baad bhi main aas lagaye baitha hoon,",
+      "Toota hoon andar se, phir bhi ek khwaab sajaye baitha hoon.",
+      "Tu mil jaaye wapas khuda se fariyaad lagaye baitha hoon,",
+      "Bhulaane ko tujhe, jaam ko main dawa banaye baitha hoon.",
+      "Teri kahani main har mehfil mein sunaaye baitha hoon,",
+      "Jo kirdaar mila hi nahi mujhe,",
+      "Usse main apni poori kahani banaye baitha hoon."
     ]
   },
   {
     id: 2,
     lines: [
-      "Baahon mein tu meri simat si jaaye,",
-      "Tujhe dekhu kisi aur ke saath, toh saansein tham jaaye.",
-      "Chhupa ke rakhi thi dil mein har ek baat,",
-      "Par khauf hai, kahin mujhse pehle koi aur na keh jaaye"
-    ]
+      "Haan maana meri galti thi, main use maanta hoon,",
+      "Par iske liye khud ko jhootha bana kar",
+      "Khud ko hi roz todna, ye main nahi chahta hoon.",
+      "Agar aaj tum kisi aur ke saath ho",
+      "Sirf mujhe afsos dilane ke liye,",
+      "Toh yaad rakhna, dil ke kisi kone mein",
+      "Mera pyaar abhi bhi zinda hai tumhare liye.",
+      "Duniya ke saamne majboor ban jaana aasaan hai,",
+      "Par apne jazbaaton se jhoot bolna sabse mushkil,",
+      "Kisi aur ka haath pakad ke",
+      "Apne hi sach ka gala ghontna theek nahi, bilkul nahi."
+    ],
+    author: "A_man "
   }
 ];
 
@@ -38,26 +53,67 @@ const MaintenanceMode = () => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
+
+  const [isSmallScreen, setIsSmallScreen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.innerWidth <= 640;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth <= 640);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-indigo-900 dark:from-gray-950 dark:via-purple-950 dark:to-indigo-950 overflow-hidden relative">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <motion.div
-          animate={{
-            y: [0, 20, 0],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute top-20 left-10 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            y: [0, -20, 0],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 7, repeat: Infinity }}
-          className="absolute bottom-20 right-10 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"
-        />
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center pt-[env(safe-area-inset-top)] bg-gray-900">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        {isSmallScreen ? (
+          <>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 via-pink-950 to-rose-950">
+              <div className="absolute inset-0 opacity-60" style={{
+                background: 'radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.1) 0%, transparent 60%)',
+                willChange: 'opacity'
+              }} />
+              <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute w-72 h-72 bg-amber-200/20 rounded-full blur-2xl top-[5%] left-[5%]" />
+                <div className="absolute w-56 h-56 bg-orange-200/15 rounded-full blur-2xl bottom-[15%] right-[10%]" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-b from-gray-900/75 dark:from-gray-900/75 dark:via-gray-900/60 dark:to-gray-900/85" />
+            </div>
+          </>
+        ) : (
+          <>
+            <Suspense fallback={<div className="w-full h-full bg-gray-900" />}>
+              <ColorBends
+                colors={['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#06b6d4']}
+                speed={0.15}
+                frequency={1.2}
+                warpStrength={1.2}
+                mouseInfluence={0.8}
+                parallax={0.6}
+                transparent={true}
+                scale={1.5}
+              />
+            </Suspense>
+            <div className="absolute inset-0 opacity-20">
+              <MathPhysicsBackground />
+            </div>
+            <div className="absolute inset-0 opacity-30 pointer-events-none">
+              <Squares
+                speed={0.6}
+                squareSize={48}
+                borderColor={'rgba(255,255,255,0.35)'}
+                hoverFillColor={'rgba(255,255,255,0.12)'}
+                direction="diagonal"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-gray-900/60 via-gray-900/40 to-gray-900/70" />
+          </>
+        )}
       </div>
 
       {/* Main content */}
@@ -115,13 +171,16 @@ const MaintenanceMode = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="bg-gradient-to-r from-purple-500/10 to-indigo-500/10 border border-purple-400/30 rounded-2xl p-8 backdrop-blur-sm"
+          className="bg-gray-900/60 border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden"
         >
-          <div className="flex items-center justify-between gap-4">
+          {/* Shine effect */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+
+          <div className="flex items-center justify-between gap-4 relative z-10">
             {/* Left Arrow */}
             <button
               onClick={() => setCurrentShayari((prev) => (prev === 0 ? shayaris.length - 1 : prev - 1))}
-              className="p-2 hover:bg-purple-400/20 rounded-lg transition-colors text-purple-300 hover:text-purple-100"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white"
               aria-label="Previous shayari"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -136,25 +195,25 @@ const MaintenanceMode = () => {
               transition={{ duration: 0.4 }}
               className="flex-1"
             >
-              <div className="flex items-start gap-3 mb-4">
-                <Heart className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+              <div className="flex items-start gap-4 mb-4">
+                <Heart className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1 fill-pink-500/20" />
                 <div className="text-left">
                   {shayaris[currentShayari].lines.map((line, idx) => (
-                    <p key={idx} className="text-purple-100 text-lg leading-relaxed italic font-light">
+                    <p key={idx} className="text-white text-lg sm:text-xlg leading-relaxed font-medium tracking-wide drop-shadow-md">
                       {idx === 0 ? `"${line}` : line}
                       {idx === shayaris[currentShayari].lines.length - 1 ? `"` : ""}
                     </p>
                   ))}
                 </div>
               </div>
-              <p className="text-purple-300 text-sm">— Suryaansh Sharma 😂</p>
-              <p className="text-purple-400/60 text-xs mt-2">Use ← → arrow keys to switch</p>
+              <p className="text-gray-300 font-semibold text-sm">— {shayaris[currentShayari].author || "Suryaansh Sharma 😂"}</p>
+              <p className="text-gray-400 text-xs mt-2">Use ← → arrow keys to switch</p>
             </motion.div>
 
             {/* Right Arrow */}
             <button
               onClick={() => setCurrentShayari((prev) => (prev === shayaris.length - 1 ? 0 : prev + 1))}
-              className="p-2 hover:bg-purple-400/20 rounded-lg transition-colors text-purple-300 hover:text-purple-100"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white/50 hover:text-white"
               aria-label="Next shayari"
             >
               <ChevronRight className="w-6 h-6" />
@@ -167,9 +226,8 @@ const MaintenanceMode = () => {
               <button
                 key={idx}
                 onClick={() => setCurrentShayari(idx)}
-                className={`h-2 rounded-full transition-all ${
-                  idx === currentShayari ? 'bg-purple-400 w-6' : 'bg-purple-600 w-2'
-                }`}
+                className={`h-1.5 rounded-full transition-all ${idx === currentShayari ? 'bg-white w-8' : 'bg-white/20 w-2 hover:bg-white/40'
+                  }`}
                 aria-label={`Go to shayari ${idx + 1}`}
               />
             ))}
