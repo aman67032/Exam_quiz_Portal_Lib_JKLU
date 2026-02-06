@@ -40,6 +40,35 @@ const shayaris = [
 
 const MaintenanceMode = () => {
   const [currentShayari, setCurrentShayari] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  // Swipe threshold
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      // Swipe Left -> Next
+      setCurrentShayari((prev) => (prev === shayaris.length - 1 ? 0 : prev + 1));
+    } else if (isRightSwipe) {
+      // Swipe Right -> Prev
+      setCurrentShayari((prev) => (prev === 0 ? shayaris.length - 1 : prev - 1));
+    }
+  };
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
@@ -137,7 +166,7 @@ const MaintenanceMode = () => {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
-          className="text-5xl md:text-6xl font-bold mb-4 text-white"
+          className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-white drop-shadow-lg"
         >
           Under Maintenance
         </motion.h1>
@@ -171,7 +200,10 @@ const MaintenanceMode = () => {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.6 }}
-          className="bg-gray-900/60 border border-white/10 rounded-2xl p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          className="bg-gray-900/60 border border-white/10 ring-1 ring-white/5 rounded-2xl p-6 sm:p-8 backdrop-blur-xl shadow-2xl relative overflow-hidden group touch-pan-y"
         >
           {/* Shine effect */}
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
@@ -199,7 +231,7 @@ const MaintenanceMode = () => {
                 <Heart className="w-6 h-6 text-pink-500 flex-shrink-0 mt-1 fill-pink-500/20" />
                 <div className="text-left">
                   {shayaris[currentShayari].lines.map((line, idx) => (
-                    <p key={idx} className="text-white text-lg sm:text-xlg leading-relaxed font-medium tracking-wide drop-shadow-md">
+                    <p key={idx} className="text-white text-lg sm:text-xl leading-relaxed font-medium tracking-wide drop-shadow-md">
                       {idx === 0 ? `"${line}` : line}
                       {idx === shayaris[currentShayari].lines.length - 1 ? `"` : ""}
                     </p>
@@ -207,7 +239,8 @@ const MaintenanceMode = () => {
                 </div>
               </div>
               <p className="text-gray-300 font-semibold text-sm">— {shayaris[currentShayari].author || "Suryaansh Sharma 😂"}</p>
-              <p className="text-gray-400 text-xs mt-2">Use ← → arrow keys to switch</p>
+              <p className="text-gray-400 text-xs mt-3 hidden sm:block">Use ← → arrow keys to switch</p>
+              <p className="text-gray-400 text-xs mt-3 sm:hidden">Swipe to read more</p>
             </motion.div>
 
             {/* Right Arrow */}
