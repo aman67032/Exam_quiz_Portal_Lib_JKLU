@@ -18,23 +18,6 @@ const shayaris = [
       "Jo kirdaar mila hi nahi mujhe,",
       "Usse main apni poori kahani banaye baitha hoon."
     ]
-  },
-  {
-    id: 2,
-    lines: [
-      "Haan maana meri galti thi, main use maanta hoon,",
-      "Par iske liye khud ko jhootha bana kar",
-      "Khud ko hi roz todna, ye main nahi chahta hoon.",
-      "Agar aaj tum kisi aur ke saath ho",
-      "Sirf mujhe afsos dilane ke liye,",
-      "Toh yaad rakhna, dil ke kisi kone mein",
-      "Mera pyaar abhi bhi zinda hai tumhare liye.",
-      "Duniya ke saamne majboor ban jaana aasaan hai,",
-      "Par apne jazbaaton se jhoot bolna sabse mushkil,",
-      "Kisi aur ka haath pakad ke",
-      "Apne hi sach ka gala ghontna theek nahi, bilkul nahi."
-    ],
-    author: "A_man "
   }
 ];
 
