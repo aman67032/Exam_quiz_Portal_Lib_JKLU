@@ -17,7 +17,8 @@ const shayaris = [
       "Teri kahani main har mehfil mein sunaaye baitha hoon,",
       "Jo kirdaar mila hi nahi mujhe,",
       "Usse main apni poori kahani banaye baitha hoon."
-    ]
+    ],
+    author: "Suryaansh Sharma"
   }
 ];
 
