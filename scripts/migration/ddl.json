@@ -1,0 +1,37 @@
+[
+  {
+    "table": "users",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"users\" (\n  \"id\" integer NOT NULL DEFAULT nextval('users_id_seq'::regclass),\n  \"email\" character varying NOT NULL,\n  \"name\" character varying NOT NULL,\n  \"password_hash\" character varying NOT NULL,\n  \"is_admin\" boolean,\n  \"age\" integer,\n  \"year\" character varying(20),\n  \"university\" character varying(255),\n  \"department\" character varying(255),\n  \"roll_no\" character varying(100),\n  \"student_id\" character varying(100),\n  \"photo_path\" character varying(500),\n  \"id_card_path\" character varying(500),\n  \"photo_data\" bytea,\n  \"id_card_data\" bytea,\n  \"id_verified\" boolean,\n  \"verified_by\" integer,\n  \"verified_at\" timestamp without time zone,\n  \"email_verified\" boolean,\n  \"admin_feedback\" json,\n  \"created_at\" timestamp without time zone,\n  \"admin_role\" character varying(50),\n  PRIMARY KEY (\"id\")\n);",
+    "count": 113
+  },
+  {
+    "table": "courses",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"courses\" (\n  \"id\" integer NOT NULL DEFAULT nextval('courses_id_seq'::regclass),\n  \"code\" character varying(50) NOT NULL,\n  \"name\" character varying(255) NOT NULL,\n  \"description\" text,\n  \"created_at\" timestamp without time zone,\n  \"updated_at\" timestamp without time zone,\n  PRIMARY KEY (\"id\")\n);",
+    "count": 125
+  },
+  {
+    "table": "papers",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"papers\" (\n  \"id\" integer NOT NULL DEFAULT nextval('papers_id_seq'::regclass),\n  \"course_id\" integer,\n  \"uploaded_by\" integer,\n  \"title\" character varying(255) NOT NULL,\n  \"description\" text,\n  \"paper_type\" USER-DEFINED NOT NULL,\n  \"year\" integer,\n  \"semester\" character varying(20),\n  \"department\" character varying(255),\n  \"file_path\" character varying(500),\n  \"file_name\" character varying(255) NOT NULL,\n  \"file_size\" integer,\n  \"file_data\" bytea,\n  \"status\" USER-DEFINED,\n  \"reviewed_by\" integer,\n  \"reviewed_at\" timestamp without time zone,\n  \"rejection_reason\" text,\n  \"admin_feedback\" json,\n  \"uploaded_at\" timestamp without time zone,\n  \"updated_at\" timestamp without time zone,\n  \"public_link_id\" character varying(100),\n  PRIMARY KEY (\"id\")\n);",
+    "count": 145
+  },
+  {
+    "table": "daily_challenges",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"daily_challenges\" (\n  \"id\" integer NOT NULL DEFAULT nextval('daily_challenges_id_seq'::regclass),\n  \"course_id\" integer,\n  \"date\" character varying(50) NOT NULL,\n  \"question\" text NOT NULL,\n  \"code_snippet\" text NOT NULL,\n  \"explanation\" text NOT NULL,\n  \"media_link\" character varying(500),\n  \"created_at\" timestamp without time zone,\n  PRIMARY KEY (\"id\")\n);",
+    "count": 0
+  },
+  {
+    "table": "daily_contests",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"daily_contests\" (\n  \"id\" integer NOT NULL DEFAULT nextval('daily_contests_id_seq'::regclass),\n  \"course_id\" integer,\n  \"date\" character varying(50) NOT NULL,\n  \"title\" character varying(255),\n  \"description\" text,\n  \"created_at\" timestamp without time zone,\n  PRIMARY KEY (\"id\")\n);",
+    "count": 8
+  },
+  {
+    "table": "contest_questions",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"contest_questions\" (\n  \"id\" integer NOT NULL DEFAULT nextval('contest_questions_id_seq'::regclass),\n  \"contest_id\" integer,\n  \"order\" integer NOT NULL,\n  \"title\" character varying(255) NOT NULL,\n  \"question\" text NOT NULL,\n  \"code_snippets\" json NOT NULL,\n  \"explanation\" text NOT NULL,\n  \"media_link\" character varying(500),\n  \"created_at\" timestamp without time zone,\n  PRIMARY KEY (\"id\")\n);",
+    "count": 22
+  },
+  {
+    "table": "coding_announcements",
+    "ddl": "CREATE TABLE IF NOT EXISTS \"coding_announcements\" (\n  \"id\" integer NOT NULL DEFAULT nextval('coding_announcements_id_seq'::regclass),\n  \"course_id\" integer,\n  \"title\" character varying(255) NOT NULL,\n  \"content\" text NOT NULL,\n  \"attachment_url\" character varying(500),\n  \"created_at\" timestamp without time zone,\n  PRIMARY KEY (\"id\")\n);",
+    "count": 5
+  }
+]
