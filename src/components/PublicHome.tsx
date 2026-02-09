@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { FileText, Search, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, ArrowLeft } from 'lucide-react';
+import { FileText, Search, User, LogOut, GraduationCap, Upload, Download, LogIn, UserPlus, Code, Sparkles, ArrowLeft, FolderOpen, Eye } from 'lucide-react';
 import { API } from '../utils/api';
 import FilePreviewModal from './FilePreviewModal';
 import Squares from './square_bg';
@@ -24,6 +24,22 @@ const PublicHome: React.FC = () => {
 
   // Courses for dropdown
   const [courses, setCourses] = useState<Array<{ id: number; code: string; name: string; description?: string }>>([]);
+
+  // Papers for folder display
+  interface Paper {
+    id: number;
+    title: string;
+    course_code: string;
+    course_name: string;
+    paper_type: string;
+    year: number;
+    semester: string;
+    file_name: string;
+    file_path: string;
+  }
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string>('all');
+  const [loadingPapers, setLoadingPapers] = useState(true);
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -66,6 +82,37 @@ const PublicHome: React.FC = () => {
     };
     fetchCourses();
   }, []);
+
+  // Fetch papers from API
+  useEffect(() => {
+    const fetchPapers = async () => {
+      try {
+        setLoadingPapers(true);
+        const response = await API.getPublicPapers();
+        setPapers(Array.isArray(response.data) ? response.data : []);
+      } catch (error) {
+        console.error('Error fetching papers:', error);
+        setPapers([]);
+      } finally {
+        setLoadingPapers(false);
+      }
+    };
+    fetchPapers();
+  }, []);
+
+  // Filter papers by folder type
+  const filteredPapers = useMemo(() => {
+    if (selectedFolder === 'all') return papers;
+    return papers.filter(p => p.paper_type === selectedFolder);
+  }, [papers, selectedFolder]);
+
+  // Get paper counts by type
+  const paperCounts = useMemo(() => ({
+    all: papers.length,
+    midterm: papers.filter(p => p.paper_type === 'midterm').length,
+    endterm: papers.filter(p => p.paper_type === 'endterm').length,
+    other: papers.filter(p => p.paper_type === 'other').length,
+  }), [papers]);
 
 
   // Responsive background tuning - dynamic hook that responds to window resize
@@ -739,44 +786,117 @@ const PublicHome: React.FC = () => {
           </div>
         </section>
 
-        {/* Search and Documents Section - Maintenance State */}
+        {/* Exam Papers Vault */}
         <div className="max-w-7xl mx-auto px-4 sm:px-4 md:px-6 lg:px-8 pb-8 sm:pb-12 md:pb-20">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="backdrop-blur-lg sm:backdrop-blur-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 rounded-2xl sm:rounded-3xl border border-indigo-500/20 shadow-2xl p-8 sm:p-12 md:p-16 text-center overflow-hidden relative group"
+            className="backdrop-blur-lg sm:backdrop-blur-2xl bg-white/70 dark:bg-gray-900/70 rounded-2xl sm:rounded-3xl border border-white/30 dark:border-gray-700/40 shadow-2xl p-6 sm:p-8 md:p-12 overflow-hidden relative"
           >
-            {/* Animated background element */}
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-50 group-hover:opacity-100 transition-opacity duration-700" />
-
-            <div className="relative z-10">
-              <div className="inline-flex p-4 sm:p-6 rounded-full bg-indigo-500/20 mb-6 sm:mb-8 animate-pulse">
-                <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-indigo-600 dark:text-indigo-400" />
+            {/* Header */}
+            <div className="text-center mb-8">
+              <div className="inline-flex p-3 sm:p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 mb-4 sm:mb-6">
+                <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
               </div>
-
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
                 Exam Papers Vault
               </h2>
-
-              <div className="max-w-2xl mx-auto">
-                <p className="text-xl sm:text-2xl font-medium text-gray-700 dark:text-gray-300 mb-4">
-                  Stay Tuned! 🚀
-                </p>
-                <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 leading-relaxed font-semibold">
-                  Exams papers will be back before <span className="text-indigo-600 dark:text-indigo-400">1st midterm</span>. We are currently curating and verifying fresh resources for you.
-                </p>
-              </div>
-
-              <div className="mt-10 flex justify-center gap-4">
-                <div className="px-4 py-2 bg-indigo-500/10 rounded-full border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-sm font-medium">
-                  Verified Resources
-                </div>
-                <div className="px-4 py-2 bg-purple-500/10 rounded-full border border-purple-500/20 text-purple-600 dark:text-purple-400 text-sm font-medium">
-                  Coming Soon
-                </div>
-              </div>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Browse {papers.length} verified exam papers</p>
             </div>
+
+            {/* Folder Tabs */}
+            <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
+              {[
+                { key: 'all', label: 'All Papers', icon: FileText, color: 'from-gray-600 to-gray-700' },
+                { key: 'midterm', label: 'Midterm', icon: FolderOpen, color: 'from-blue-500 to-indigo-600' },
+                { key: 'endterm', label: 'Endterm', icon: FolderOpen, color: 'from-purple-500 to-pink-600' },
+                { key: 'other', label: 'Other', icon: FolderOpen, color: 'from-amber-500 to-orange-600' },
+              ].map((folder) => (
+                <motion.button
+                  key={folder.key}
+                  onClick={() => setSelectedFolder(folder.key)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${selectedFolder === folder.key
+                    ? `bg-gradient-to-r ${folder.color} text-white shadow-lg`
+                    : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
+                    }`}
+                >
+                  <folder.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>{folder.label}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${selectedFolder === folder.key
+                    ? 'bg-white/20 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    }`}>
+                    {paperCounts[folder.key as keyof typeof paperCounts]}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+
+            {/* Papers Grid */}
+            {loadingPapers ? (
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
+              </div>
+            ) : filteredPapers.length === 0 ? (
+              <div className="text-center py-12">
+                <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400 text-lg">No papers in this folder yet</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredPapers.slice(0, 20).map((paper, index) => (
+                  <motion.div
+                    key={paper.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.03 }}
+                    className="group bg-white dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-600 transition-all cursor-pointer"
+                    onClick={() => setPreviewModal({
+                      isOpen: true,
+                      fileName: paper.file_name,
+                      filePath: paper.file_path,
+                      paperId: paper.id
+                    })}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${paper.paper_type === 'midterm' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+                        paper.paper_type === 'endterm' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
+                          'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                        }`}>
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{paper.course_code}</p>
+                        <p className="text-gray-600 dark:text-gray-400 text-xs truncate">{paper.course_name}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${paper.paper_type === 'midterm' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
+                            paper.paper_type === 'endterm' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
+                              'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
+                            }`}>
+                            {paper.paper_type}
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-500 text-xs">{paper.year}</span>
+                        </div>
+                      </div>
+                      <Eye className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Show more indicator */}
+            {filteredPapers.length > 20 && (
+              <div className="text-center mt-6">
+                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                  Showing 20 of {filteredPapers.length} papers. <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline">Login</Link> to see all.
+                </p>
+              </div>
+            )}
           </motion.div>
         </div>
 
