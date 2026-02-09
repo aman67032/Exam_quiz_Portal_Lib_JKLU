@@ -40,6 +40,8 @@ const PublicHome: React.FC = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
   const [loadingPapers, setLoadingPapers] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAPERS_PER_PAGE = 20;
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -105,6 +107,15 @@ const PublicHome: React.FC = () => {
     if (selectedFolder === 'all') return papers;
     return papers.filter(p => p.paper_type === selectedFolder);
   }, [papers, selectedFolder]);
+
+  // Paginated papers
+  const paginatedPapers = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAPERS_PER_PAGE;
+    return filteredPapers.slice(startIndex, startIndex + PAPERS_PER_PAGE);
+  }, [filteredPapers, currentPage]);
+
+  // Total pages
+  const totalPages = Math.ceil(filteredPapers.length / PAPERS_PER_PAGE);
 
   // Get paper counts by type
   const paperCounts = useMemo(() => ({
@@ -815,7 +826,7 @@ const PublicHome: React.FC = () => {
               ].map((folder) => (
                 <motion.button
                   key={folder.key}
-                  onClick={() => setSelectedFolder(folder.key)}
+                  onClick={() => { setSelectedFolder(folder.key); setCurrentPage(1); }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${selectedFolder === folder.key
@@ -847,7 +858,7 @@ const PublicHome: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredPapers.slice(0, 20).map((paper, index) => (
+                {paginatedPapers.map((paper, index) => (
                   <motion.div
                     key={paper.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -889,12 +900,53 @@ const PublicHome: React.FC = () => {
               </div>
             )}
 
-            {/* Show more indicator */}
-            {filteredPapers.length > 20 && (
-              <div className="text-center mt-6">
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Showing 20 of {filteredPapers.length} papers. <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline">Login</Link> to see all.
-                </p>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg text-sm font-medium bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/50 dark:border-gray-600/50"
+                >
+                  ←
+                </button>
+
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${currentPage === pageNum
+                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg'
+                          : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
+                        }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 rounded-lg text-sm font-medium bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/50 dark:border-gray-600/50"
+                >
+                  →
+                </button>
+
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                  Page {currentPage} of {totalPages}
+                </span>
               </div>
             )}
           </motion.div>
