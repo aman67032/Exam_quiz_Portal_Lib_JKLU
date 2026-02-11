@@ -33,6 +33,14 @@ type CacheEntry<T = any> = {
   ttl: number;
 };
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
 const responseCache = new Map<string, CacheEntry>();
 const DEFAULT_TTL = 5 * 60 * 1000; // 5 minutes
 
@@ -310,6 +318,30 @@ export const API = {
       });
     }
     return getWithCache('/papers/public/all', { params });
+  },
+
+  getPublicPapersPaginated: (
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      course_id?: number;
+      paper_type?: string;
+      year?: number;
+      semester?: string;
+      department?: string;
+    }
+  ) => {
+    const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('limit', String(limit));
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, String(value));
+      });
+    }
+    // shorter TTL for paginated results as they might change more often
+    return getWithCache<PaginatedResponse<any>>('/papers/public', { params, ttlMs: 30 * 1000 });
   },
 
   getPaper: (id: number) => {

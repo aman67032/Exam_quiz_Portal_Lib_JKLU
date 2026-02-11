@@ -41,6 +41,8 @@ const PublicHome: React.FC = () => {
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
   const [loadingPapers, setLoadingPapers] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPapers, setTotalPapers] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const PAPERS_PER_PAGE = 20;
 
   // Preview Modal
@@ -90,8 +92,21 @@ const PublicHome: React.FC = () => {
     const fetchPapers = async () => {
       try {
         setLoadingPapers(true);
-        const response = await API.getPublicPapers();
-        setPapers(Array.isArray(response.data) ? response.data : []);
+        const filters: any = {};
+        if (selectedFolder !== 'all') {
+          filters.paper_type = selectedFolder;
+        }
+
+        const response = await API.getPublicPapersPaginated(currentPage, PAPERS_PER_PAGE, filters);
+
+        if (response.data && 'items' in response.data) {
+          setPapers(response.data.items);
+          setTotalPapers(response.data.total);
+          setTotalPages(response.data.pages);
+        } else {
+          setPapers([]);
+          setTotalPapers(0);
+        }
       } catch (error) {
         console.error('Error fetching papers:', error);
         setPapers([]);
@@ -100,30 +115,7 @@ const PublicHome: React.FC = () => {
       }
     };
     fetchPapers();
-  }, []);
-
-  // Filter papers by folder type
-  const filteredPapers = useMemo(() => {
-    if (selectedFolder === 'all') return papers;
-    return papers.filter(p => p.paper_type === selectedFolder);
-  }, [papers, selectedFolder]);
-
-  // Paginated papers
-  const paginatedPapers = useMemo(() => {
-    const startIndex = (currentPage - 1) * PAPERS_PER_PAGE;
-    return filteredPapers.slice(startIndex, startIndex + PAPERS_PER_PAGE);
-  }, [filteredPapers, currentPage]);
-
-  // Total pages
-  const totalPages = Math.ceil(filteredPapers.length / PAPERS_PER_PAGE);
-
-  // Get paper counts by type
-  const paperCounts = useMemo(() => ({
-    all: papers.length,
-    midterm: papers.filter(p => p.paper_type === 'midterm').length,
-    endterm: papers.filter(p => p.paper_type === 'endterm').length,
-    other: papers.filter(p => p.paper_type === 'other').length,
-  }), [papers]);
+  }, [currentPage, selectedFolder]);
 
 
   // Responsive background tuning - dynamic hook that responds to window resize
@@ -813,7 +805,7 @@ const PublicHome: React.FC = () => {
               <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400">
                 Exam Papers Vault
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">Browse {papers.length} verified exam papers</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Browse verified exam papers</p>
             </div>
 
             {/* Folder Tabs */}
@@ -836,12 +828,11 @@ const PublicHome: React.FC = () => {
                 >
                   <folder.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{folder.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${selectedFolder === folder.key
-                    ? 'bg-white/20 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                    }`}>
-                    {paperCounts[folder.key as keyof typeof paperCounts]}
-                  </span>
+                  {selectedFolder === folder.key && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">
+                      {totalPapers}
+                    </span>
+                  )}
                 </motion.button>
               ))}
             </div>
@@ -851,14 +842,14 @@ const PublicHome: React.FC = () => {
               <div className="flex justify-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
               </div>
-            ) : filteredPapers.length === 0 ? (
+            ) : papers.length === 0 ? (
               <div className="text-center py-12">
                 <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600 dark:text-gray-400 text-lg">No papers in this folder yet</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {paginatedPapers.map((paper, index) => (
+                {papers.map((paper, index) => (
                   <motion.div
                     key={paper.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -927,8 +918,8 @@ const PublicHome: React.FC = () => {
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
                       className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${currentPage === pageNum
-                          ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg'
-                          : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
+                        ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg'
+                        : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
                         }`}
                     >
                       {pageNum}
@@ -945,7 +936,7 @@ const PublicHome: React.FC = () => {
                 </button>
 
                 <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                  Page {currentPage} of {totalPages}
+                  Page {currentPage} of {totalPages} (Total: {totalPapers})
                 </span>
               </div>
             )}
