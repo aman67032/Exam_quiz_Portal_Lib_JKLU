@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://exampaperportal-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://learnjklu-backend.vercel.app';
 
 /**
  * Build a fully-qualified URL for files stored in the backend uploads directory.

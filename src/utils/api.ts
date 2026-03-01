@@ -8,7 +8,7 @@ import type { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_BACKEND_URL ||
-  'https://exampaperportal-production.up.railway.app';
+  'https://learnjklu-backend.vercel.app';
 
 // Log backend URL in development mode for debugging
 if (import.meta.env.DEV) {

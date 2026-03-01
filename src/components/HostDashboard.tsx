@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://exampaperportal-production.up.railway.app';
+const API_BASE_URL = import.meta.env.VITE_API_URL || import.meta.env.VITE_BACKEND_URL || 'https://learnjklu-backend.vercel.app';
 
 interface Course {
     id: number;
