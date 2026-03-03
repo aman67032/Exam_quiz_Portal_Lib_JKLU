@@ -36,6 +36,7 @@ interface Announcement {
     title: string;
     content: string;
     attachment_url?: string;
+    download_url?: string;
     created_at: string;
 }
 
@@ -263,9 +264,9 @@ const CodingHourPage: React.FC = () => {
                                         {ann.content}
                                     </p>
 
-                                    {ann.attachment_url && (
+                                    {(ann.download_url || ann.attachment_url) && (
                                         <a
-                                            href={`${API.baseURL}/uploads/${ann.attachment_url}`}
+                                            href={ann.download_url || `${API.baseURL}/uploads/${ann.attachment_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="flex items-center gap-2 text-xs text-blue-400 hover:text-blue-300 transition-colors bg-blue-900/20 px-3 py-2 rounded-lg w-fit border border-blue-500/20 hover:bg-blue-900/30"

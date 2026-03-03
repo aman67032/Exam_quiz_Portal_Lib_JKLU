@@ -7,7 +7,7 @@ import {
     Plus, X, Loader2, Code, Calendar,
     Terminal, Trash2, Edit,
     LogOut, ChevronDown,
-    Megaphone, FileText, Upload
+    Megaphone, FileText, Upload, Download
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
 import MatrixBackground from './MatrixBackground';
@@ -45,6 +45,7 @@ interface Announcement {
     title: string;
     content: string;
     attachment_url?: string;
+    download_url?: string;
     created_at: string;
 }
 
@@ -585,11 +586,16 @@ const CodingHourAdmin: React.FC = () => {
 
                                 <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
                                     <span className="text-[10px] text-gray-600 font-mono">TS: {new Date(ann.created_at).toLocaleDateString()}</span>
-                                    {ann.attachment_url && (
-                                        <div className="flex items-center gap-2 text-[10px] font-black text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 uppercase tracking-tighter">
-                                            <FileText size={12} />
-                                            Secure Attachment
-                                        </div>
+                                    {(ann.download_url || ann.attachment_url) && (
+                                        <a
+                                            href={ann.download_url || `${API_BASE_URL}/uploads/${ann.attachment_url}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 text-[10px] font-black text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20 uppercase tracking-tighter hover:bg-blue-500/20 transition-all"
+                                        >
+                                            <Download size={12} />
+                                            {ann.download_url ? 'Download Attachment' : 'View Attachment'}
+                                        </a>
                                     )}
                                 </div>
                             </motion.div>
