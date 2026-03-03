@@ -379,10 +379,10 @@ const PublicHome: React.FC = () => {
                 {user ? (
                   <>
                     <Link
-                      to={user.is_admin ? '/admin' : '/dashboard'}
+                      to={user.is_admin ? '/admin' : (user.admin_role === 'coding_ta' || user.is_sub_admin) ? '/host-dashboard' : '/dashboard'}
                       className="px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-medium text-xs sm:text-sm shadow-lg whitespace-nowrap flex-shrink-0 min-h-[36px] sm:min-h-[40px] flex items-center justify-center touch-manipulation"
                     >
-                      {user.is_admin ? 'Admin' : 'Dashboard'}
+                      {user.is_admin ? 'Admin' : (user.admin_role === 'coding_ta' || user.is_sub_admin) ? 'Host Dashboard' : 'Dashboard'}
                     </Link>
                     <Link
                       to="/profile"

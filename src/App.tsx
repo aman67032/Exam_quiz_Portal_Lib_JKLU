@@ -145,7 +145,7 @@ function AppContent() {
             <Route
               path="/host-dashboard"
               element={
-                user && (user.is_admin || user.is_sub_admin) ? (
+                user && (user.is_admin || user.admin_role === 'coding_ta' || user.is_sub_admin) ? (
                   <HostDashboard />
                 ) : (
                   <Navigate to="/home" replace />
@@ -156,7 +156,7 @@ function AppContent() {
             <Route
               path="/admin/coding-hour"
               element={
-                user && (user.is_admin || user.is_sub_admin) ? (
+                user && (user.is_admin || user.admin_role === 'coding_ta' || user.is_sub_admin) ? (
                   <HostDashboard />
                 ) : (
                   <Navigate to="/home" replace />

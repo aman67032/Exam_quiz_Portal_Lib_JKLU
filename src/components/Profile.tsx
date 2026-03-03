@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { User, Mail, IdCard, CheckCircle2, Upload, ArrowLeft, Edit2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Toast from './Toast';
 import { buildUploadUrl } from '../utils/uploads';
@@ -28,7 +29,7 @@ type Me = {
 };
 
 const Profile: React.FC = () => {
-  const { } = useAuth();
+  const { user } = useAuth();
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -237,14 +238,13 @@ const Profile: React.FC = () => {
 
             {/* Right side - Back button and JKLU Logo on desktop */}
             <div className="flex items-center gap-4 sm:gap-6">
-              <motion.a
-                href="/dashboard"
+              <Link
+                to={user?.is_admin ? '/admin' : (user?.admin_role === 'coding_ta' || user?.is_sub_admin) ? '/host-dashboard' : '/dashboard'}
                 className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-                whileHover={{ x: -4 }}
-                whileTap={{ scale: 0.95 }}
+              // Using standard Link instead of motion.a to avoid TypeScript motion prop typing issues with react-router Link, though motion(Link) is an alternative.
               >
                 <ArrowLeft className="h-4 w-4" /> <span className="hidden sm:inline">Back to dashboard</span>
-              </motion.a>
+              </Link>
               {/* JKLU Logo - Right side on desktop */}
               <div className="hidden sm:flex items-center flex-shrink-0">
                 <JKLULogo size="sm" className="opacity-90 hover:opacity-100" />
@@ -413,8 +413,8 @@ const Profile: React.FC = () => {
                             placeholder="eg. 20XXBtech/BBA/BDES123"
                             required
                             className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${errors.rollno
-                                ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30'
-                                : 'border-gray-300 dark:border-gray-600'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30'
+                              : 'border-gray-300 dark:border-gray-600'
                               }`}
                           />
                           {errors.rollno && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.rollno}</p>}
@@ -428,8 +428,8 @@ const Profile: React.FC = () => {
                             onChange={(e) => setExtra({ ...extra, studentId: e.target.value })}
                             required
                             className={`w-full px-6 py-4 text-base bg-white dark:bg-gray-800/90 border-2 rounded-2xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-4 focus:ring-purple-500/30 dark:focus:ring-purple-400/30 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md ${errors.studentId
-                                ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30'
-                                : 'border-gray-300 dark:border-gray-600'
+                              ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400 focus:ring-red-500/30'
+                              : 'border-gray-300 dark:border-gray-600'
                               }`}
                           />
                           {errors.studentId && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.studentId}</p>}
@@ -679,8 +679,8 @@ const Profile: React.FC = () => {
                       placeholder="eg. 20XXBtech/BBA/BDES123"
                       required
                       className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${errors.rollno
-                          ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400'
-                          : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400'
+                        : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
                         }`}
                     />
                     {errors.rollno && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.rollno}</p>}
@@ -694,8 +694,8 @@ const Profile: React.FC = () => {
                       onChange={(e) => setExtra({ ...extra, studentId: e.target.value })}
                       required
                       className={`w-full px-4 py-2 bg-white/80 dark:bg-gray-700/80 border rounded-xl text-sm text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 transition-all ${errors.studentId
-                          ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400'
-                          : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
+                        ? 'border-red-500 dark:border-red-400 focus:border-red-500 dark:focus:border-red-400'
+                        : 'border-gray-200/50 dark:border-gray-600/50 focus:border-purple-500 dark:focus:border-purple-400'
                         }`}
                     />
                     {errors.studentId && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.studentId}</p>}

@@ -42,6 +42,16 @@ interface Course {
   description?: string;
 }
 
+interface AdminUser {
+  id: number;
+  email: string;
+  name: string;
+  is_admin: boolean;
+  admin_role: string | null;
+  is_sub_admin: boolean;
+  created_at: string;
+}
+
 interface VerificationRequest {
   id: number;
   name: string;
@@ -85,6 +95,10 @@ const AdminDashboard: React.FC = () => {
   const [verificationRequests, setVerificationRequests] = useState<VerificationRequest[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [userEditModal, setUserEditModal] = useState({ isOpen: false, user: null as AdminUser | null });
+  const [userEditForm, setUserEditForm] = useState({ is_admin: false, admin_role: '' });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [fileDiagnostics, setFileDiagnostics] = useState<any>(null);
   const [diagnosticsLoading, setDiagnosticsLoading] = useState(false);
@@ -275,8 +289,26 @@ const AdminDashboard: React.FC = () => {
     if (activeTab === 'all-papers' && token) {
       fetchAllPapers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperFilters, activeTab, token]);
+
+  useEffect(() => {
+    if (activeTab === 'users' && token) {
+      fetchUsers();
+    }
+  }, [activeTab, token]);
+
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(response.data);
+    } catch (err) {
+      showMessage('error', 'Failed to fetch users');
+    }
+    setUsersLoading(false);
+  };
 
   const reviewPaper = async (paperId: number, status: string, reason?: string, adminFeedback?: { message: string }) => {
     try {
@@ -584,6 +616,40 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const openUserEditModal = (userPayload: AdminUser) => {
+    setUserEditModal({ isOpen: true, user: userPayload });
+    setUserEditForm({ is_admin: userPayload.is_admin, admin_role: userPayload.admin_role || '' });
+  };
+
+  const submitUserEdit = async (userId: number) => {
+    try {
+      await axios.put(`${API_BASE_URL}/admin/users/${userId}`, {
+        is_admin: userEditForm.is_admin,
+        admin_role: userEditForm.admin_role || null
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showMessage('success', 'User role updated successfully');
+      setUserEditModal({ isOpen: false, user: null });
+      fetchUsers();
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to update user');
+    }
+  };
+
+  const deleteUser = async (userId: number) => {
+    if (!window.confirm('Are you sure you want to permanently delete this user?')) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showMessage('success', 'User deleted successfully');
+      fetchUsers();
+    } catch (err: any) {
+      showMessage('error', err.response?.data?.detail || 'Failed to delete user');
+    }
+  };
+
   const handleRejectProfile = (userId: number) => {
     setProfileRejectionModal({ isOpen: true, userId, feedback: '' });
   };
@@ -754,7 +820,7 @@ const AdminDashboard: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-1 flex space-x-1 shadow-lg shadow-green-500/10"
           >
-            {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts'].map(tab => (
+            {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts', 'users'].map(tab => (
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -765,7 +831,7 @@ const AdminDashboard: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : tab === 'courses' ? 'COURSE_MANAGEMENT' : 'HOST_MANAGEMENT'}
+                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : tab === 'courses' ? 'COURSE_MANAGEMENT' : tab === 'hosts' ? 'HOST_MANAGEMENT' : 'USER_MANAGEMENT'}
               </motion.button>
             ))}
           </motion.div>
@@ -1739,7 +1805,170 @@ const AdminDashboard: React.FC = () => {
               </motion.div>
             </motion.div>
           )}
+
+          {/* Users Tab */}
+          {activeTab === 'users' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                <User className="text-green-400" size={32} />
+                USER_MANAGEMENT
+              </h2>
+
+              <div className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg overflow-x-auto min-h-[400px]">
+                {usersLoading ? (
+                  <div className="flex justify-center p-8">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="w-10 h-10 border-4 border-black border-t-green-500 rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b-2 border-green-500/30 text-green-400 font-mono text-sm uppercase">
+                        <th className="p-4">Name</th>
+                        <th className="p-4">Email</th>
+                        <th className="p-4">Admin Status</th>
+                        <th className="p-4">Admin Role</th>
+                        <th className="p-4">Joined</th>
+                        <th className="p-4 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-green-500/10 text-green-400/80 font-mono">
+                      {users.map((u) => (
+                        <motion.tr
+                          key={u.id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="hover:bg-green-500/5 transition-colors"
+                        >
+                          <td className="p-4 whitespace-nowrap">{u.name}</td>
+                          <td className="p-4 whitespace-nowrap">{u.email}</td>
+                          <td className="p-4">
+                            {u.is_admin ? (
+                              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded border border-green-500/30 text-xs">TRUE</span>
+                            ) : (
+                              <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded border border-gray-500/30 text-xs">FALSE</span>
+                            )}
+                          </td>
+                          <td className="p-4">
+                            {u.admin_role ? <span className="text-cyan-400">{u.admin_role}</span> : <span className="text-gray-500">-</span>}
+                          </td>
+                          <td className="p-4 whitespace-nowrap text-sm">
+                            {new Date(u.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="p-4 text-right">
+                            <div className="flex justify-end space-x-2">
+                              <button
+                                onClick={() => openUserEditModal(u)}
+                                className="p-2 text-blue-400 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/30 rounded transition-all"
+                                title="Edit Role"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                              <button
+                                onClick={() => deleteUser(u.id)}
+                                className="p-2 text-red-400 hover:bg-red-500/20 border border-transparent hover:border-red-500/30 rounded transition-all"
+                                title="Delete User"
+                                disabled={u.id === user?.id}
+                              >
+                                <Trash2 size={16} className={u.id === user?.id ? 'opacity-50' : ''} />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                      {users.length === 0 && (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-gray-500">No users found</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </motion.div>
+          )}
+
         </div>
+
+        {/* User Edit Modal */}
+        {userEditModal.isOpen && userEditModal.user && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setUserEditModal({ isOpen: false, user: null })}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gray-900 border-2 border-green-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+            >
+              <h3 className="text-xl font-bold text-green-400 mb-6 font-mono">EDIT_USER: {userEditModal.user.name}</h3>
+
+              <div className="space-y-6 font-mono">
+                <div className="flex items-center space-x-3 p-4 bg-black/40 border border-green-500/20 rounded-lg">
+                  <input
+                    type="checkbox"
+                    id="isAdminCheck"
+                    checked={userEditForm.is_admin}
+                    onChange={(e) => setUserEditForm({ ...userEditForm, is_admin: e.target.checked })}
+                    className="w-5 h-5 accent-green-500"
+                    disabled={userEditModal.user.id === user?.id}
+                  />
+                  <div className="flex flex-col">
+                    <label htmlFor="isAdminCheck" className="text-sm font-bold text-green-400 uppercase cursor-pointer">
+                      IS_ADMIN
+                    </label>
+                    <span className="text-xs text-gray-400">Grants administrative access</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-green-400 mb-2 uppercase">
+                    ADMIN_ROLE
+                  </label>
+                  <select
+                    value={userEditForm.admin_role}
+                    onChange={(e) => setUserEditForm({ ...userEditForm, admin_role: e.target.value })}
+                    className="w-full px-4 py-3 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 uppercase appearance-none"
+                    disabled={userEditModal.user.id === user?.id}
+                  >
+                    <option value="">NONE (Super Admin or Basic User)</option>
+                    <option value="coding_ta">CODING_TA</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex space-x-4 justify-end mt-8">
+                <motion.button
+                  onClick={() => setUserEditModal({ isOpen: false, user: null })}
+                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  CANCEL
+                </motion.button>
+                <motion.button
+                  onClick={() => submitUserEdit(userEditModal.user!.id)}
+                  disabled={userEditModal.user.id === user?.id}
+                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={{ scale: userEditModal.user.id === user?.id ? 1 : 1.02 }}
+                  whileTap={{ scale: userEditModal.user.id === user?.id ? 1 : 0.98 }}
+                >
+                  SAVE_CHANGES
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
 
         {/* File Preview Modal */}
         <FilePreviewModal

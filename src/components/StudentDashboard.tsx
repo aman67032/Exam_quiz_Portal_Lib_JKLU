@@ -351,6 +351,14 @@ const StudentDashboard: React.FC = () => {
                 animate={{ opacity: 1, x: 0 }}
                 className="flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-4"
               >
+                {(user?.admin_role === 'coding_ta' || user?.is_sub_admin) && (
+                  <Link
+                    to="/host-dashboard"
+                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg text-xs sm:text-sm font-semibold hover:shadow-indigo-500/20"
+                  >
+                    Host Dashboard
+                  </Link>
+                )}
                 <Link
                   to="/home"
                   className="px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 hover:shadow-purple-500/20"
