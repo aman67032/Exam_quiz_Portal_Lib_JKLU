@@ -84,7 +84,7 @@ function AppContent() {
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
                 ) : (
                   <Login />
                 )
@@ -94,7 +94,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
                 ) : (
                   <Register />
                 )
@@ -104,7 +104,7 @@ function AppContent() {
               path="/admin-login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
                 ) : (
                   <AdminLogin />
                 )
@@ -114,7 +114,7 @@ function AppContent() {
               path="/forgot-password"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
                 ) : (
                   <ForgotPassword />
                 )
@@ -141,9 +141,9 @@ function AppContent() {
                 )
               }
             />
-            {/* Host Dashboard - for Sub Admins */}
+            {/* Host Dashboard - for Sub Admins (must be before /admin/* wildcard) */}
             <Route
-              path="/host-dashboard"
+              path="/admin/contests"
               element={
                 user && (user.is_admin || user.admin_role === 'coding_ta' || user.is_sub_admin) ? (
                   <HostDashboard />
@@ -203,7 +203,7 @@ function AppContent() {
               path="*"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/host-dashboard" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
                 ) : (
                   <Navigate to="/" replace />
                 )
