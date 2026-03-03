@@ -21,7 +21,7 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const PublicHome = lazy(() => import('./components/PublicHome'));
 const CodingHourPage = lazy(() => import('./components/CodingHourPage'));
 const ChallengePage = lazy(() => import('./components/ChallengePage'));
-const HostDashboard = lazy(() => import('./components/HostDashboard'));
+const CodingHourAdmin = lazy(() => import('./components/CodingHourAdmin'));
 
 // Loading fallback component with backend wake-up message
 const LoadingFallback = () => {
@@ -146,7 +146,7 @@ function AppContent() {
               path="/admin/contests"
               element={
                 user && (user.is_admin || user.admin_role === 'coding_ta' || user.is_sub_admin) ? (
-                  <HostDashboard />
+                  <CodingHourAdmin />
                 ) : (
                   <Navigate to="/home" replace />
                 )
@@ -157,7 +157,7 @@ function AppContent() {
               path="/admin/coding-hour"
               element={
                 user && (user.is_admin || user.admin_role === 'coding_ta' || user.is_sub_admin) ? (
-                  <HostDashboard />
+                  <CodingHourAdmin />
                 ) : (
                   <Navigate to="/home" replace />
                 )

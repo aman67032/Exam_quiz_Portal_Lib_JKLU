@@ -744,48 +744,52 @@ const AdminDashboard: React.FC = () => {
           animate={{ y: 0 }}
           className="bg-black/80 backdrop-blur-xl border-b border-green-500/30 shadow-lg shadow-green-500/20"
         >
-          <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <motion.div
-                className="relative"
-                animate={{
-                  boxShadow: [
-                    '0 0 10px #00ff41',
-                    '0 0 20px #00ff41',
-                    '0 0 10px #00ff41'
-                  ]
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <div className="bg-gradient-to-br from-green-500 to-cyan-500 w-12 h-12 rounded-lg flex items-center justify-center">
-                  <Terminal className="text-black" size={28} />
+          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-start">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  className="relative flex-shrink-0"
+                  animate={{
+                    boxShadow: [
+                      '0 0 10px #00ff41',
+                      '0 0 20px #00ff41',
+                      '0 0 10px #00ff41'
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <div className="bg-gradient-to-br from-green-500 to-cyan-500 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center">
+                    <Terminal className="text-black w-6 h-6 sm:w-7 sm:h-7" />
+                  </div>
+                </motion.div>
+                <div>
+                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent font-mono whitespace-nowrap">
+                    ADMIN_DASHBOARD
+                  </h1>
+                  <p className="text-xs sm:text-sm text-green-400 font-mono">USER: {user?.name}</p>
                 </div>
-              </motion.div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent font-mono">
-                  ADMIN_DASHBOARD.exe
-                </h1>
-                <p className="text-sm text-green-400 font-mono">USER: {user?.name}</p>
+              </div>
+              <div className="flex items-center sm:hidden flex-shrink-0">
+                <JKLULogo size="sm" className="opacity-90" />
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* JKLU Logo - Integrated in navbar */}
-              <div className="flex items-center ml-2 sm:ml-4 flex-shrink-0">
-                <JKLULogo size="sm" className="sm:hidden opacity-90 hover:opacity-100" />
-                <JKLULogo size="md" className="hidden sm:block opacity-90 hover:opacity-100" />
+
+            <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="hidden sm:block flex-shrink-0 mr-2">
+                <JKLULogo size="md" className="opacity-90 hover:opacity-100 transition-opacity" />
               </div>
-              <div className="flex items-center space-x-2 px-4 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <Activity className="h-4 w-4 text-green-400 animate-pulse" />
-                <span className="text-sm text-green-400 font-mono">SYSTEM_ONLINE</span>
+              <div className="flex items-center space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-green-400 animate-pulse" />
+                <span className="text-xs sm:text-sm text-green-400 font-mono">ONLINE</span>
               </div>
               <motion.button
                 onClick={logout}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-lg font-mono transition-all"
+                className="flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-lg font-mono text-xs sm:text-sm transition-all"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <LogOut size={18} />
-                <span>LOGOUT</span>
+                <LogOut size={16} />
+                <span className="hidden sm:inline">LOGOUT</span>
               </motion.button>
             </div>
           </div>
@@ -818,20 +822,20 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-1 flex space-x-1 shadow-lg shadow-green-500/10"
+            className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-2 flex space-x-2 overflow-x-auto shadow-lg shadow-green-500/10 custom-scrollbar pb-2"
           >
             {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts', 'users'].map(tab => (
               <motion.button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-1 px-6 py-3 rounded-md font-mono font-bold uppercase transition-all ${activeTab === tab
+                className={`flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-md font-mono font-bold text-xs sm:text-sm uppercase transition-all whitespace-nowrap ${activeTab === tab
                   ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-black shadow-lg shadow-green-500/50'
                   : 'text-green-400 hover:bg-green-500/10 border border-transparent hover:border-green-500/30'
                   }`}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                {tab === 'dashboard' ? 'DASHBOARD' : tab === 'upload' ? 'UPLOAD_PAPER' : tab === 'all-papers' ? 'ALL_DOCUMENTS' : tab === 'pending' ? 'PENDING_REVIEW' : tab === 'courses' ? 'COURSE_MANAGEMENT' : tab === 'hosts' ? 'HOST_MANAGEMENT' : 'USER_MANAGEMENT'}
+                {tab === 'dashboard' ? 'Overview' : tab === 'upload' ? 'Upload' : tab === 'all-papers' ? 'Documents' : tab === 'pending' ? 'Pending' : tab === 'courses' ? 'Courses' : tab === 'hosts' ? 'Hosts' : 'Users'}
               </motion.button>
             ))}
           </motion.div>
@@ -893,15 +897,15 @@ const AdminDashboard: React.FC = () => {
               className="space-y-8"
             >
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <Database className="text-cyan-400" size={28} />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                  <h2 className="text-xl sm:text-2xl font-bold font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <Database className="text-cyan-400 flex-shrink-0" size={24} />
                     ALL_DOCUMENTS [{allPapers.length}]
                   </h2>
                   <motion.button
                     onClick={runFileDiagnostics}
                     disabled={diagnosticsLoading}
-                    className="flex items-center space-x-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 rounded-lg font-mono transition-all disabled:opacity-50"
+                    className="flex items-center justify-center space-x-2 px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/30 rounded-lg font-mono transition-all disabled:opacity-50 w-full sm:w-auto"
                     whileHover={{ scale: diagnosticsLoading ? 1 : 1.05 }}
                     whileTap={{ scale: diagnosticsLoading ? 1 : 0.95 }}
                   >
@@ -1022,24 +1026,24 @@ const AdminDashboard: React.FC = () => {
                         transition={{ delay: index * 0.05 }}
                         className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-6 hover:border-cyan-500/60 transition-all shadow-lg hover:shadow-cyan-500/10"
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-cyan-400 font-mono mb-2">{paper.title}</h3>
-                            <div className="text-sm text-cyan-400/70 font-mono mb-1">
+                        <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
+                          <div className="flex-1 w-full">
+                            <h3 className="text-lg sm:text-xl font-bold text-cyan-400 font-mono mb-2 break-words">{paper.title}</h3>
+                            <div className="text-xs sm:text-sm text-cyan-400/70 font-mono mb-1">
                               <span className="text-blue-400">COURSE:</span> {paper.course_code} - {paper.course_name}
                             </div>
-                            <div className="text-sm text-cyan-400/50 font-mono">
-                              <span className="text-blue-400">UPLOADED_BY:</span> {paper.uploader_name} {paper.uploader_email && `(${paper.uploader_email})`}
+                            <div className="text-xs sm:text-sm text-cyan-400/50 font-mono">
+                              <span className="text-blue-400">UPLOADED_BY:</span> {paper.uploader_name} {paper.uploader_email && <span className="block sm:inline sm:ml-1">({paper.uploader_email})</span>}
                             </div>
                           </div>
-                          <div className="flex flex-col gap-2 items-end">
-                            <span className={`px-3 py-1 border text-xs font-mono rounded-lg ${paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                          <div className="flex flex-row sm:flex-col gap-2 items-center sm:items-end w-full sm:w-auto">
+                            <span className={`px-2 sm:px-3 py-1 border text-[10px] sm:text-xs font-mono rounded-lg ${paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
                               paper.status === 'rejected' ? 'bg-red-500/20 border-red-500/50 text-red-400' :
                                 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
                               }`}>
                               {paper.status?.toUpperCase() || 'PENDING'}
                             </span>
-                            <span className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-xs font-mono rounded-lg">
+                            <span className="px-2 sm:px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[10px] sm:text-xs font-mono rounded-lg whitespace-nowrap">
                               {paper.paper_type.toUpperCase()}
                             </span>
                           </div>
@@ -1049,14 +1053,14 @@ const AdminDashboard: React.FC = () => {
                           <p className="text-cyan-400/60 mb-4 font-mono text-sm">{paper.description}</p>
                         )}
 
-                        <div className="flex items-center justify-between pt-4 border-t border-cyan-500/20">
-                          <div className="flex flex-col gap-1">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-cyan-500/20 gap-4">
+                          <div className="flex flex-col gap-1 w-full sm:w-auto">
                             <div className="text-sm text-cyan-400/50 font-mono">
                               {paper.year && `YEAR: ${paper.year}`}
                               {paper.semester && ` | SEMESTER: ${paper.semester}`}
                             </div>
                             {paper.file_path && (
-                              <div className="text-xs text-cyan-400/40 font-mono">
+                              <div className="text-xs text-cyan-400/40 font-mono truncate max-w-xs sm:max-w-md">
                                 FILE: {paper.file_path}
                               </div>
                             )}
@@ -1066,7 +1070,7 @@ const AdminDashboard: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex flex-wrap gap-2 justify-start sm:justify-end w-full sm:w-auto">
                             <motion.button
                               onClick={() => {
                                 if (!paper.file_name) {
@@ -1148,8 +1152,8 @@ const AdminDashboard: React.FC = () => {
             >
               {/* ID Verification Requests Section */}
               <div>
-                <h2 className="text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-3">
-                  <User className="text-yellow-400" size={28} />
+                <h2 className="text-xl sm:text-2xl font-bold mb-4 font-mono bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-3">
+                  <User className="text-yellow-400 flex-shrink-0" size={24} />
                   ID_VERIFICATION_REQUESTS [{verificationRequests.length}]
                 </h2>
                 {verificationRequests.length === 0 ? (
@@ -1168,22 +1172,24 @@ const AdminDashboard: React.FC = () => {
                         className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-6 hover:border-yellow-500/60 transition-all shadow-lg hover:shadow-yellow-500/10"
                       >
                         <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-xl font-bold text-yellow-400 font-mono mb-2">{request.name}</h3>
-                            <div className="text-sm text-yellow-400/70 font-mono mb-1">
+                          <div className="flex-1 w-full">
+                            <h3 className="text-lg sm:text-xl font-bold text-yellow-400 font-mono mb-2 break-words">{request.name}</h3>
+                            <div className="text-xs sm:text-sm text-yellow-400/70 font-mono mb-1 truncate">
                               <span className="text-cyan-400">EMAIL:</span> {request.email}
                             </div>
                             {(request.university || request.department || request.roll_no) && (
-                              <div className="text-sm text-yellow-400/50 font-mono">
-                                {request.university && <><span className="text-cyan-400">UNIVERSITY:</span> {request.university} | </>}
-                                {request.department && <><span className="text-cyan-400">DEPT:</span> {request.department} | </>}
-                                {request.roll_no && <><span className="text-cyan-400">ROLL:</span> {request.roll_no}</>}
+                              <div className="text-xs sm:text-sm text-yellow-400/50 font-mono space-y-1 sm:space-y-0 sm:space-x-2">
+                                {request.university && <p className="inline-block"><span className="text-cyan-400">UNI:</span> {request.university}</p>}
+                                {request.department && <p className="inline-block"><span className="text-cyan-400">DEPT:</span> {request.department}</p>}
+                                {request.roll_no && <p className="inline-block"><span className="text-cyan-400">ROLL:</span> {request.roll_no}</p>}
                               </div>
                             )}
                           </div>
-                          <span className="px-4 py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-sm font-mono rounded-lg">
-                            PENDING_VERIFICATION
-                          </span>
+                          <div className="mt-2 sm:mt-0">
+                            <span className="px-2 sm:px-4 py-1 sm:py-2 bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 text-[10px] sm:text-xs font-mono rounded-lg whitespace-nowrap">
+                              PENDING
+                            </span>
+                          </div>
                         </div>
 
                         <div className="flex items-center justify-end pt-4 border-t border-yellow-500/20">
@@ -1205,21 +1211,21 @@ const AdminDashboard: React.FC = () => {
 
               {/* Pending Papers Section */}
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <Database className="text-blue-400" size={28} />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+                  <h2 className="text-xl sm:text-2xl font-bold font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
+                    <Database className="text-blue-400 flex-shrink-0" size={24} />
                     PENDING_PAPERS [{pendingPapers.length}]
                   </h2>
                   {pendingPapers.length > 0 && (
                     <motion.button
                       onClick={handleApproveAll}
                       disabled={loading}
-                      className="flex items-center space-x-2 px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 w-full sm:w-auto"
                       whileHover={{ scale: loading ? 1 : 1.05, boxShadow: loading ? 'none' : '0 0 20px rgba(34, 197, 94, 0.5)' }}
                       whileTap={{ scale: loading ? 1 : 0.95 }}
                     >
-                      <CheckCircle size={20} />
-                      <span>APPROVE ALL</span>
+                      <CheckCircle size={18} />
+                      <span className="text-sm">APPROVE ALL</span>
                     </motion.button>
                   )}
                 </div>
@@ -1257,14 +1263,14 @@ const AdminDashboard: React.FC = () => {
                           <p className="text-blue-400/60 mb-4 font-mono text-sm">{paper.description}</p>
                         )}
 
-                        <div className="flex items-center justify-between pt-4 border-t border-blue-500/20">
-                          <div className="flex flex-col gap-1">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-blue-500/20 gap-4">
+                          <div className="flex flex-col gap-1 w-full sm:w-auto">
                             <div className="text-sm text-blue-400/50 font-mono">
                               {paper.year && `YEAR: ${paper.year}`}
                               {paper.semester && ` | SEMESTER: ${paper.semester}`}
                             </div>
                             {paper.file_path && (
-                              <div className="text-xs text-blue-400/40 font-mono">
+                              <div className="text-xs text-blue-400/40 font-mono truncate max-w-xs sm:max-w-md">
                                 FILE: {paper.file_path}
                               </div>
                             )}
@@ -1274,7 +1280,7 @@ const AdminDashboard: React.FC = () => {
                               </div>
                             )}
                           </div>
-                          <div className="flex space-x-2">
+                          <div className="flex flex-wrap gap-2 justify-start sm:justify-end w-full sm:w-auto">
                             <motion.button
                               onClick={() => {
                                 if (!paper.file_name) {
@@ -1630,11 +1636,11 @@ const AdminDashboard: React.FC = () => {
                       placeholder="Optional description"
                     />
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4">
                     <motion.button
                       onClick={handleCourseSubmit}
                       disabled={loading || !courseForm.code || !courseForm.name}
-                      className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                      className="w-full sm:w-auto px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-green-500/50 transition-all"
                       whileHover={{ scale: loading || !courseForm.code || !courseForm.name ? 1 : 1.02 }}
                       whileTap={{ scale: loading || !courseForm.code || !courseForm.name ? 1 : 0.98 }}
                     >
@@ -1646,7 +1652,7 @@ const AdminDashboard: React.FC = () => {
                           setEditingCourse(null);
                           setCourseForm({ code: '', name: '', description: '' });
                         }}
-                        className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                        className="w-full sm:w-auto px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -1665,19 +1671,19 @@ const AdminDashboard: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-4 flex items-center justify-between hover:border-green-500/60 transition-all"
+                    className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-green-500/60 transition-all"
                   >
-                    <div>
-                      <div className="font-bold text-green-400 font-mono text-lg">
+                    <div className="w-full sm:w-auto">
+                      <div className="font-bold text-green-400 font-mono text-lg break-words">
                         {course.code} - {course.name}
                       </div>
                       {course.description && (
-                        <div className="text-sm text-green-400/50 font-mono mt-1">
+                        <div className="text-sm text-green-400/50 font-mono mt-1 break-words">
                           {course.description}
                         </div>
                       )}
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 w-full sm:w-auto justify-end">
                       <motion.button
                         onClick={() => {
                           setEditingCourse(course);
