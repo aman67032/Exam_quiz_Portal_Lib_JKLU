@@ -7,7 +7,7 @@ import {
     Plus, X, Loader2, Code, Calendar,
     Terminal, Trash2, Edit,
     LogOut, ChevronDown,
-    Megaphone, FileText, Upload, Download
+    Megaphone, Upload, Download
 } from 'lucide-react';
 import JKLULogo from './JKLULogo';
 import MatrixBackground from './MatrixBackground';
