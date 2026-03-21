@@ -36,6 +36,7 @@ const PublicHome: React.FC = () => {
     semester: string;
     file_name: string;
     file_path: string;
+    uploader_name?: string;
   }
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
@@ -896,7 +897,7 @@ const PublicHome: React.FC = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.03 }}
-                    className="group bg-white dark:bg-gray-800 rounded-xl border border-gray-200/50 dark:border-gray-700/50 p-4 hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-600 transition-all cursor-pointer"
+                    className="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-300/50 dark:hover:border-indigo-500/50 transition-all cursor-pointer flex flex-col"
                     onClick={() => setPreviewModal({
                       isOpen: true,
                       fileName: paper.file_name,
@@ -904,27 +905,60 @@ const PublicHome: React.FC = () => {
                       paperId: paper.id
                     })}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className={`p-2 rounded-lg ${paper.paper_type === 'midterm' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
-                        paper.paper_type === 'endterm' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
-                          'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                    {/* Top colored thick border based on type */}
+                    <div className={`h-2 w-full ${
+                      paper.paper_type === 'midterm' ? 'bg-blue-500' :
+                      paper.paper_type === 'endterm' ? 'bg-purple-500' :
+                      paper.paper_type === 'quiz' ? 'bg-amber-500' :
+                      'bg-emerald-500'
+                    }`} />
+                    
+                    <div className="p-5 flex flex-col flex-1">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className={`p-2.5 rounded-xl ${
+                          paper.paper_type === 'midterm' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' :
+                          paper.paper_type === 'endterm' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400' :
+                          paper.paper_type === 'quiz' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400' :
+                          'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
                         }`}>
-                        <FileText className="w-5 h-5" />
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                          paper.paper_type === 'midterm' ? 'bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' :
+                          paper.paper_type === 'endterm' ? 'bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' :
+                          paper.paper_type === 'quiz' ? 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' :
+                          'bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                        }`}>
+                          {paper.year} • {paper.paper_type}
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-white text-sm truncate">{paper.course_code}</p>
-                        <p className="text-gray-600 dark:text-gray-400 text-xs truncate">{paper.course_name}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${paper.paper_type === 'midterm' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' :
-                            paper.paper_type === 'endterm' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/50 dark:text-purple-300' :
-                              'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
-                            }`}>
-                            {paper.paper_type}
+                      
+                      <div className="flex flex-col flex-1 mb-4">
+                        <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1 line-clamp-2" title={paper.title}>
+                          {paper.title || "Untitled Document"}
+                        </h3>
+                        <div className="flex items-center gap-2 mt-1 -ml-1">
+                          {paper.course_code && (
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                              {paper.course_code}
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-500 dark:text-gray-400 truncate" title={paper.course_name || ""}>
+                            {paper.course_name || "Unknown Course"}
                           </span>
-                          <span className="text-gray-500 dark:text-gray-500 text-xs">{paper.year}</span>
                         </div>
                       </div>
-                      <Eye className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+
+                      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
+                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                           <User className="w-3.5 h-3.5" />
+                           <span className="truncate max-w-[120px]">{paper.uploader_name || "Anonymous"}</span>
+                         </div>
+                         <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-medium text-sm group-hover:underline">
+                            <span>View</span>
+                            <Eye className="w-4 h-4 ml-1" />
+                         </div>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
