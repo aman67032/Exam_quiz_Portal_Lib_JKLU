@@ -51,6 +51,12 @@ const StudentDashboard: React.FC = () => {
   const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' | 'info' });
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalPapers, setTotalPapers] = useState(0);
+  const pageSize = 10;
+
   // Upload form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadForm, setUploadForm] = useState({
@@ -92,25 +98,38 @@ const StudentDashboard: React.FC = () => {
       }
 
       const params: any = {
-        my_papers_only: true  // Backend will filter to only return this user's papers
+        my_papers_only: true, // Backend will filter to only return this user's papers
+        page: currentPage,
+        limit: pageSize
       };
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params[key] = value;
       });
 
-
-
       const response = await API.getPapers(params);
-      // Backend already filters to only user's papers when my_papers_only=true
-      // No need for additional frontend filtering
-      setPapers(response.data);
+      
+      if (response.data && response.data.items) {
+        setPapers(response.data.items);
+        setTotalPages(response.data.pages);
+        setTotalPapers(response.data.total);
+      } else {
+        // Fallback for unexpected response format
+        setPapers(Array.isArray(response.data) ? response.data : []);
+        setTotalPages(0);
+        setTotalPapers(0);
+      }
     } catch (error: any) {
       console.error('Error fetching papers:', error.message);
       setPapers([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
-  }, [filters, user]);
+  }, [filters, user, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   useEffect(() => {
     fetchCourses();
@@ -711,7 +730,7 @@ const StudentDashboard: React.FC = () => {
                         My Papers
                       </span>
                       <span className="px-3 py-1 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-pink-600 dark:text-pink-400 rounded-full text-sm font-bold">
-                        {papers.length}
+                        {totalPapers}
                       </span>
                     </h2>
                     <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50 text-xs sm:text-sm">
@@ -902,6 +921,50 @@ const StudentDashboard: React.FC = () => {
                           </div>
                         </motion.div>
                       ))}
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+                          <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                            Showing page <span className="text-gray-900 dark:text-white font-bold">{currentPage}</span> of <span className="text-gray-900 dark:text-white font-bold">{totalPages}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <motion.button
+                              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                              disabled={currentPage === 1}
+                              whileHover={{ scale: currentPage === 1 ? 1 : 1.05 }}
+                              whileTap={{ scale: currentPage === 1 ? 1 : 0.95 }}
+                              className="px-4 py-2 bg-white/70 dark:bg-gray-700/70 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
+                            >
+                              PREV
+                            </motion.button>
+                            <div className="flex items-center gap-1">
+                              {[...Array(totalPages)].map((_, i) => (
+                                <button
+                                  key={i + 1}
+                                  onClick={() => setCurrentPage(i + 1)}
+                                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                                    currentPage === i + 1
+                                      ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white shadow-md'
+                                      : 'bg-white/50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-600 border border-gray-100 dark:border-gray-600'
+                                  }`}
+                                >
+                                  {i + 1}
+                                </button>
+                              )).slice(Math.max(0, currentPage - 2), Math.min(totalPages, currentPage + 1))}
+                            </div>
+                            <motion.button
+                              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                              disabled={currentPage === totalPages}
+                              whileHover={{ scale: currentPage === totalPages ? 1 : 1.05 }}
+                              whileTap={{ scale: currentPage === totalPages ? 1 : 0.95 }}
+                              className="px-4 py-2 bg-white/70 dark:bg-gray-700/70 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 disabled:opacity-30 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
+                            >
+                              NEXT
+                            </motion.button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
