@@ -46,6 +46,9 @@ const PublicHome: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [loadingPapers, setLoadingPapers] = useState(true);
   const [totalPapers, setTotalPapers] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const pageSize = 20;
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -89,12 +92,11 @@ const PublicHome: React.FC = () => {
     fetchCourses();
   }, []);
 
-  // Fetch available years on mount
+  // Fetch metadata on mount
   useEffect(() => {
-    API.getPublicPapers().then(res => {
-      if (res.data && Array.isArray(res.data)) {
-        const years = Array.from(new Set(res.data.map((p: Paper) => p.year).filter(Boolean))).sort((a: any, b: any) => b - a);
-        setAvailableYears(years as number[]);
+    API.getPapersMetadata().then(res => {
+      if (res.data && res.data.years) {
+        setAvailableYears(res.data.years);
       }
     }).catch(console.error);
   }, []);
@@ -110,14 +112,16 @@ const PublicHome: React.FC = () => {
         if (selectedYear !== 'all') filters.year = selectedYear;
         if (searchQuery) filters.search = searchQuery;
 
-        const response = await API.getPublicPapers(filters);
+        const response = await API.getPublicPapers(currentPage, pageSize, filters);
 
-        if (response.data && Array.isArray(response.data)) {
-          setPapers(response.data);
-          setTotalPapers(response.data.length);
+        if (response.data && response.data.items) {
+          setPapers(response.data.items);
+          setTotalPapers(response.data.total);
+          setTotalPages(response.data.pages);
         } else {
-          setPapers([]);
+          setPapers(Array.isArray(response.data) ? response.data : []);
           setTotalPapers(0);
+          setTotalPages(0);
         }
       } catch (error) {
         console.error('Error fetching papers:', error);
@@ -132,6 +136,11 @@ const PublicHome: React.FC = () => {
     }, 300);
 
     return () => clearTimeout(timeoutId);
+  }, [selectedFolder, selectedCourse, selectedYear, searchQuery, currentPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
   }, [selectedFolder, selectedCourse, selectedYear, searchQuery]);
 
 
@@ -889,80 +898,116 @@ const PublicHome: React.FC = () => {
                 <p className="text-gray-600 dark:text-gray-400 text-lg">No papers in this folder yet</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {papers.map((paper, index) => (
-                  <motion.div
-                    key={paper.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.03 }}
-                    className="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-300/50 dark:hover:border-indigo-500/50 transition-all cursor-pointer flex flex-col"
-                    onClick={() => setPreviewModal({
-                      isOpen: true,
-                      fileName: paper.file_name,
-                      filePath: paper.file_path,
-                      paperId: paper.id
-                    })}
-                  >
-                    {/* Top colored thick border based on type */}
-                    <div className={`h-2 w-full ${
-                      paper.paper_type === 'midterm' ? 'bg-blue-500' :
-                      paper.paper_type === 'endterm' ? 'bg-purple-500' :
-                      paper.paper_type === 'quiz' ? 'bg-amber-500' :
-                      'bg-emerald-500'
-                    }`} />
-                    
-                    <div className="p-5 flex flex-col flex-1">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className={`p-2.5 rounded-xl ${
-                          paper.paper_type === 'midterm' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' :
-                          paper.paper_type === 'endterm' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400' :
-                          paper.paper_type === 'quiz' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400' :
-                          'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
-                        }`}>
-                          <FileText className="w-6 h-6" />
-                        </div>
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                          paper.paper_type === 'midterm' ? 'bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' :
-                          paper.paper_type === 'endterm' ? 'bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' :
-                          paper.paper_type === 'quiz' ? 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' :
-                          'bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                        }`}>
-                          {paper.year} • {paper.paper_type}
-                        </span>
-                      </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {papers.map((paper, index) => (
+                    <motion.div
+                      key={paper.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.03 }}
+                      className="group bg-white/60 dark:bg-gray-800/60 backdrop-blur-md rounded-2xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 hover:border-indigo-300/50 dark:hover:border-indigo-500/50 transition-all cursor-pointer flex flex-col"
+                      onClick={() => setPreviewModal({
+                        isOpen: true,
+                        fileName: paper.file_name,
+                        filePath: paper.file_path,
+                        paperId: paper.id
+                      })}
+                    >
+                      <div className={`h-2 w-full ${
+                        paper.paper_type === 'midterm' ? 'bg-blue-500' :
+                        paper.paper_type === 'endterm' ? 'bg-purple-500' :
+                        paper.paper_type === 'quiz' ? 'bg-amber-500' :
+                        'bg-emerald-500'
+                      }`} />
                       
-                      <div className="flex flex-col flex-1 mb-4">
-                        <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1 line-clamp-2" title={paper.title}>
-                          {paper.title || "Untitled Document"}
-                        </h3>
-                        <div className="flex items-center gap-2 mt-1 -ml-1">
-                          {paper.course_code && (
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                              {paper.course_code}
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-500 dark:text-gray-400 truncate" title={paper.course_name || ""}>
-                            {paper.course_name || "Unknown Course"}
+                      <div className="p-5 flex flex-col flex-1">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className={`p-2.5 rounded-xl ${
+                            paper.paper_type === 'midterm' ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400' :
+                            paper.paper_type === 'endterm' ? 'bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400' :
+                            paper.paper_type === 'quiz' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400' :
+                            'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400'
+                          }`}>
+                            <FileText className="w-6 h-6" />
+                          </div>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                            paper.paper_type === 'midterm' ? 'bg-blue-100/50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800' :
+                            paper.paper_type === 'endterm' ? 'bg-purple-100/50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800' :
+                            paper.paper_type === 'quiz' ? 'bg-amber-100/50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800' :
+                            'bg-emerald-100/50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                          }`}>
+                            {paper.year} • {paper.paper_type}
                           </span>
                         </div>
-                      </div>
+                        
+                        <div className="flex flex-col flex-1 mb-4">
+                          <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-1 line-clamp-2" title={paper.title}>
+                            {paper.title || "Untitled Document"}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1 -ml-1">
+                            {paper.course_code && (
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                                {paper.course_code}
+                              </span>
+                            )}
+                            <span className="text-sm text-gray-500 dark:text-gray-400 truncate" title={paper.course_name || ""}>
+                              {paper.course_name || "Unknown Course"}
+                            </span>
+                          </div>
+                        </div>
 
-                      <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
-                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                           <User className="w-3.5 h-3.5" />
-                           <span className="truncate max-w-[120px]">{paper.uploader_name || "Anonymous"}</span>
-                         </div>
-                         <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-medium text-sm group-hover:underline">
-                            <span>View</span>
-                            <Eye className="w-4 h-4 ml-1" />
-                         </div>
+                        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700/50 flex justify-between items-center">
+                           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                             <User className="w-3.5 h-3.5" />
+                             <span className="truncate max-w-[120px]">{paper.uploader_name || "Anonymous"}</span>
+                           </div>
+                           <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-medium text-sm group-hover:underline">
+                              <span>View</span>
+                              <Eye className="w-4 h-4 ml-1" />
+                           </div>
+                        </div>
                       </div>
+                    </motion.div>
+                  ))}
+                </div>
+
+                {/* Page Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-center space-x-6 mt-12 py-8 border-t border-gray-100 dark:border-gray-800">
+                    <motion.button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all font-bold flex items-center gap-2"
+                      whileHover={{ scale: currentPage > 1 ? 1.05 : 1 }}
+                      whileTap={{ scale: currentPage > 1 ? 0.95 : 1 }}
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                      <span>PREV</span>
+                    </motion.button>
+                    
+                    <div className="flex items-center space-x-3">
+                      <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">Page</span>
+                      <span className="w-10 h-10 flex items-center justify-center bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none">
+                        {currentPage}
+                      </span>
+                      <span className="text-gray-500 dark:text-gray-400 text-sm font-medium">of {totalPages}</span>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
+
+                    <motion.button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all font-bold flex items-center gap-2"
+                      whileHover={{ scale: currentPage < totalPages ? 1.05 : 1 }}
+                      whileTap={{ scale: currentPage < totalPages ? 0.95 : 1 }}
+                    >
+                      <span>NEXT</span>
+                      <ArrowLeft className="w-4 h-4 rotate-180" />
+                    </motion.button>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Year-Based Pagination Controls */}

@@ -279,16 +279,22 @@ export const API = {
       });
   },
 
-  getPapers: (filters?: {
-    course_id?: number;
-    paper_type?: string;
-    year?: number;
-    semester?: string;
-    status?: string;
-    department?: string;
-    my_papers_only?: boolean;
-  }) => {
+  getPapers: (
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      course_id?: number;
+      paper_type?: string;
+      year?: number;
+      semester?: string;
+      status?: string;
+      department?: string;
+      my_papers_only?: boolean;
+    }
+  ) => {
     const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('limit', String(limit));
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -296,29 +302,38 @@ export const API = {
         }
       });
     }
-    // Shorter TTL for admin / filtered lists
-    return getWithCache('/papers', { params, ttlMs: 60 * 1000 });
+    return getWithCache<PaginatedResponse<any>>('/papers', { params, ttlMs: 60 * 1000 });
   },
 
   getPendingPapers: () => {
     return getWithCache('/papers/pending', { ttlMs: 60 * 1000 });
   },
 
-  getPublicPapers: (filters?: {
-    course_id?: number | string;
-    paper_type?: string;
-    year?: number | string;
-    semester?: string;
-    department?: string;
-    search?: string;
-  }) => {
+  getPublicPapers: (
+    page: number = 1,
+    limit: number = 20,
+    filters?: {
+      course_id?: number | string;
+      paper_type?: string;
+      year?: number | string;
+      semester?: string;
+      department?: string;
+      search?: string;
+    }
+  ) => {
     const params = new URLSearchParams();
+    params.append('page', String(page));
+    params.append('limit', String(limit));
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') params.append(key, String(value));
       });
     }
-    return getWithCache('/papers/public/all', { params });
+    return getWithCache<PaginatedResponse<any>>('/papers/public/all', { params });
+  },
+
+  getPapersMetadata: () => {
+    return getWithCache<{ years: number[]; types: string[]; courses: any[] }>('/papers/metadata');
   },
 
   getPublicPapersPaginated: (

@@ -111,6 +111,12 @@ const AdminDashboard: React.FC = () => {
     semester: '',
     status: ''
   });
+  const [paperPagination, setPaperPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // File Preview Modal State
@@ -268,7 +274,7 @@ const AdminDashboard: React.FC = () => {
     setLoading(false);
   };
 
-  const fetchAllPapers = async () => {
+  const fetchAllPapers = async (page = paperPagination.page) => {
     try {
       const params: any = {};
       Object.entries(paperFilters).forEach(([key, value]) => {
@@ -277,9 +283,20 @@ const AdminDashboard: React.FC = () => {
 
       const response = await axios.get(`${API_BASE_URL}/papers`, {
         headers: { Authorization: `Bearer ${token}` },
-        params
+        params: { ...params, page, limit: paperPagination.limit }
       });
-      setAllPapers(response.data);
+      
+      if (response.data && response.data.items) {
+        setAllPapers(response.data.items);
+        setPaperPagination(prev => ({
+          ...prev,
+          page: response.data.page,
+          total: response.data.total,
+          pages: response.data.pages
+        }));
+      } else {
+        setAllPapers(Array.isArray(response.data) ? response.data : []);
+      }
     } catch (err) {
       console.error('Failed to fetch all papers:', err);
     }
@@ -287,7 +304,7 @@ const AdminDashboard: React.FC = () => {
 
   useEffect(() => {
     if (activeTab === 'all-papers' && token) {
-      fetchAllPapers();
+      fetchAllPapers(1); // Reset to page 1 on filter change
     }
   }, [paperFilters, activeTab, token]);
 
@@ -1026,6 +1043,7 @@ const AdminDashboard: React.FC = () => {
                         transition={{ delay: index * 0.05 }}
                         className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-6 hover:border-cyan-500/60 transition-all shadow-lg hover:shadow-cyan-500/10"
                       >
+                        {/* ... existing paper item content ... */}
                         <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
                           <div className="flex-1 w-full">
                             <h3 className="text-lg sm:text-xl font-bold text-cyan-400 font-mono mb-2 break-words">{paper.title}</h3>
@@ -1136,6 +1154,39 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </motion.div>
                     ))}
+
+                    {/* Pagination Controls */}
+                    {paperPagination.pages > 1 && (
+                      <div className="flex items-center justify-center space-x-4 mt-8 py-4 border-t border-cyan-500/20 font-mono">
+                        <motion.button
+                          onClick={() => fetchAllPapers(paperPagination.page - 1)}
+                          disabled={paperPagination.page === 1}
+                          className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-cyan-500/20 transition-all"
+                          whileHover={{ scale: paperPagination.page > 1 ? 1.05 : 1 }}
+                          whileTap={{ scale: paperPagination.page > 1 ? 0.95 : 1 }}
+                        >
+                          &lt; PREV
+                        </motion.button>
+                        
+                        <div className="flex items-center space-x-2">
+                          <span className="text-cyan-400/70 text-sm">PAGE</span>
+                          <span className="text-cyan-400 font-bold bg-cyan-500/20 px-3 py-1 rounded-md border border-cyan-500/30">
+                            {paperPagination.page}
+                          </span>
+                          <span className="text-cyan-400/70 text-sm">OF {paperPagination.pages}</span>
+                        </div>
+
+                        <motion.button
+                          onClick={() => fetchAllPapers(paperPagination.page + 1)}
+                          disabled={paperPagination.page === paperPagination.pages}
+                          className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-cyan-500/20 transition-all"
+                          whileHover={{ scale: paperPagination.page < paperPagination.pages ? 1.05 : 1 }}
+                          whileTap={{ scale: paperPagination.page < paperPagination.pages ? 0.95 : 1 }}
+                        >
+                          NEXT &gt;
+                        </motion.button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
