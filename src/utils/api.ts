@@ -305,16 +305,17 @@ export const API = {
   },
 
   getPublicPapers: (filters?: {
-    course_id?: number;
+    course_id?: number | string;
     paper_type?: string;
-    year?: number;
+    year?: number | string;
     semester?: string;
     department?: string;
+    search?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, String(value));
+        if (value !== undefined && value !== null && value !== '') params.append(key, String(value));
       });
     }
     return getWithCache('/papers/public/all', { params });
@@ -324,11 +325,12 @@ export const API = {
     page: number = 1,
     limit: number = 20,
     filters?: {
-      course_id?: number;
+      course_id?: number | string;
       paper_type?: string;
-      year?: number;
+      year?: number | string;
       semester?: string;
       department?: string;
+      search?: string;
     }
   ) => {
     const params = new URLSearchParams();
@@ -337,7 +339,7 @@ export const API = {
 
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, String(value));
+        if (value !== undefined && value !== null && value !== '') params.append(key, String(value));
       });
     }
     // shorter TTL for paginated results as they might change more often

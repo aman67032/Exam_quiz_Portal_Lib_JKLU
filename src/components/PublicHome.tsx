@@ -39,11 +39,12 @@ const PublicHome: React.FC = () => {
   }
   const [papers, setPapers] = useState<Paper[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
+  const [selectedCourse, setSelectedCourse] = useState<number | 'all'>('all');
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [loadingPapers, setLoadingPapers] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPapers, setTotalPapers] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const PAPERS_PER_PAGE = 20;
 
   // Preview Modal
   const [previewModal, setPreviewModal] = useState({
@@ -87,22 +88,32 @@ const PublicHome: React.FC = () => {
     fetchCourses();
   }, []);
 
+  // Fetch available years on mount
+  useEffect(() => {
+    API.getPublicPapers().then(res => {
+      if (res.data && Array.isArray(res.data)) {
+        const years = Array.from(new Set(res.data.map((p: Paper) => p.year).filter(Boolean))).sort((a: any, b: any) => b - a);
+        setAvailableYears(years as number[]);
+      }
+    }).catch(console.error);
+  }, []);
+
   // Fetch papers from API
   useEffect(() => {
     const fetchPapers = async () => {
       try {
         setLoadingPapers(true);
         const filters: any = {};
-        if (selectedFolder !== 'all') {
-          filters.paper_type = selectedFolder;
-        }
+        if (selectedFolder !== 'all') filters.paper_type = selectedFolder;
+        if (selectedCourse !== 'all') filters.course_id = selectedCourse;
+        if (selectedYear !== 'all') filters.year = selectedYear;
+        if (searchQuery) filters.search = searchQuery;
 
-        const response = await API.getPublicPapersPaginated(currentPage, PAPERS_PER_PAGE, filters);
+        const response = await API.getPublicPapers(filters);
 
-        if (response.data && 'items' in response.data) {
-          setPapers(response.data.items);
-          setTotalPapers(response.data.total);
-          setTotalPages(response.data.pages);
+        if (response.data && Array.isArray(response.data)) {
+          setPapers(response.data);
+          setTotalPapers(response.data.length);
         } else {
           setPapers([]);
           setTotalPapers(0);
@@ -114,8 +125,13 @@ const PublicHome: React.FC = () => {
         setLoadingPapers(false);
       }
     };
-    fetchPapers();
-  }, [currentPage, selectedFolder]);
+
+    const timeoutId = setTimeout(() => {
+      fetchPapers();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [selectedFolder, selectedCourse, selectedYear, searchQuery]);
 
 
   // Responsive background tuning - dynamic hook that responds to window resize
@@ -808,6 +824,30 @@ const PublicHome: React.FC = () => {
               <p className="text-gray-600 dark:text-gray-400 mt-2">Browse verified exam papers</p>
             </div>
 
+            {/* Search and Filters */}
+            <div className="flex flex-col md:flex-row gap-4 mb-8 max-w-4xl mx-auto">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search papers by title or course format..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 transition-shadow outline-none"
+                />
+              </div>
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                className="px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none md:min-w-[200px]"
+              >
+                <option value="all">All Courses</option>
+                {courses.map(course => (
+                  <option key={course.id} value={course.id}>{course.code}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Folder Tabs */}
             <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
               {[
@@ -818,7 +858,7 @@ const PublicHome: React.FC = () => {
               ].map((folder) => (
                 <motion.button
                   key={folder.key}
-                  onClick={() => { setSelectedFolder(folder.key); setCurrentPage(1); }}
+                  onClick={() => setSelectedFolder(folder.key)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl font-medium text-sm sm:text-base transition-all ${selectedFolder === folder.key
@@ -891,52 +931,35 @@ const PublicHome: React.FC = () => {
               </div>
             )}
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-8">
+            {/* Year-Based Pagination Controls */}
+            {availableYears.length > 0 && (
+              <div className="flex justify-center items-center flex-wrap gap-2 mt-8">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-2 rounded-lg text-sm font-medium bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/50 dark:border-gray-600/50"
+                  onClick={() => setSelectedYear('all')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                    selectedYear === 'all'
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg'
+                      : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
+                  }`}
                 >
-                  ←
+                  All Years
                 </button>
-
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-all ${currentPage === pageNum
+                {availableYears.map((year) => (
+                  <button
+                    key={year}
+                    onClick={() => setSelectedYear(year)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedYear === year
                         ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg'
                         : 'bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 border border-gray-200/50 dark:border-gray-600/50'
-                        }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-2 rounded-lg text-sm font-medium bg-white/50 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-700/50 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200/50 dark:border-gray-600/50"
-                >
-                  →
-                </button>
-
-                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
-                  Page {currentPage} of {totalPages} (Total: {totalPapers})
+                    }`}
+                  >
+                    {year}
+                  </button>
+                ))}
+                
+                <span className="ml-2 mt-2 md:mt-0 w-full text-center md:w-auto text-sm text-gray-500 dark:text-gray-400">
+                  Total available: {totalPapers}
                 </span>
               </div>
             )}
