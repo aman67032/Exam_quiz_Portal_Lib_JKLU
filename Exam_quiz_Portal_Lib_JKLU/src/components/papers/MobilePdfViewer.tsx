@@ -43,6 +43,8 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
           cMapUrl: '/cmaps/',
           cMapPacked: true,
           standardFontDataUrl: '/standard_fonts/',
+          wasmUrl: '/wasm/',
+          iccUrl: '/iccs/',
         }).promise;
         if (cancelled) return;
 
