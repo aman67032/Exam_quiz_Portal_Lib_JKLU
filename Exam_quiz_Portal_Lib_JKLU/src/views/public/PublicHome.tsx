@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ArrowUpDown,
   Download,
+  User,
 } from 'lucide-react';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
@@ -386,23 +387,37 @@ const PublicHome: React.FC = () => {
             <ThemeSwitcher />
 
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium max-w-[160px] truncate">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="truncate">Signed in: {user.name.split(' ')[0]}</span>
+                </span>
                 {user.is_admin || user.is_sub_admin || user.admin_role ? (
                   <button
                     onClick={() => navigate('/admin')}
-                    className="px-3 py-1.5 rounded-md bg-[#E04F33] text-white text-xs font-medium flex items-center gap-1.5 hover:opacity-90 transition-opacity"
+                    className="px-2.5 sm:px-3 py-1.5 rounded-md bg-[#E04F33] text-white text-xs font-medium flex items-center gap-1.5 hover:opacity-90 transition-opacity"
                   >
                     <Shield className="w-3.5 h-3.5" />
-                    <span>Admin Console</span>
+                    <span>Admin</span>
                   </button>
                 ) : (
-                  <button
-                    onClick={() => navigate('/dashboard')}
-                    className="px-3 py-1.5 rounded-md border border-[#E5E2DC] dark:border-[#232329] bg-white dark:bg-[#121216] text-xs font-medium flex items-center gap-1.5 hover:border-[#0A0A0C] dark:hover:border-[#F5F4F0]"
-                  >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Upload Paper</span>
-                  </button>
+                  <>
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="px-2.5 sm:px-3 py-1.5 rounded-md bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] text-xs font-medium flex items-center gap-1.5 hover:opacity-90 transition-opacity"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span className="sm:hidden">{user.name.split(' ')[0]}</span>
+                      <span className="hidden sm:inline">Dashboard</span>
+                    </button>
+                    <button
+                      onClick={() => navigate('/profile')}
+                      title="Profile"
+                      className="p-1.5 rounded-md border border-[#E5E2DC] dark:border-[#232329] bg-white dark:bg-[#121216] text-[#0A0A0C] dark:text-[#F5F4F0] hover:border-[#896ABD] transition-colors"
+                    >
+                      <User className="w-4 h-4" />
+                    </button>
+                  </>
                 )}
 
                 <button

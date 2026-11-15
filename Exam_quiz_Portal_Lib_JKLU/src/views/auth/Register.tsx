@@ -44,7 +44,7 @@ const Register: React.FC = () => {
     setLoading(true);
     try {
       await register(email.trim(), name.trim(), password, confirmPassword, captcha);
-      navigate('/home');
+      navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
       setCaptchaResetKey((k) => k + 1);

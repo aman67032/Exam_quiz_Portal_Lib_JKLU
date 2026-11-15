@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Upload, FileText, Filter, LogOut, User, Download, Sparkles, Code } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Upload, FileText, Filter, Download, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { API } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { sanitizeErrorMessage } from '@/utils/errorSanitizer';
 import Toast from '@/components/ui/Toast';
-import techAffairsLogo from '@/assets/technical-affairs-logo.png';
-import { buildUploadUrl } from '@/utils/uploads';
 import Loader from '@/components/ui/Loader';
-import JKLULogo from '@/components/layout/JKLULogo';
+import AeroShards from '@/components/layout/AeroShards';
+import StudentNavbar from '@/components/layout/StudentNavbar';
+
+const MAX_UPLOAD_BYTES = 500 * 1024; // 500 KB
 
 interface Course {
   id: number;
@@ -39,7 +41,7 @@ interface Paper {
 }
 
 const StudentDashboard: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [papers, setPapers] = useState<Paper[]>([]);
@@ -70,39 +72,37 @@ const StudentDashboard: React.FC = () => {
     semester: ''
   });
 
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
+    setToast({ show: true, message, type });
+  };
+
   const fetchCourses = useCallback(async () => {
     try {
       const response = await API.getCourses();
       setCourses(response.data);
-    } catch (error: any) {
-      console.error('Error fetching courses:', error.message);
+    } catch {
+      // ignore silent course load error
     }
   }, []);
 
   const fetchPapers = useCallback(async () => {
     try {
-      // Don't fetch if user is not loaded yet
       if (!user || !user.id) {
         setLoading(false);
         return;
       }
 
-      const params: any = {
-        my_papers_only: true  // Backend will filter to only return this user's papers
+      const params: Record<string, any> = {
+        my_papers_only: true
       };
       Object.entries(filters).forEach(([key, value]) => {
         if (value) params[key] = value;
       });
 
-
-
       const response = await API.getPapers(params);
-      // Backend already filters to only user's papers when my_papers_only=true
-      // No need for additional frontend filtering
-      setPapers(response.data);
-    } catch (error: any) {
-      console.error('Error fetching papers:', error.message);
-      setPapers([]); // Set empty array on error
+      setPapers(Array.isArray(response.data) ? response.data : []);
+    } catch {
+      setPapers([]);
     } finally {
       setLoading(false);
     }
@@ -116,13 +116,19 @@ const StudentDashboard: React.FC = () => {
     fetchPapers();
   }, [fetchPapers]);
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'success') => {
-    setToast({ show: true, message, type });
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file && file.size > MAX_UPLOAD_BYTES) {
+      showToast('File size must be 500 KB or less.', 'error');
+      e.target.value = '';
+      setSelectedFile(null);
+      return;
+    }
+    setSelectedFile(file);
   };
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Require ID verification before uploads
     if (!(user as any)?.id_verified && localStorage.getItem('idVerified') !== 'yes') {
       showToast('Please upload your ID card in Profile to enable uploads', 'error');
       navigate('/profile');
@@ -132,20 +138,18 @@ const StudentDashboard: React.FC = () => {
       showToast('Please select a file to upload', 'error');
       return;
     }
-
-    // Validate course selection
+    if (selectedFile.size > MAX_UPLOAD_BYTES) {
+      showToast('File size must be 500 KB or less.', 'error');
+      return;
+    }
     if (!uploadForm.course_id && (!uploadForm.courseText || !uploadForm.courseName)) {
       showToast('Please select or enter both course code and name', 'error');
       return;
     }
-
-    // Validate quiz set if paper type is quiz
     if (uploadForm.paper_type === 'quiz' && !uploadForm.quiz_set) {
       showToast('Please select a quiz set (A to F)', 'error');
       return;
     }
-
-    // Validate year selection
     if (!uploadForm.year && !uploadForm.yearText) {
       showToast('Please select or enter a year', 'error');
       return;
@@ -155,7 +159,6 @@ const StudentDashboard: React.FC = () => {
     const formData = new FormData();
     formData.append('file', selectedFile);
 
-    // Send course_id if selected from dropdown, otherwise send course_code and course_name
     if (uploadForm.course_id) {
       formData.append('course_id', uploadForm.course_id);
     } else if (uploadForm.courseText && uploadForm.courseName) {
@@ -167,12 +170,10 @@ const StudentDashboard: React.FC = () => {
     formData.append('description', uploadForm.description);
     formData.append('paper_type', uploadForm.paper_type);
 
-    // Add quiz_set if paper type is quiz
     if (uploadForm.paper_type === 'quiz' && uploadForm.quiz_set) {
       formData.append('quiz_set', uploadForm.quiz_set);
     }
 
-    // Convert year to integer if provided
     const yearValue = uploadForm.year || uploadForm.yearText;
     if (yearValue) {
       formData.append('year', yearValue.toString());
@@ -198,8 +199,7 @@ const StudentDashboard: React.FC = () => {
       });
       fetchPapers();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.detail || 'Upload failed. Please try again.';
-      showToast(errorMsg, 'error');
+      showToast(sanitizeErrorMessage(error?.message, 'Error'), 'error');
     } finally {
       setUploading(false);
     }
@@ -207,14 +207,17 @@ const StudentDashboard: React.FC = () => {
 
   const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFilters((prev: typeof filters) => ({ ...prev, [name]: value }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   }, []);
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
-      case 'approved': return 'text-emerald-600 bg-emerald-500/20 border-emerald-500/30';
-      case 'rejected': return 'text-red-500 bg-red-500/20 border-red-500/30';
-      default: return 'text-amber-500 bg-amber-500/20 border-amber-500/30';
+      case 'approved':
+        return 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/15 border-emerald-500/30';
+      case 'rejected':
+        return 'text-red-700 dark:text-red-400 bg-red-500/15 border-red-500/30';
+      default:
+        return 'text-amber-700 dark:text-amber-400 bg-amber-500/15 border-amber-500/30';
     }
   }, []);
 
@@ -232,641 +235,441 @@ const StudentDashboard: React.FC = () => {
       link.remove();
       showToast('File downloaded successfully!', 'success');
     } catch (error: any) {
-      console.error('Download error:', error);
-      const errorMessage = error?.response?.data?.detail ||
-        error?.response?.data?.message ||
-        error?.message ||
-        'Failed to download file. The file may not exist on the server.';
-      showToast(errorMessage, 'error');
+      showToast(sanitizeErrorMessage(error?.message, 'Error'), 'error');
     }
   };
 
-  const profilePhoto = useMemo(() => {
-    const direct = localStorage.getItem('profile.photo');
-    if (direct) return direct;
-    const legacy = localStorage.getItem('profile.photo.path');
-    return legacy ? buildUploadUrl(legacy) : '';
-  }, []);
+  const inputClass =
+    'w-full px-3.5 py-2.5 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-xl text-sm text-[#0A0A0C] dark:text-[#F5F4F0] placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60 focus:outline-none focus:border-[#896ABD] dark:focus:border-[#A855F7] transition-colors';
+
+  const isVerified = Boolean((user as any)?.id_verified || localStorage.getItem('idVerified') === 'yes');
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#FAF9F6] dark:bg-[#0A0A0C] pt-[env(safe-area-inset-top)]">
-      {/* Content Layer */}
-      <div className="relative z-10 min-h-screen">
-        {/* Toast Notification */}
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          isVisible={toast.show}
-          onClose={() => setToast({ ...toast, show: false })}
-        />
+    <div className="relative min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] pt-[env(safe-area-inset-top)]">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <AeroShards />
+      </div>
 
-        {/* Header */}
-        <motion.header
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-50 backdrop-blur-2xl bg-white/60 dark:bg-gray-900/60 border-b border-white/20 dark:border-gray-700/30 shadow-lg shadow-purple-500/10"
-        >
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative">
-            {/* JKLU Logo - Top Right, fixed position on mobile, integrated on desktop */}
-            <div className="absolute top-3 right-3 sm:relative sm:top-auto sm:right-auto sm:flex sm:items-center sm:ml-4 flex-shrink-0 z-10">
-              <JKLULogo size="sm" className="sm:hidden opacity-90 hover:opacity-100" />
-              <JKLULogo size="md" className="hidden sm:block opacity-90 hover:opacity-100" />
-            </div>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 py-3 pr-14 sm:pr-0">
-              {/* Logo and Title */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center space-x-3 sm:space-x-4"
-              >
-                <div className="relative">
-                  <img
-                    src={(techAffairsLogo as any)?.src || techAffairsLogo}
-                    alt="Council of Technical Affairs"
-                    className="h-11 sm:h-12 w-11 sm:w-12 rounded-lg object-cover shadow-sm"
-                  />
-                </div>
-                <div>
-                  <motion.h1
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}
-                    className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white"
-                  >
-                    Learn JKLU
-                  </motion.h1>
-                  <p className="text-xs text-gray-600 dark:text-gray-300 font-medium flex items-center gap-1">
-                    <Sparkles className="h-3 w-3 text-purple-500" />
-                    Student Dashboard
-                  </p>
-                </div>
-              </motion.div>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+      />
 
-              {/* User Info and Actions */}
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-2 sm:gap-3 flex-wrap sm:ml-4"
-              >
-                {(user?.admin_role === 'coding_ta' || user?.is_sub_admin) && (
-                  <Link
-                    to="/host-dashboard"
-                    className="px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl shadow-lg text-xs sm:text-sm font-semibold hover:shadow-indigo-500/20"
-                  >
-                    Host Dashboard
-                  </Link>
-                )}
-                <Link
-                  to="/home"
-                  className="px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 hover:shadow-purple-500/20"
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/profile"
-                  className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-xl border border-white/30 dark:border-gray-700/50 shadow-lg hover:shadow-purple-500/20 max-w-[60vw] sm:max-w-none"
-                >
-                  {profilePhoto ? (
-                    <img src={profilePhoto} className="h-6 sm:h-7 w-6 sm:w-7 rounded-full object-cover ring-2 ring-purple-400/40" />
-                  ) : (
-                    <div className="p-1.5 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full">
-                      <User className="h-3.5 w-3.5 text-white" />
-                    </div>
-                  )}
-                  <span className="text-xs sm:text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{user?.name}</span>
-                </Link>
-                <motion.button
-                  onClick={logout}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex items-center space-x-2 px-3 sm:px-5 py-2 text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl transition-all duration-200 font-medium text-xs sm:text-sm shadow-lg hover:shadow-xl backdrop-blur-sm"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </motion.button>
-              </motion.div>
-            </div>
-          </div>
-        </motion.header>
+      <StudentNavbar active="dashboard" subtitle="Student Dashboard" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-          {/* Announcement Banner */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-500/20 rounded-2xl backdrop-blur-sm flex items-start gap-4"
-          >
-            <div className="p-2 bg-indigo-500/20 rounded-lg shrink-0">
-              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+      <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-5">
+        {/* Verification Status Bar */}
+        <div className="rounded-2xl p-4 bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-xl ${isVerified ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400'}`}>
+              {isVerified ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-lg">New: Coding Hour Solutions Available!</h3>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
-                Access weekly coding challenges and their detailed solutions directly from your dashboard. Sharpen your skills with Python and DAA problems.
+              <p className="text-sm font-semibold">
+                {isVerified ? 'University ID Verified' : 'ID Verification Required to Upload'}
+              </p>
+              <p className="text-xs text-[#5C5B57] dark:text-[#94938E]">
+                {isVerified
+                  ? 'You can upload past question papers (PDF up to 500 KB).'
+                  : 'Complete your Roll Number, Student ID, and ID Card upload in Profile.'}
               </p>
             </div>
-          </motion.div>
+          </div>
+          {!isVerified && (
+            <button
+              onClick={() => navigate('/profile')}
+              className="px-4 py-2 rounded-xl bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] text-xs font-semibold hover:opacity-90 transition-opacity self-start sm:self-auto"
+            >
+              Verify in Profile
+            </button>
+          )}
+        </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-            {/* Left Column: Coding Hour & Upload */}
-            <div className="xl:col-span-1 space-y-6">
-
-              {/* Coding Hour Section - Now at Top */}
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 hover:shadow-purple-500/20 transition-all duration-300 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
-
-                  <div className="relative z-10">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-                      <div className="p-2 mr-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md">
-                        <Code className="h-5 w-5 text-white" />
-                      </div>
-                      <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                        Coding Hour
-                      </span>
-                    </h2>
-                    <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
-                      Practice weekly coding challenges to improve your skills.
-                    </p>
-                    <div className="space-y-3">
-                      {courses.filter(c => c.name.startsWith('Coding Hour')).length > 0 ? (
-                        courses.filter(c => c.name.startsWith('Coding Hour')).map(course => (
-                          <button
-                            key={course.id}
-                            onClick={() => navigate(`/coding-hour/${course.id}`)}
-                            className="w-full py-3 px-4 bg-white/50 dark:bg-gray-700/50 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-gray-200/50 dark:border-gray-600/50 rounded-xl text-left transition-all duration-200 flex items-center justify-between group/btn shadow-sm hover:shadow"
-                          >
-                            <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm group-hover/btn:text-purple-600 dark:group-hover/btn:text-purple-400 transition-colors">{course.name}</span>
-                            <span className="opacity-0 group-hover/btn:opacity-100 transition-opacity text-purple-600 dark:text-purple-400">→</span>
-                          </button>
-                        ))
-                      ) : (
-                        <p className="text-sm opacity-75 italic text-gray-500 dark:text-gray-400">No active coding courses found.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Upload Section */}
-              <motion.div
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-
-                <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 hover:shadow-purple-500/20 transition-all duration-300 relative overflow-hidden">
-                  {/* Decorative gradient */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-full blur-3xl -z-0" />
-
-                  <div className="relative z-10">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-                      <div className="p-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-xl shadow-lg">
-                        <Upload className="h-6 w-6 text-white" />
-                      </div>
-                      <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                        Upload Paper
-                      </span>
-                    </h2>
-
-                    <form onSubmit={handleUpload} className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Course (Select or Type)
-                        </label>
-                        <div className="space-y-2">
-                          <select
-                            value={uploadForm.course_id}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                          >
-                            <option value="">Select from existing courses</option>
-                            {courses.map(course => (
-                              <option key={course.id} value={course.id}>
-                                {course.code} - {course.name}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="text-center text-xs text-gray-500 dark:text-gray-400 font-medium">OR</div>
-                          <div className="space-y-2">
-                            <input
-                              type="text"
-                              value={uploadForm.courseText}
-                              onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
-                              placeholder="Course Code (e.g., CS1109)"
-                              className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                            />
-                            <input
-                              type="text"
-                              value={uploadForm.courseName}
-                              onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
-                              placeholder="Course Name (e.g., Python)"
-                              className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                            />
-                          </div>
-                        </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 font-medium">
-                          {uploadForm.course_id
-                            ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}`
-                            : (uploadForm.courseText && uploadForm.courseName)
-                              ? `New: ${uploadForm.courseText} - ${uploadForm.courseName}`
-                              : 'Choose one option'}
-                        </p>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Title
-                        </label>
-                        <input
-                          type="text"
-                          value={uploadForm.title}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                          placeholder="Paper title"
-                          required
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Description
-                        </label>
-                        <textarea
-                          value={uploadForm.description}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 resize-none"
-                          rows={3}
-                          placeholder="Optional description"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Type
-                          </label>
-                          <select
-                            value={uploadForm.paper_type}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
-                          >
-                            <option value="assignment">Assignment</option>
-                            <option value="quiz">Quiz</option>
-                            <option value="midterm">Midterm</option>
-                            <option value="endterm">Endterm</option>
-                            <option value="project">Project</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Year (Select or Type)
-                          </label>
-                          <div className="space-y-1">
-                            <select
-                              value={uploadForm.year}
-                              onChange={(e) => setUploadForm(prev => ({ ...prev, year: e.target.value, yearText: '' }))}
-                              className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm"
-                            >
-                              <option value="">Select year</option>
-                              <option value="2024">2024</option>
-                              <option value="2023">2023</option>
-                              <option value="2022">2022</option>
-                            </select>
-                            <input
-                              type="number"
-                              value={uploadForm.yearText}
-                              onChange={(e) => setUploadForm(prev => ({ ...prev, yearText: e.target.value, year: '' }))}
-                              placeholder="Or type year"
-                              className="w-full px-3 py-2 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white placeholder-gray-400 text-sm"
-                              min="2020"
-                              max="2030"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {uploadForm.paper_type === 'quiz' && (
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            Quiz Set
-                          </label>
-                          <select
-                            value={uploadForm.quiz_set}
-                            onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                            required
-                          >
-                            <option value="">Select Set</option>
-                            <option value="A">Set A</option>
-                            <option value="B">Set B</option>
-                            <option value="C">Set C</option>
-                            <option value="D">Set D</option>
-                            <option value="E">Set E</option>
-                            <option value="F">Set F</option>
-                          </select>
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          Semester
-                        </label>
-                        <select
-                          value={uploadForm.semester}
-                          onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
-                          className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white"
-                        >
-                          <option value="1st Sem">1st Sem</option>
-                          <option value="2nd Sem">2nd Sem</option>
-                          <option value="3rd Sem">3rd Sem</option>
-                          <option value="4th Sem">4th Sem</option>
-                          <option value="5th Sem">5th Sem</option>
-                          <option value="6th Sem">6th Sem</option>
-                          <option value="7th Sem">7th Sem</option>
-                          <option value="8th Sem">8th Sem</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                          File
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="file"
-                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                            className="w-full px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-pink-500 file:to-purple-500 file:text-white hover:file:from-pink-600 hover:file:to-purple-600 cursor-pointer"
-                            accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                            required
-                          />
-                          {selectedFile && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
-                              Selected: {selectedFile.name}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      <motion.button
-                        type="submit"
-                        disabled={uploading || !selectedFile}
-                        whileHover={{ scale: uploading || !selectedFile ? 1 : 1.02 }}
-                        whileTap={{ scale: uploading || !selectedFile ? 1 : 0.98 }}
-                        className="w-full bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 hover:from-pink-600 hover:via-purple-600 hover:to-cyan-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl flex items-center justify-center space-x-2 relative overflow-hidden"
-                      >
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent animate-shimmer" />
-                        {uploading ? (
-                          <>
-                            <motion.div
-                              animate={{ rotate: 360 }}
-                              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                              className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                            />
-                            <span>Uploading...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Upload className="h-5 w-5" />
-                            <span>Upload Paper</span>
-                          </>
-                        )}
-                      </motion.button>
-                    </form>
-                  </div>
-                </div>
-              </motion.div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+          {/* Upload Paper Form */}
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="lg:col-span-5 rounded-2xl p-5 sm:p-6 bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm"
+          >
+            <div className="flex items-center gap-3 mb-5">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#896ABD] to-[#E04F33] text-white shadow-sm">
+                <Upload className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold tracking-tight">Upload Paper</h2>
+                <p className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
+                  PDF · MAX 500 KB
+                </p>
+              </div>
             </div>
 
-
-
-            {/* Papers List */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4 }}
-              className="xl:col-span-2"
-            >
-              <div className="backdrop-blur-2xl bg-white/70 dark:bg-gray-800/70 rounded-2xl shadow-2xl border border-white/30 dark:border-gray-700/50 p-6 relative overflow-hidden">
-                {/* Decorative gradient */}
-                <div className="absolute top-0 left-0 w-40 h-40 bg-gradient-to-br from-purple-500/20 via-cyan-500/20 to-pink-500/20 rounded-full blur-3xl -z-0" />
-
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-                      <div className="p-3 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl shadow-lg">
-                        <FileText className="h-6 w-6 text-white" />
-                      </div>
-                      <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                        My Papers
-                      </span>
-                      <span className="px-3 py-1 bg-gradient-to-r from-pink-500/20 to-purple-500/20 border border-pink-500/30 text-pink-600 dark:text-pink-400 rounded-full text-sm font-bold">
-                        {papers.length}
-                      </span>
-                    </h2>
-                    <div className="flex items-center space-x-2 px-3 sm:px-4 py-2 bg-white/60 dark:bg-gray-700/60 backdrop-blur-sm rounded-xl border border-white/30 dark:border-gray-600/50 text-xs sm:text-sm">
-                      <Filter className="h-4 w-4 text-purple-500" />
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Filters</span>
-                    </div>
-                  </div>
-
-                  {/* Filters */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-                    <select
-                      name="course_id"
-                      value={filters.course_id}
-                      onChange={handleFilterChange}
-                      className="px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm font-medium"
-                    >
-                      <option value="">All Courses</option>
-                      {courses.map(course => (
-                        <option key={course.id} value={course.id}>
-                          {course.code}
-                        </option>
-                      ))}
-                    </select>
-
-                    <select
-                      name="paper_type"
-                      value={filters.paper_type}
-                      onChange={handleFilterChange}
-                      className="px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm font-medium"
-                    >
-                      <option value="">All Types</option>
-                      <option value="assignment">Assignment</option>
-                      <option value="quiz">Quiz</option>
-                      <option value="midterm">Midterm</option>
-                      <option value="endterm">Endterm</option>
-                      <option value="project">Project</option>
-                    </select>
-
-                    <select
-                      name="year"
-                      value={filters.year}
-                      onChange={handleFilterChange}
-                      className="px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm font-medium"
-                    >
-                      <option value="">All Years</option>
-                      <option value="2024">2024</option>
-                      <option value="2023">2023</option>
-                      <option value="2022">2022</option>
-                    </select>
-
-                    <select
-                      name="semester"
-                      value={filters.semester}
-                      onChange={handleFilterChange}
-                      className="px-4 py-2.5 bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-600/50 rounded-xl focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-900 dark:text-white text-sm font-medium"
-                    >
-                      <option value="">All Semesters</option>
-                      <option value="1st Sem">1st Sem</option>
-                      <option value="2nd Sem">2nd Sem</option>
-                      <option value="3rd Sem">3rd Sem</option>
-                      <option value="4th Sem">4th Sem</option>
-                      <option value="5th Sem">5th Sem</option>
-                      <option value="6th Sem">6th Sem</option>
-                      <option value="7th Sem">7th Sem</option>
-                      <option value="8th Sem">8th Sem</option>
-                    </select>
-                  </div>
-
-                  {/* Papers List */}
-                  {loading ? (
-                    <div className="text-center py-16">
-                      <Loader />
-                    </div>
-                  ) : papers.length === 0 ? (
-                    <div className="text-center py-16">
-                      <div className="p-6 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center border border-purple-500/20">
-                        <FileText className="h-12 w-12 text-purple-500" />
-                      </div>
-                      <p className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">No papers found</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Start by uploading your first paper!</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 max-h-[55vh] md:max-h-[600px] overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(168, 85, 247, 0.3) transparent' }}>
-                      {papers.map((paper, index) => (
-                        <motion.div
-                          key={paper.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          whileHover={{ scale: 1.01, y: -4 }}
-                          className="backdrop-blur-xl bg-white/60 dark:bg-gray-700/60 rounded-2xl p-5 hover:shadow-2xl border border-white/40 dark:border-gray-600/40 transition-all duration-300 relative overflow-hidden group"
-                        >
-                          {/* Hover gradient effect */}
-                          <div className="absolute inset-0 bg-gradient-to-r from-pink-500/0 via-purple-500/0 to-cyan-500/0 group-hover:from-pink-500/5 group-hover:via-purple-500/5 group-hover:to-cyan-500/5 transition-all duration-300 -z-0" />
-
-                          <div className="relative z-10">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex-1">
-                                <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
-                                  {paper.title}
-                                </h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                                  <span>📅</span>
-                                  Uploaded: {new Date(paper.uploaded_at).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric'
-                                  })}
-                                </p>
-                              </div>
-                              <span className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap ml-3 shadow-lg border ${getStatusColor(paper.status)} backdrop-blur-sm`}>
-                                {paper.status.toUpperCase()}
-                              </span>
-                            </div>
-
-                            {/* Course and Type Details */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/40 dark:border-gray-700/40">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Course</p>
-                                <p className="font-bold text-gray-900 dark:text-white text-sm">{paper.course_code || 'N/A'}</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">{paper.course_name || ''}</p>
-                              </div>
-                              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/40 dark:border-gray-700/40">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Type</p>
-                                <p className="font-bold text-gray-900 dark:text-white text-sm capitalize">{paper.paper_type}</p>
-                              </div>
-                              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/40 dark:border-gray-700/40">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Year</p>
-                                <p className="font-bold text-gray-900 dark:text-white text-sm">{paper.year || 'N/A'}</p>
-                              </div>
-                              <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm p-3 rounded-xl border border-white/40 dark:border-gray-700/40">
-                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1 font-semibold">Semester</p>
-                                <p className="font-bold text-gray-900 dark:text-white text-sm">{paper.semester || 'N/A'}</p>
-                              </div>
-                            </div>
-
-                            {/* Description */}
-                            {paper.description && (
-                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-4 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border border-purple-500/20 p-3 rounded-xl backdrop-blur-sm">
-                                {paper.description}
-                              </p>
-                            )}
-
-                            {/* Admin Feedback - Display in red when rejected */}
-                            {paper.status === 'rejected' && paper.admin_feedback && (
-                              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500/50 rounded-xl">
-                                <div className="flex items-start gap-2">
-                                  <span className="text-red-600 dark:text-red-400 font-bold text-lg">⚠️</span>
-                                  <div className="flex-1">
-                                    <h4 className="text-red-800 dark:text-red-300 font-bold text-sm mb-1">Rejection Feedback</h4>
-                                    <p className="text-red-700 dark:text-red-400 text-sm leading-relaxed">
-                                      {paper.admin_feedback.message || 'Your submission has been rejected. Please review and resubmit.'}
-                                    </p>
-                                    {paper.admin_feedback.rejected_at && (
-                                      <p className="text-red-600 dark:text-red-500 text-xs mt-2 opacity-75">
-                                        Rejected on: {new Date(paper.admin_feedback.rejected_at).toLocaleDateString('en-US', {
-                                          year: 'numeric',
-                                          month: 'long',
-                                          day: 'numeric',
-                                          hour: '2-digit',
-                                          minute: '2-digit'
-                                        })}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* File Info */}
-                            <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
-                              <div className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-2 font-medium">
-                                <FileText className="h-4 w-4 text-purple-500" />
-                                {paper.file_name} ({(paper.file_size ? (paper.file_size / 1024).toFixed(2) : '0')} KB)
-                              </div>
-                              {paper.status === 'approved' && (
-                                <motion.button
-                                  onClick={() => handleDownload(paper.id, paper.file_name)}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
-                                  className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white text-xs font-bold rounded-xl transition-all flex items-center space-x-2 shadow-lg hover:shadow-xl"
-                                >
-                                  <Download className="h-3.5 w-3.5" />
-                                  <span>Download</span>
-                                </motion.button>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div className="space-y-2">
+                <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                  Course (Select or Enter)
+                </label>
+                <select
+                  value={uploadForm.course_id}
+                  onChange={(e) => setUploadForm((prev) => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
+                  className={inputClass}
+                >
+                  <option value="">Select from existing courses</option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.code} - {course.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="text-center text-[11px] font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
+                  OR
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={uploadForm.courseText}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, courseText: e.target.value, course_id: '' }))}
+                    placeholder="Code (e.g., CS1109)"
+                    className={inputClass}
+                  />
+                  <input
+                    type="text"
+                    value={uploadForm.courseName}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, courseName: e.target.value, course_id: '' }))}
+                    placeholder="Name (e.g., Python)"
+                    className={inputClass}
+                  />
                 </div>
               </div>
-            </motion.div>
-          </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  value={uploadForm.title}
+                  onChange={(e) => setUploadForm((prev) => ({ ...prev, title: e.target.value }))}
+                  className={inputClass}
+                  placeholder="Paper title"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                  Description
+                </label>
+                <textarea
+                  value={uploadForm.description}
+                  onChange={(e) => setUploadForm((prev) => ({ ...prev, description: e.target.value }))}
+                  className={`${inputClass} resize-none`}
+                  rows={2}
+                  placeholder="Optional description"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                    Type
+                  </label>
+                  <select
+                    value={uploadForm.paper_type}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
+                    className={inputClass}
+                  >
+                    <option value="assignment">Assignment</option>
+                    <option value="quiz">Quiz</option>
+                    <option value="midterm">Midterm</option>
+                    <option value="endterm">Endterm</option>
+                    <option value="project">Project</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                    Semester
+                  </label>
+                  <select
+                    value={uploadForm.semester}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, semester: e.target.value }))}
+                    className={inputClass}
+                  >
+                    <option value="1st Sem">1st Sem</option>
+                    <option value="2nd Sem">2nd Sem</option>
+                    <option value="3rd Sem">3rd Sem</option>
+                    <option value="4th Sem">4th Sem</option>
+                    <option value="5th Sem">5th Sem</option>
+                    <option value="6th Sem">6th Sem</option>
+                    <option value="7th Sem">7th Sem</option>
+                    <option value="8th Sem">8th Sem</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                    Year
+                  </label>
+                  <select
+                    value={uploadForm.year}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, year: e.target.value, yearText: '' }))}
+                    className={inputClass}
+                  >
+                    <option value="">Select year</option>
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                    Or Type Year
+                  </label>
+                  <input
+                    type="number"
+                    value={uploadForm.yearText}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, yearText: e.target.value, year: '' }))}
+                    placeholder="e.g., 2025"
+                    className={inputClass}
+                    min="2020"
+                    max="2030"
+                  />
+                </div>
+              </div>
+
+              {uploadForm.paper_type === 'quiz' && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                    Quiz Set
+                  </label>
+                  <select
+                    value={uploadForm.quiz_set}
+                    onChange={(e) => setUploadForm((prev) => ({ ...prev, quiz_set: e.target.value }))}
+                    className={inputClass}
+                    required
+                  >
+                    <option value="">Select Set</option>
+                    <option value="A">Set A</option>
+                    <option value="B">Set B</option>
+                    <option value="C">Set C</option>
+                    <option value="D">Set D</option>
+                    <option value="E">Set E</option>
+                    <option value="F">Set F</option>
+                  </select>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+                  File (Max 500 KB)
+                </label>
+                <input
+                  type="file"
+                  onChange={handleFileSelect}
+                  className="w-full px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-xl text-xs sm:text-sm file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#896ABD]/15 file:text-[#896ABD] dark:file:text-[#C084FC] cursor-pointer"
+                  accept=".pdf"
+                  required
+                />
+                {selectedFile && (
+                  <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono-tabular">
+                    {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={uploading || !selectedFile}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white text-sm font-semibold shadow-sm hover:opacity-95 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                <span>{uploading ? 'Uploading...' : 'Upload Paper'}</span>
+              </button>
+            </form>
+          </motion.section>
+
+          {/* My Papers List */}
+          <motion.section
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="lg:col-span-7 rounded-2xl p-5 sm:p-6 bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm flex flex-col"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-[#896ABD]/15 text-[#896ABD] dark:text-[#C084FC]">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">
+                    <span>My Submissions</span>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-mono-tabular bg-[#896ABD]/15 text-[#896ABD] dark:text-[#C084FC]">
+                      {papers.length}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-[#5C5B57] dark:text-[#94938E]">
+                    Track approval status and feedback
+                  </p>
+                </div>
+              </div>
+              <div className="inline-flex items-center gap-1.5 text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
+                <Filter className="w-3.5 h-3.5 text-[#896ABD]" />
+                <span>Filters</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+              <select
+                name="course_id"
+                value={filters.course_id}
+                onChange={handleFilterChange}
+                className={inputClass}
+              >
+                <option value="">All Courses</option>
+                {courses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.code}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                name="paper_type"
+                value={filters.paper_type}
+                onChange={handleFilterChange}
+                className={inputClass}
+              >
+                <option value="">All Types</option>
+                <option value="assignment">Assignment</option>
+                <option value="quiz">Quiz</option>
+                <option value="midterm">Midterm</option>
+                <option value="endterm">Endterm</option>
+                <option value="project">Project</option>
+              </select>
+
+              <select
+                name="year"
+                value={filters.year}
+                onChange={handleFilterChange}
+                className={inputClass}
+              >
+                <option value="">All Years</option>
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+              </select>
+
+              <select
+                name="semester"
+                value={filters.semester}
+                onChange={handleFilterChange}
+                className={inputClass}
+              >
+                <option value="">All Semesters</option>
+                <option value="1st Sem">1st Sem</option>
+                <option value="2nd Sem">2nd Sem</option>
+                <option value="3rd Sem">3rd Sem</option>
+                <option value="4th Sem">4th Sem</option>
+                <option value="5th Sem">5th Sem</option>
+                <option value="6th Sem">6th Sem</option>
+                <option value="7th Sem">7th Sem</option>
+                <option value="8th Sem">8th Sem</option>
+              </select>
+            </div>
+
+            {loading ? (
+              <div className="py-12 flex justify-center">
+                <Loader />
+              </div>
+            ) : papers.length === 0 ? (
+              <div className="py-12 text-center space-y-2">
+                <div className="w-14 h-14 mx-auto rounded-2xl bg-[#896ABD]/10 border border-[#896ABD]/20 flex items-center justify-center">
+                  <FileText className="w-7 h-7 text-[#896ABD]" />
+                </div>
+                <p className="text-sm font-semibold">No papers submitted yet</p>
+                <p className="text-xs text-[#5C5B57] dark:text-[#94938E]">
+                  Use the upload form to submit your first question paper.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                {papers.map((paper) => (
+                  <div
+                    key={paper.id}
+                    className="p-4 rounded-xl bg-[#FAF9F6] dark:bg-[#0A0A0C]/70 border border-[#E5E2DC] dark:border-[#232329] space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{paper.title}</h3>
+                        <p className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
+                          {new Date(paper.uploaded_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-full text-[11px] font-mono-tabular font-semibold border uppercase shrink-0 ${getStatusColor(paper.status)}`}>
+                        {paper.status}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                      <div className="p-2 rounded-lg bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329]">
+                        <span className="text-[10px] font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E] block">Course</span>
+                        <span className="font-semibold">{paper.course_code || 'N/A'}</span>
+                      </div>
+                      <div className="p-2 rounded-lg bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329]">
+                        <span className="text-[10px] font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E] block">Type</span>
+                        <span className="font-semibold capitalize">{paper.paper_type}</span>
+                      </div>
+                      <div className="p-2 rounded-lg bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329]">
+                        <span className="text-[10px] font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E] block">Year</span>
+                        <span className="font-semibold">{paper.year || 'N/A'}</span>
+                      </div>
+                      <div className="p-2 rounded-lg bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329]">
+                        <span className="text-[10px] font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E] block">Semester</span>
+                        <span className="font-semibold">{paper.semester || 'N/A'}</span>
+                      </div>
+                    </div>
+
+                    {paper.status === 'rejected' && paper.admin_feedback && (
+                      <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-700 dark:text-red-400">
+                        <span className="font-semibold">Feedback: </span>
+                        {paper.admin_feedback.message || 'Your submission was rejected.'}
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E5E2DC] dark:border-[#232329] text-xs">
+                      <span className="text-[#5C5B57] dark:text-[#94938E] truncate max-w-full">
+                        {paper.file_name} ({paper.file_size ? (paper.file_size / 1024).toFixed(1) : '0'} KB)
+                      </span>
+                      {paper.status === 'approved' && (
+                        <button
+                          onClick={() => handleDownload(paper.id, paper.file_name)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] text-xs font-medium hover:opacity-90 transition-opacity"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.section>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

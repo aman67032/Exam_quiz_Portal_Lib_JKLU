@@ -344,7 +344,7 @@ const paperUpload = multer({
       cb(null, `${Date.now()}_${crypto.randomBytes(3).toString('hex')}_${clean}`);
     },
   }),
-  limits: { fileSize: 30 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '').toLowerCase();
     const okMime = file.mimetype === 'application/pdf' || file.mimetype === 'application/octet-stream';
@@ -361,7 +361,7 @@ const userUpload = multer({
       cb(null, `${Date.now()}_${crypto.randomBytes(4).toString('hex')}_${clean}`);
     },
   }),
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname || '').toLowerCase();
     const allowedExt = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
@@ -2480,6 +2480,15 @@ app.delete('/admin/coding-announcements/:id', requireAdminOrStaff, async (req, r
   const db = await getDb();
   await db.query('DELETE FROM coding_announcements WHERE id = $1', [Number(req.params.id)]);
   res.json({ message: 'Announcement deleted' });
+});
+
+app.use((err, _req, res, _next) => {
+  if (err && err.code === 'LIMIT_FILE_SIZE') {
+    res.status(400).json({ detail: 'File size must be 500 KB or less.' });
+    return;
+  }
+  console.error('[Unhandled Server Error]', err);
+  res.status(500).json({ detail: 'Error' });
 });
 
 export default app;

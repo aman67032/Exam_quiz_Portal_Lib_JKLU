@@ -14,12 +14,14 @@ import Footer from '@/components/layout/Footer';
 import HeroBackgroundAnimation from '@/components/layout/HeroBackgroundAnimation';
 import AeroShards from '@/components/layout/AeroShards';
 import { API } from '@/utils/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import techAffairsLogo from '@/assets/technical-affairs-logo.png';
 import jkluCampusHeroImg from '@/assets/generated/jklu_campus_hero.png';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const heroRef = useRef<HTMLDivElement>(null);
   const svgPathRef = useRef<SVGPathElement>(null);
@@ -168,13 +170,24 @@ const LandingPage: React.FC = () => {
 
             <ThemeSwitcher />
 
-            <button
-              onClick={() => navigate('/login')}
-              className="px-2.5 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-medium border border-[#E5E2DC] dark:border-[#232329] rounded-md hover:border-[#0A0A0C] dark:hover:border-[#F5F4F0] transition-colors"
-            >
-              <span className="sm:hidden">Login</span>
-              <span className="hidden sm:inline">Student Login</span>
-            </button>
+            {user ? (
+              <button
+                onClick={() => navigate(user.is_admin || user.is_sub_admin || user.admin_role ? '/admin' : '/dashboard')}
+                className="px-2.5 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-medium border border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 rounded-md hover:border-emerald-500 transition-colors flex items-center gap-1.5"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="sm:hidden">{user.name.split(' ')[0]}</span>
+                <span className="hidden sm:inline">Signed in: {user.name.split(' ')[0]} · Dashboard</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate('/login')}
+                className="px-2.5 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-medium border border-[#E5E2DC] dark:border-[#232329] rounded-md hover:border-[#0A0A0C] dark:hover:border-[#F5F4F0] transition-colors"
+              >
+                <span className="sm:hidden">Login</span>
+                <span className="hidden sm:inline">Student Login</span>
+              </button>
+            )}
             <button
               onClick={() => navigate('/home')}
               className="px-2.5 sm:px-3.5 py-1.5 text-[11px] sm:text-xs font-medium rounded-md bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] hover:bg-[#E04F33] dark:hover:bg-[#E04F33] dark:hover:text-white transition-colors flex items-center gap-1"

@@ -60,7 +60,7 @@ function AppContent() {
               path="/login"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/dashboard"} replace />
                 ) : (
                   <Login />
                 )
@@ -70,7 +70,7 @@ function AppContent() {
               path="/register"
               element={
                 user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
+                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/dashboard"} replace />
                 ) : (
                   <Register />
                 )

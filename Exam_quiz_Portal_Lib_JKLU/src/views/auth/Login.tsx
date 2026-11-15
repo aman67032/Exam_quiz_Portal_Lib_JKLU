@@ -50,7 +50,7 @@ const Login: React.FC = () => {
       } else if (user.is_sub_admin) {
         navigate('/admin/contests');
       } else {
-        navigate('/home');
+        navigate('/dashboard');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
