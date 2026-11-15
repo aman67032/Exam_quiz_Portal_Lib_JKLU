@@ -12,14 +12,19 @@ import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
 import Footer from '@/components/layout/Footer';
 import HeroBackgroundAnimation from '@/components/layout/HeroBackgroundAnimation';
+import AeroShards from '@/components/layout/AeroShards';
 import { API } from '@/utils/api';
+import { useTheme } from '@/contexts/ThemeContext';
 import techAffairsLogo from '@/assets/technical-affairs-logo.png';
 import jkluCampusHeroImg from '@/assets/generated/jklu_campus_hero.png';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const heroRef = useRef<HTMLDivElement>(null);
   const svgPathRef = useRef<SVGPathElement>(null);
+  const papersCountRef = useRef<HTMLDivElement>(null);
+  const coursesCountRef = useRef<HTMLDivElement>(null);
   const [metrics, setMetrics] = useState<{
     courses: number;
     approvedPapers: number;
@@ -73,7 +78,43 @@ const LandingPage: React.FC = () => {
         delay: 300,
       });
     }
+
+    // Subtle continuous float on the hero showcase card (desktop & mobile)
+    const floatAnim = anime({
+      targets: '.anim-hero-float',
+      translateY: [-5, 5],
+      duration: 3600,
+      easing: 'easeInOutSine',
+      direction: 'alternate',
+      loop: true,
+    });
+
+    return () => {
+      floatAnim.pause();
+    };
   }, []);
+
+  // Animate hero stat counters when metrics update
+  useEffect(() => {
+    const obj = { papers: 0, courses: 0 };
+    const counterAnim = anime({
+      targets: obj,
+      papers: metrics.approvedPapers,
+      courses: metrics.courses,
+      round: 1,
+      duration: 1100,
+      easing: 'easeOutExpo',
+      update: () => {
+        if (papersCountRef.current) {
+          papersCountRef.current.textContent = obj.papers.toLocaleString();
+        }
+        if (coursesCountRef.current) {
+          coursesCountRef.current.textContent = `${obj.courses}+`;
+        }
+      },
+    });
+    return () => counterAnim.pause();
+  }, [metrics.approvedPapers, metrics.courses]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -87,7 +128,7 @@ const LandingPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] selection:bg-[#E04F33] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] selection:bg-[#E04F33] selection:text-white overflow-x-hidden">
       {/* Top Navigation Bar — Mobile Optimized */}
       <header className="sticky top-0 z-40 border-b border-[#E5E2DC] dark:border-[#232329] bg-[#FAF9F6]/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
@@ -151,10 +192,26 @@ const LandingPage: React.FC = () => {
         ref={heroRef}
         className="relative min-h-[calc(100svh-3.5rem)] sm:min-h-[calc(100vh-4rem)] w-full flex items-center border-b border-[#E5E2DC] dark:border-[#232329] overflow-hidden"
       >
-        {/* Full 100vh anime.js Background Animation */}
+        {/* Interactive WebGPU / Canvas-2D AeroShards + Blueprint Line Animation */}
+        <div className="absolute inset-0 z-0 opacity-75 dark:opacity-90 pointer-events-none">
+          <AeroShards
+            shardColor="#896ABD"
+            accentColor="#E04F33"
+            placement="full"
+            material="glass"
+            markers="plus"
+            count={700}
+            depthOfField={0.65}
+            vignette={0.25}
+            lightMode={theme === 'light'}
+            speed={0.9}
+            glow={0.35}
+            grain={0.04}
+          />
+        </div>
         <HeroBackgroundAnimation />
 
-        <div className="relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-8 py-8 sm:py-12 lg:py-16">
+        <div className="relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-12 lg:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-10 lg:gap-12 items-center">
             <div className="lg:col-span-7 space-y-4 sm:space-y-6">
               <div className="anim-hero-line inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full border border-[#E5E2DC] dark:border-[#232329] bg-white/90 dark:bg-[#121216]/90 backdrop-blur-sm text-xs shadow-sm max-w-full">
@@ -211,9 +268,9 @@ const LandingPage: React.FC = () => {
               </div>
 
               {/* Key University Portal Stats */}
-              <div className="anim-hero-line pt-4 sm:pt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 border-t border-[#E5E2DC] dark:border-[#232329]">
+              <div className="anim-hero-line pt-4 sm:pt-5 grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4 border-t border-[#E5E2DC] dark:border-[#232329]">
                 <div>
-                  <div className="font-mono-tabular text-xl sm:text-3xl font-semibold">
+                  <div ref={papersCountRef} className="font-mono-tabular text-xl sm:text-3xl font-semibold">
                     {metrics.approvedPapers.toLocaleString()}
                   </div>
                   <div className="text-[11px] sm:text-xs text-[#5C5B57] dark:text-[#94938E] mt-0.5">
@@ -221,7 +278,7 @@ const LandingPage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-mono-tabular text-xl sm:text-3xl font-semibold">
+                  <div ref={coursesCountRef} className="font-mono-tabular text-xl sm:text-3xl font-semibold">
                     {metrics.courses}+
                   </div>
                   <div className="text-[11px] sm:text-xs text-[#5C5B57] dark:text-[#94938E] mt-0.5">
@@ -249,7 +306,7 @@ const LandingPage: React.FC = () => {
 
             {/* Right 5 Columns: JKLU Campus Exam Holograms Hero Showcase */}
             <div className="lg:col-span-5 anim-hero-card">
-              <div className="relative rounded-xl overflow-hidden border border-[#E5E2DC] dark:border-[#232329] bg-white/90 dark:bg-[#121216]/90 backdrop-blur-md p-2 sm:p-3 shadow-md group">
+              <div className="anim-hero-float relative rounded-xl overflow-hidden border border-[#E5E2DC] dark:border-[#232329] bg-white/90 dark:bg-[#121216]/90 backdrop-blur-md p-2 sm:p-3 shadow-lg group">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-[#FAF9F6] dark:bg-[#0A0A0C]">
                   <img
                     src={(jkluCampusHeroImg as any)?.src || jkluCampusHeroImg}
