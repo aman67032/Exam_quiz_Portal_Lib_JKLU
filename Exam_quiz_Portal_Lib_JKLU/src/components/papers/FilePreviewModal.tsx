@@ -359,6 +359,9 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                     // Mobile: Client-side PDF.js canvas preview + Open Full PDF button (no gview)
                     <div className="w-full h-full flex flex-col gap-2.5">
                       <MobilePdfViewer url={getPreviewUrl(paperId)} token={token} />
+                      <p className="text-[11px] text-center text-gray-500 dark:text-gray-400 shrink-0 -mb-1">
+                        For better viewing &amp; zoom, open the full PDF:
+                      </p>
                       <a
                         href={getPreviewUrl(paperId)}
                         target="_blank"
