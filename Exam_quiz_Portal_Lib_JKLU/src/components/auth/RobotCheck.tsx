@@ -97,8 +97,16 @@ const RobotCheck: React.FC<RobotCheckProps> = ({ onChange, resetKey = 0 }) => {
     setError('');
     setAnswer('');
     onChange(null);
+    const loadOnce = () =>
+      axios.get(`${API_BASE_URL}/captcha/challenge`, { timeout: 25000 });
     try {
-      const res = await axios.get(`${API_BASE_URL}/captcha/challenge`, { timeout: 10000 });
+      let res;
+      try {
+        res = await loadOnce();
+      } catch {
+        await new Promise((r) => setTimeout(r, 1200));
+        res = await loadOnce();
+      }
       if (res.data?.mode === 'builtin') {
         setChallenge({
           id: res.data.id,
@@ -107,8 +115,13 @@ const RobotCheck: React.FC<RobotCheckProps> = ({ onChange, resetKey = 0 }) => {
           signature: res.data.signature,
         });
       }
-    } catch {
-      setError('Could not load verification challenge. Please retry.');
+    } catch (err: any) {
+      const status = err?.response?.status;
+      setError(
+        status === 404
+          ? 'Backend not updated yet (404). Please push & redeploy backend.'
+          : 'Could not load verification challenge. Please retry.'
+      );
     } finally {
       setLoading(false);
     }

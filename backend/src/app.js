@@ -92,7 +92,12 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       const normalized = origin.replace(/\/$/, '');
-      if (ALLOWED_ORIGINS.has(normalized)) return callback(null, true);
+      if (
+        ALLOWED_ORIGINS.has(normalized) ||
+        /^https:\/\/exam-quiz-portal-lib-jklu(-[a-z0-9-]+)?\.vercel\.app$/i.test(normalized)
+      ) {
+        return callback(null, true);
+      }
       return callback(new Error('Not allowed by CORS'));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
