@@ -38,14 +38,19 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
         const pdfjsLib = await import('pdfjs-dist');
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
 
-        const pdf = await pdfjsLib.getDocument({ data }).promise;
+        const pdf = await pdfjsLib.getDocument({
+          data,
+          cMapUrl: '/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: '/standard_fonts/',
+        }).promise;
         if (cancelled) return;
 
         setPageCount(pdf.numPages);
         const container = containerRef.current;
         if (!container) return;
 
-        const targetWidth = Math.max(260, container.clientWidth - 16);
+        const targetWidth = Math.max(280, container.clientWidth - 16);
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -58,8 +63,8 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
           const canvas = document.createElement('canvas');
           canvas.width = Math.floor(viewport.width);
           canvas.height = Math.floor(viewport.height);
-          canvas.style.width = `${Math.floor(viewport.width / dpr)}px`;
-          canvas.style.height = `${Math.floor(viewport.height / dpr)}px`;
+          canvas.style.width = '100%';
+          canvas.style.height = 'auto';
           canvas.className = 'mx-auto rounded-lg shadow-sm bg-white block mb-3';
 
           const ctx = canvas.getContext('2d');
@@ -70,7 +75,8 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
         }
 
         if (!cancelled) setLoading(false);
-      } catch {
+      } catch (err) {
+        console.error('MobilePdfViewer error:', err);
         if (!cancelled) {
           setError(true);
           setLoading(false);
