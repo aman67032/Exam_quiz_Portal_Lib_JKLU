@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Database, Activity, Book, Upload, Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -208,6 +208,46 @@ const AdminDashboard: React.FC = () => {
 
   // Course form
   const [courseForm, setCourseForm] = useState({ code: '', name: '', description: '' });
+
+  // In-app confirmation modal state (replaces native browser confirm())
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    tone: 'danger' | 'primary';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    tone: 'danger',
+  });
+  const confirmResolverRef = useRef<((confirmed: boolean) => void) | null>(null);
+
+  const requestConfirm = (opts: {
+    title: string;
+    message: string;
+    confirmLabel?: string;
+    tone?: 'danger' | 'primary';
+  }): Promise<boolean> => {
+    return new Promise((resolve) => {
+      confirmResolverRef.current = resolve;
+      setConfirmDialog({
+        isOpen: true,
+        title: opts.title,
+        message: opts.message,
+        confirmLabel: opts.confirmLabel || 'Confirm',
+        tone: opts.tone || 'danger',
+      });
+    });
+  };
+
+  const resolveConfirm = (value: boolean) => {
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+    confirmResolverRef.current?.(value);
+    confirmResolverRef.current = null;
+  };
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   // Paper editing state
@@ -374,11 +414,11 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
-    // Use setTimeout to defer confirm dialog and prevent blocking
-    const confirmed = await new Promise<boolean>((resolve) => {
-      setTimeout(() => {
-        resolve(window.confirm(`Are you sure you want to approve all ${pendingPapers.length} pending papers?`));
-      }, 0);
+    const confirmed = await requestConfirm({
+      title: 'Approve All Pending Papers',
+      message: `Are you sure you want to approve all ${pendingPapers.length} pending papers?`,
+      confirmLabel: 'Approve All',
+      tone: 'primary',
     });
 
     if (!confirmed) {
@@ -462,9 +502,12 @@ const AdminDashboard: React.FC = () => {
   };
 
   const deletePaper = async (paperId: number) => {
-    if (!window.confirm('Are you sure you want to permanently delete this paper? This action cannot be undone.')) {
-      return;
-    }
+    const confirmed = await requestConfirm({
+      title: 'Delete Paper',
+      message: 'Are you sure you want to permanently delete this paper? This action cannot be undone.',
+      confirmLabel: 'Delete Paper',
+    });
+    if (!confirmed) return;
 
     try {
       await axios.delete(`${API_BASE_URL}/papers/${paperId}`, {
@@ -510,7 +553,12 @@ const AdminDashboard: React.FC = () => {
   };
 
   const deleteCourse = async (id: number) => {
-    if (!confirm('Delete this course? All associated papers will be deleted.')) return;
+    const confirmed = await requestConfirm({
+      title: 'Delete Course',
+      message: 'Delete this course? All associated papers will be deleted.',
+      confirmLabel: 'Delete Course',
+    });
+    if (!confirmed) return;
 
     try {
       await axios.delete(`${API_BASE_URL}/courses/${id}`, {
@@ -664,7 +712,12 @@ const AdminDashboard: React.FC = () => {
   };
 
   const deleteUser = async (userId: number) => {
-    if (!window.confirm('Are you sure you want to permanently delete this user?')) return;
+    const confirmed = await requestConfirm({
+      title: 'Delete User',
+      message: 'Are you sure you want to permanently delete this user?',
+      confirmLabel: 'Delete User',
+    });
+    if (!confirmed) return;
     try {
       await axios.delete(`${API_BASE_URL}/admin/users/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -850,7 +903,12 @@ const AdminDashboard: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2.5">
               <button
                 onClick={async () => {
-                  if (!window.confirm('Purge all existing old PDFs from the database and storage?')) return;
+                  const confirmed = await requestConfirm({
+                    title: 'Purge Old PDFs',
+                    message: 'Purge all existing old PDFs from the database and storage?',
+                    confirmLabel: 'Purge All',
+                  });
+                  if (!confirmed) return;
                   try {
                     const res = await axios.post(`${API_BASE_URL}/admin/papers/purge-old`, {}, {
                       headers: { Authorization: `Bearer ${token}` },
@@ -2436,6 +2494,46 @@ const AdminDashboard: React.FC = () => {
           </motion.div>
         )
       }
+
+      {/* In-app Confirmation Modal */}
+      {confirmDialog.isOpen && (
+        <div
+          className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
+          onClick={() => resolveConfirm(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-[#E6E4DD] dark:border-white/10 bg-[#FFFFFF] dark:bg-[#111115] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] mb-2">
+              {confirmDialog.title}
+            </h3>
+            <p className="text-sm text-[#5C5B57] dark:text-[#94938E] mb-6 leading-relaxed">
+              {confirmDialog.message}
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => resolveConfirm(false)}
+                className="px-4 py-2 rounded-lg border border-[#E6E4DD] dark:border-white/10 text-sm font-medium text-[#5C5B57] dark:text-[#94938E] hover:bg-[#F3F1EA] dark:hover:bg-white/5 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => resolveConfirm(true)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors ${
+                  confirmDialog.tone === 'danger'
+                    ? 'bg-[#E04F33] hover:bg-[#c94127]'
+                    : 'bg-[#4F46E5] hover:bg-[#4338CA]'
+                }`}
+              >
+                {confirmDialog.confirmLabel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add CSS for glitch animation */}
       <style>{`

@@ -47,6 +47,18 @@ for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
   };
 }
 
+// Validate integer route parameters up front to prevent PostgreSQL NaN syntax errors
+for (const paramName of ['paper_id', 'course_id', 'user_id', 'contest_id', 'question_id', 'id']) {
+  app.param(paramName, (_req, res, next, value) => {
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      res.status(400).json({ detail: `Invalid ${paramName.replace(/_/g, ' ')}` });
+      return;
+    }
+    next();
+  });
+}
+
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
   if (process.env.NODE_ENV === 'production') {
