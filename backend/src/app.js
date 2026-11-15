@@ -35,19 +35,11 @@ app.set('trust proxy', 1);
 
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
-  const envSeed =
-    process.env.DATABASE_URL ||
-    process.env.REDIS_URL ||
-    process.env.RECAPTCHA_SECRET_KEY ||
-    process.env.DEFAULT_ADMIN_PASSWORD;
-  if (envSeed) {
-    console.warn(
-      '⚠️ [Security] JWT_SECRET env var is not set; deriving deterministic secret from deployment env.'
-    );
-    return crypto.createHash('sha256').update(`learn-jklu:${envSeed}`).digest('hex');
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production');
   }
   console.warn(
-    '⚠️ [Security] JWT_SECRET env var is not set; using an ephemeral per-process secret.'
+    '⚠️ [Security] JWT_SECRET env var is not set; using an ephemeral per-process secret for development.'
   );
   return crypto.randomBytes(32).toString('hex');
 }
@@ -232,7 +224,6 @@ app.use(apiLimiter);
 
 let totalRequestsHandled = 0;
 let activeRequests = 0;
-const passwordResetStore = new Map();
 const usedCaptchaIds = new Map();
 
 function signCaptchaPayload(id, answer, expiresAt) {
@@ -775,7 +766,7 @@ app.get('/health', async (_req, res) => {
   });
 });
 
-app.get('/metrics', async (_req, res) => {
+app.get('/metrics', requireAdminOrStaff, async (_req, res) => {
   const db = await getDb();
   const counts = await getOrSetCache('metrics:counts', 15000, async () => {
     const [u, c, p] = await Promise.all([
@@ -1048,65 +1039,6 @@ app.get('/me', requireAuth, async (req, res) => {
   res.json(formatUserResponse(req.user));
 });
 
-app.post('/forgot-password', authLimiter, async (req, res) => {
-  const captchaCheck = await verifyHumanChallenge(req);
-  if (!captchaCheck.ok) {
-    res.status(400).json({ detail: captchaCheck.detail });
-    return;
-  }
-  const email = String(req.body.email || '')
-    .toLowerCase()
-    .trim();
-  if (!email) {
-    res.status(400).json({ detail: 'Email is required' });
-    return;
-  }
-  if (!(await checkRateLimitWindow(`otp:email:${email}`, 3, 900))) {
-    res.status(429).json({ detail: 'Too many reset requests for this email. Try again in 15 minutes.' });
-    return;
-  }
-  const now = Date.now();
-  for (const [key, val] of passwordResetStore.entries()) {
-    if (now > val.expiresAt) passwordResetStore.delete(key);
-  }
-  const otp = String(crypto.randomInt(100000, 1000000));
-  passwordResetStore.set(email, { otp, attempts: 0, expiresAt: now + 10 * 60 * 1000 });
-  console.log(`🔑 [OTP] Password reset OTP generated for ${email}`);
-  res.json({
-    message: 'If the account exists, an OTP has been generated (check server logs/SMTP).',
-  });
-});
-
-app.post('/reset-password', authLimiter, async (req, res) => {
-  const email = String(req.body.email || '')
-    .toLowerCase()
-    .trim();
-  const otp = String(req.body.otp || '').trim();
-  const newPassword = String(req.body.new_password || '');
-  if (!email || !otp || newPassword.length < 6) {
-    res.status(400).json({ detail: 'Valid email, OTP, and password (min 6 chars) are required' });
-    return;
-  }
-  const entry = passwordResetStore.get(email);
-  if (!entry || Date.now() > entry.expiresAt) {
-    passwordResetStore.delete(email);
-    res.status(400).json({ detail: 'Invalid or expired OTP' });
-    return;
-  }
-  if (entry.otp !== otp) {
-    entry.attempts = (entry.attempts || 0) + 1;
-    if (entry.attempts >= 5) passwordResetStore.delete(email);
-    res.status(400).json({ detail: 'Invalid or expired OTP' });
-    return;
-  }
-  const db = await getDb();
-  const hash = await hashPasswordNonBlocking(newPassword, 10);
-  await db.query('UPDATE users SET password_hash = $1 WHERE LOWER(email) = $2', [hash, email]);
-  passwordResetStore.delete(email);
-  invalidateCachePrefix('auth:');
-  res.json({ message: 'Password reset successfully' });
-});
-
 app.put('/profile', requireAuth, async (req, res) => {
   const user = req.user;
   const { roll_no, student_id, name, department, year } = req.body;
@@ -1205,6 +1137,10 @@ app.post('/courses', requireAdminOrStaff, async (req, res) => {
 });
 
 app.post('/courses/check-or-create', requireAuth, async (req, res) => {
+  if (!req.user.id_verified && !req.user.is_admin && !req.user.admin_role) {
+    res.status(403).json({ detail: 'ID verification required to create courses' });
+    return;
+  }
   const code = String(req.query.code || req.body.code || '')
     .trim()
     .toUpperCase();
@@ -1552,12 +1488,26 @@ app.get('/papers', async (req, res) => {
   res.json(filterLocalCatalogPapers(req.query, forceApproved).map((r) => formatPaperResponse(r, isStaff)));
 });
 
+async function canAccessPaper(req, paper) {
+  if (!paper) return false;
+  if (!paper.status || paper.status === 'approved') return true;
+  const user = await getAuthenticatedUser(req);
+  if (!user) return false;
+  if (user.is_admin || user.admin_role) return true;
+  return Boolean(paper.uploaded_by && Number(paper.uploaded_by) === Number(user.id));
+}
+
 app.get('/papers/:paper_id', async (req, res) => {
   const paperId = Number(req.params.paper_id);
   const db = await getDb();
   const result = await db.query(`${PAPER_SELECT_SQL} WHERE p.id = $1 LIMIT 1`, [paperId]);
   if (result.rowCount > 0) {
-    res.json(formatPaperResponse(result.rows[0]));
+    const paper = result.rows[0];
+    if (!(await canAccessPaper(req, paper))) {
+      res.status(404).json({ detail: 'Paper not found' });
+      return;
+    }
+    res.json(formatPaperResponse(paper));
     return;
   }
   const localPaper = getLocalPastpaperCatalog().papers.find((p) => p.id === paperId);
@@ -1816,7 +1766,7 @@ app.get('/papers/:paper_id/preview', previewDownloadLimiter, async (req, res) =>
     if (result.rowCount > 0) return result.rows[0];
     return getLocalPastpaperCatalog().papers.find((p) => p.id === paperId) || null;
   });
-  if (!paper) {
+  if (!paper || !(await canAccessPaper(req, paper))) {
     res.status(404).json({ detail: 'Paper not found' });
     return;
   }
@@ -1855,7 +1805,7 @@ app.get('/papers/:paper_id/download', previewDownloadLimiter, async (req, res) =
     if (result.rowCount > 0) return result.rows[0];
     return getLocalPastpaperCatalog().papers.find((p) => p.id === paperId) || null;
   });
-  if (!paper) {
+  if (!paper || !(await canAccessPaper(req, paper))) {
     res.status(404).json({ detail: 'Paper not found' });
     return;
   }

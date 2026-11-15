@@ -22,14 +22,20 @@ export const startKeepAlive = () => {
   console.log('🚀 Starting keep-alive service for backend...');
   isActive = true;
 
-  // Ping immediately on start
-  pingBackend();
-
-  // Then ping every 5 minutes (300000ms)
-  // This ensures backend stays awake (Railway may spin down after inactivity)
-  keepAliveInterval = setInterval(() => {
+  // Ping immediately on start if visible
+  if (typeof document === 'undefined' || !document.hidden) {
     pingBackend();
-  }, 5 * 60 * 1000); // 5 minutes
+  }
+
+  // Then ping every 5 minutes (300000ms) while tab is visible
+  keepAliveInterval = setInterval(() => {
+    if (typeof document !== 'undefined' && document.hidden) return;
+    pingBackend();
+  }, 5 * 60 * 1000);
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', stopKeepAlive, { once: true });
+  }
 };
 
 /**

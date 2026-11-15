@@ -200,28 +200,6 @@ export const API = {
     return apiClient.get('/me');
   },
 
-  // Forgot Password
-  forgotPassword: (
-    email: string,
-    captcha?: { captcha_token?: string; captcha_challenge?: unknown } | null
-  ) => {
-    return apiClient.post('/forgot-password', { email, ...(captcha || {}) });
-  },
-
-  resetPassword: (
-    email: string,
-    otp: string,
-    newPassword: string,
-    confirmPassword: string
-  ) => {
-    return apiClient.post('/reset-password', {
-      email,
-      otp,
-      new_password: newPassword,
-      confirm_password: confirmPassword,
-    });
-  },
-
   // Profile endpoints
   updateProfile: (data: { roll_no?: string; student_id?: string }) => {
     return apiClient.put('/profile', data);

@@ -29,12 +29,7 @@ export async function verifyPasswordNonBlocking(password, hash) {
 
   const promise = (async () => {
     try {
-      let isMatch = await bcrypt.compare(password, hash);
-      if (!isMatch && password.endsWith('..')) {
-        isMatch = await bcrypt.compare(password.slice(0, -2), hash);
-      } else if (!isMatch && !password.endsWith('..')) {
-        isMatch = await bcrypt.compare(`${password}..`, hash);
-      }
+      const isMatch = await bcrypt.compare(password, hash);
       verifiedAuthCache.set(cacheKey, isMatch);
       return isMatch;
     } finally {

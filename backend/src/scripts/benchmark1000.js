@@ -39,7 +39,7 @@ async function runBenchmark() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: process.env.DEFAULT_ADMIN_EMAIL || 'admin@jklu.edu.in',
-            password: process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@123',
+            password: process.env.DEFAULT_ADMIN_PASSWORD || '',
           }),
         });
         await res.arrayBuffer();
