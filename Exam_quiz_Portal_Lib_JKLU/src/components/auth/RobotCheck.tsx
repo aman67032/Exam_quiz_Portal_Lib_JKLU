@@ -21,10 +21,16 @@ interface RobotCheckProps {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '';
 
 declare global {
   interface Window {
+    grecaptcha?: {
+      ready: (cb: () => void) => void;
+      render: (container: HTMLElement, options: Record<string, any>) => number;
+      reset: (widgetId?: number) => void;
+    };
     turnstile?: {
       render: (container: HTMLElement, options: Record<string, any>) => string;
       reset: (widgetId?: string) => void;
@@ -45,11 +51,47 @@ const RobotCheck: React.FC<RobotCheckProps> = ({ onChange, resetKey = 0 }) => {
   const [answer, setAnswer] = useState('');
   const [error, setError] = useState('');
 
+  const recaptchaRef = useRef<HTMLDivElement | null>(null);
+  const recaptchaIdRef = useRef<number | null>(null);
   const turnstileRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!TURNSTILE_SITE_KEY) return;
+    if (!RECAPTCHA_SITE_KEY) return;
+
+    const renderRecaptcha = () => {
+      if (!recaptchaRef.current || !window.grecaptcha) return;
+      window.grecaptcha.ready(() => {
+        if (!recaptchaRef.current || !window.grecaptcha || recaptchaIdRef.current !== null) return;
+        recaptchaIdRef.current = window.grecaptcha.render(recaptchaRef.current, {
+          sitekey: RECAPTCHA_SITE_KEY,
+          callback: (token: string) => onChange({ captcha_token: token }),
+          'expired-callback': () => onChange(null),
+          'error-callback': () => onChange(null),
+        });
+      });
+    };
+
+    if (window.grecaptcha) {
+      renderRecaptcha();
+    } else {
+      const existingScript = document.querySelector('script[data-recaptcha="true"]');
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.dataset.recaptcha = 'true';
+        script.onload = renderRecaptcha;
+        document.head.appendChild(script);
+      } else {
+        existingScript.addEventListener('load', renderRecaptcha);
+      }
+    }
+  }, [onChange]);
+
+  useEffect(() => {
+    if (RECAPTCHA_SITE_KEY || !TURNSTILE_SITE_KEY) return;
 
     const renderWidget = () => {
       if (!turnstileRef.current || !window.turnstile) return;
@@ -129,6 +171,11 @@ const RobotCheck: React.FC<RobotCheckProps> = ({ onChange, resetKey = 0 }) => {
 
   useEffect(() => {
     if (resetKey === 0) return;
+    if (RECAPTCHA_SITE_KEY && recaptchaIdRef.current !== null && window.grecaptcha) {
+      window.grecaptcha.reset(recaptchaIdRef.current);
+      onChange(null);
+      return;
+    }
     if (TURNSTILE_SITE_KEY && widgetIdRef.current && window.turnstile) {
       window.turnstile.reset(widgetIdRef.current);
       onChange(null);
@@ -143,6 +190,14 @@ const RobotCheck: React.FC<RobotCheckProps> = ({ onChange, resetKey = 0 }) => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey]);
+
+  if (RECAPTCHA_SITE_KEY) {
+    return (
+      <div className="py-1">
+        <div ref={recaptchaRef} />
+      </div>
+    );
+  }
 
   if (TURNSTILE_SITE_KEY) {
     return (

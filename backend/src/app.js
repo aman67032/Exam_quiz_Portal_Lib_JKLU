@@ -228,6 +228,27 @@ function signCaptchaPayload(id, answer, expiresAt) {
 }
 
 async function verifyHumanChallenge(req) {
+  if (process.env.RECAPTCHA_SECRET_KEY) {
+    const token = String(req.body?.captcha_token || '').trim();
+    if (!token) return { ok: false, detail: 'Please complete the "I am not a robot" check' };
+    try {
+      const form = new URLSearchParams();
+      form.append('secret', process.env.RECAPTCHA_SECRET_KEY);
+      form.append('response', token);
+      if (req.ip) form.append('remoteip', req.ip);
+      const r = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await r.json();
+      return data.success
+        ? { ok: true }
+        : { ok: false, detail: 'Google reCAPTCHA verification failed. Please try again.' };
+    } catch {
+      return { ok: false, detail: 'Unable to verify reCAPTCHA right now.' };
+    }
+  }
+
   if (process.env.TURNSTILE_SECRET_KEY) {
     const token = String(req.body?.captcha_token || '').trim();
     if (!token) return { ok: false, detail: 'Please complete the "I am not a robot" check' };
@@ -797,6 +818,10 @@ app.get('/uploads/:filename(*)', async (req, res) => {
 // AUTHENTICATION ENDPOINTS & HUMAN VERIFICATION
 // ============================================================================
 app.get('/captcha/challenge', apiLimiter, (_req, res) => {
+  if (process.env.RECAPTCHA_SECRET_KEY) {
+    res.json({ mode: 'recaptcha' });
+    return;
+  }
   if (process.env.TURNSTILE_SECRET_KEY) {
     res.json({ mode: 'turnstile' });
     return;
