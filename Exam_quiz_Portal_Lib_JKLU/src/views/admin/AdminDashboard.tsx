@@ -873,7 +873,7 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {/* Inner Management Panels Container (keeps dark-surface tables/forms crisp over AeroShards) */}
-          <div className={activeTab === 'dashboard' ? 'hidden' : 'rounded-2xl bg-[#111117]/92 text-[#F5F4F0] backdrop-blur-md border border-white/10 p-4 sm:p-6 shadow-2xl'}>
+          <div className={activeTab === 'dashboard' ? 'hidden' : 'space-y-6'}>
 
           {/* All Documents Tab */}
           {activeTab === 'all-papers' && (
@@ -885,8 +885,8 @@ const AdminDashboard: React.FC = () => {
             >
               <div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-                  <h2 className="text-xl sm:text-2xl font-bold font-mono bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <Database className="text-cyan-400 flex-shrink-0" size={24} />
+                  <h2 className="text-xl sm:text-2xl font-bold font-mono bg-gradient-to-r from-[#896ABD] to-[#E04F33] bg-clip-text text-transparent flex items-center gap-3">
+                    <Database className="text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0" size={24} />
                     ALL_DOCUMENTS [{allPapers.length}]
                   </h2>
                   <motion.button
@@ -903,22 +903,22 @@ const AdminDashboard: React.FC = () => {
 
                 {/* File Diagnostics Results */}
                 {fileDiagnostics && (
-                  <div className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-4 mb-6">
+                  <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-4 mb-6">
                     <h3 className="text-sm font-mono text-yellow-400/70 mb-3 uppercase">FILE DIAGNOSTICS</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                      <div className="bg-black/40 rounded-lg p-3 border border-yellow-500/20">
+                      <div className="bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg p-3 border border-yellow-500/20">
                         <div className="text-xs text-yellow-400/50 font-mono uppercase mb-1">TOTAL PAPERS</div>
                         <div className="text-2xl font-bold text-yellow-400 font-mono">{fileDiagnostics.total_papers}</div>
                       </div>
-                      <div className="bg-black/40 rounded-lg p-3 border border-yellow-500/20">
+                      <div className="bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg p-3 border border-yellow-500/20">
                         <div className="text-xs text-yellow-400/50 font-mono uppercase mb-1">FILES ON DISK</div>
                         <div className="text-2xl font-bold text-yellow-400 font-mono">{fileDiagnostics.files_on_disk_count}</div>
                       </div>
-                      <div className={`bg-black/40 rounded-lg p-3 border ${fileDiagnostics.papers_with_missing_files > 0 ? 'border-red-500/50' : 'border-green-500/50'}`}>
+                      <div className={`bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg p-3 border ${fileDiagnostics.papers_with_missing_files > 0 ? 'border-red-500/50' : 'border-[#E5E2DC] dark:border-[#232329]'}`}>
                         <div className="text-xs font-mono uppercase mb-1" style={{ color: fileDiagnostics.papers_with_missing_files > 0 ? 'rgba(239, 68, 68, 0.5)' : 'rgba(34, 197, 94, 0.5)' }}>
                           MISSING FILES
                         </div>
-                        <div className={`text-2xl font-bold font-mono ${fileDiagnostics.papers_with_missing_files > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        <div className={`text-2xl font-bold font-mono ${fileDiagnostics.papers_with_missing_files > 0 ? 'text-red-400' : 'text-[#0A0A0C] dark:text-[#F5F4F0]'}`}>
                           {fileDiagnostics.papers_with_missing_files}
                         </div>
                       </div>
@@ -942,13 +942,13 @@ const AdminDashboard: React.FC = () => {
                 )}
 
                 {/* Filters */}
-                <div className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-4 mb-6">
-                  <h3 className="text-sm font-mono text-cyan-400/70 mb-3 uppercase">FILTERS</h3>
+                <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-4 mb-6">
+                  <h3 className="text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">FILTERS</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
                     <select
                       value={paperFilters.course_id}
                       onChange={(e) => setPaperFilters({ ...paperFilters, course_id: e.target.value })}
-                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                      className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none"
                     >
                       <option value="">All Courses</option>
                       {courses.map(course => (
@@ -959,7 +959,7 @@ const AdminDashboard: React.FC = () => {
                     <select
                       value={paperFilters.paper_type}
                       onChange={(e) => setPaperFilters({ ...paperFilters, paper_type: e.target.value })}
-                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                      className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none"
                     >
                       <option value="">All Types</option>
                       <option value="assignment">Assignment</option>
@@ -974,7 +974,7 @@ const AdminDashboard: React.FC = () => {
                       placeholder="Year"
                       value={paperFilters.year}
                       onChange={(e) => setPaperFilters({ ...paperFilters, year: e.target.value })}
-                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none placeholder-cyan-400/50"
+                      className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                     />
 
                     <input
@@ -982,13 +982,13 @@ const AdminDashboard: React.FC = () => {
                       placeholder="Semester"
                       value={paperFilters.semester}
                       onChange={(e) => setPaperFilters({ ...paperFilters, semester: e.target.value })}
-                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none placeholder-cyan-400/50"
+                      className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                     />
 
                     <select
                       value={paperFilters.status}
                       onChange={(e) => setPaperFilters({ ...paperFilters, status: e.target.value })}
-                      className="px-3 py-2 bg-black/40 border-2 border-cyan-500/30 rounded-lg text-cyan-400 font-mono text-sm focus:border-cyan-500 focus:outline-none"
+                      className="px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none"
                     >
                       <option value="">All Status</option>
                       <option value="pending">Pending</option>
@@ -999,9 +999,9 @@ const AdminDashboard: React.FC = () => {
                 </div>
 
                 {allPapers.length === 0 ? (
-                  <div className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-8 text-center">
-                    <Database className="h-12 w-12 text-cyan-400/50 mx-auto mb-3" />
-                    <p className="text-cyan-400/70 font-mono">NO_PAPERS_FOUND</p>
+                  <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-8 text-center">
+                    <Database className="h-12 w-12 text-[#5C5B57] dark:text-[#94938E] mx-auto mb-3" />
+                    <p className="text-[#5C5B57] dark:text-[#94938E] font-mono">NO_PAPERS_FOUND</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1011,43 +1011,43 @@ const AdminDashboard: React.FC = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
-                        className="bg-black/60 backdrop-blur-xl border-2 border-cyan-500/30 rounded-xl p-6 hover:border-cyan-500/60 transition-all shadow-lg hover:shadow-cyan-500/10"
+                        className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 hover:border-cyan-500/60 transition-all shadow-lg hover:shadow-cyan-500/10"
                       >
                         <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-4">
                           <div className="flex-1 w-full">
-                            <h3 className="text-lg sm:text-xl font-bold text-cyan-400 font-mono mb-2 break-words">{paper.title}</h3>
-                            <div className="text-xs sm:text-sm text-cyan-400/70 font-mono mb-1">
-                              <span className="text-blue-400">COURSE:</span> {paper.course_code} - {paper.course_name}
+                            <h3 className="text-lg sm:text-xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono mb-2 break-words">{paper.title}</h3>
+                            <div className="text-xs sm:text-sm text-[#5C5B57] dark:text-[#94938E] font-mono mb-1">
+                              <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">COURSE:</span> {paper.course_code} - {paper.course_name}
                             </div>
-                            <div className="text-xs sm:text-sm text-cyan-400/50 font-mono">
-                              <span className="text-blue-400">UPLOADED_BY:</span> {paper.uploader_name} {paper.uploader_email && <span className="block sm:inline sm:ml-1">({paper.uploader_email})</span>}
+                            <div className="text-xs sm:text-sm text-[#5C5B57] dark:text-[#94938E] font-mono">
+                              <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">UPLOADED_BY:</span> {paper.uploader_name} {paper.uploader_email && <span className="block sm:inline sm:ml-1">({paper.uploader_email})</span>}
                             </div>
                           </div>
                           <div className="flex flex-row sm:flex-col gap-2 items-center sm:items-end w-full sm:w-auto">
-                            <span className={`px-2 sm:px-3 py-1 border text-[10px] sm:text-xs font-mono rounded-lg ${paper.status === 'approved' ? 'bg-green-500/20 border-green-500/50 text-green-400' :
+                            <span className={`px-2 sm:px-3 py-1 border text-[10px] sm:text-xs font-mono rounded-lg ${paper.status === 'approved' ? 'bg-[#896ABD]/15 border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0]' :
                               paper.status === 'rejected' ? 'bg-red-500/20 border-red-500/50 text-red-400' :
                                 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
                               }`}>
                               {paper.status?.toUpperCase() || 'PENDING'}
                             </span>
-                            <span className="px-2 sm:px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-[10px] sm:text-xs font-mono rounded-lg whitespace-nowrap">
+                            <span className="px-2 sm:px-3 py-1 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] text-[10px] sm:text-xs font-mono rounded-lg whitespace-nowrap">
                               {paper.paper_type.toUpperCase()}
                             </span>
                           </div>
                         </div>
 
                         {paper.description && (
-                          <p className="text-cyan-400/60 mb-4 font-mono text-sm">{paper.description}</p>
+                          <p className="text-[#0A0A0C] dark:text-[#F5F4F0]/60 mb-4 font-mono text-sm">{paper.description}</p>
                         )}
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-cyan-500/20 gap-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-[#E5E2DC] dark:border-[#232329] gap-4">
                           <div className="flex flex-col gap-1 w-full sm:w-auto">
-                            <div className="text-sm text-cyan-400/50 font-mono">
+                            <div className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono">
                               {paper.year && `YEAR: ${paper.year}`}
                               {paper.semester && ` | SEMESTER: ${paper.semester}`}
                             </div>
                             {paper.file_path && (
-                              <div className="text-xs text-cyan-400/40 font-mono truncate max-w-xs sm:max-w-md">
+                              <div className="text-xs text-[#0A0A0C] dark:text-[#F5F4F0]/40 font-mono truncate max-w-xs sm:max-w-md">
                                 FILE: {paper.file_path}
                               </div>
                             )}
@@ -1072,7 +1072,7 @@ const AdminDashboard: React.FC = () => {
                                 });
                               }}
                               disabled={!paper.file_name}
-                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               whileHover={{ scale: paper.file_name ? 1.05 : 1, boxShadow: paper.file_name ? '0 0 15px rgba(6, 182, 212, 0.5)' : 'none' }}
                               whileTap={{ scale: paper.file_name ? 0.95 : 1 }}
                             >
@@ -1081,7 +1081,7 @@ const AdminDashboard: React.FC = () => {
                             </motion.button>
                             <motion.button
                               onClick={() => openEditModal(paper)}
-                              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 rounded-lg font-mono transition-all"
+                              className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all"
                               whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(168, 85, 247, 0.5)' }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -1091,7 +1091,7 @@ const AdminDashboard: React.FC = () => {
                             {paper.status !== 'approved' && (
                               <motion.button
                                 onClick={() => reviewPaper(paper.id, 'approved')}
-                                className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 rounded-lg font-mono transition-all"
+                                className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all"
                                 whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
                                 whileTap={{ scale: 0.95 }}
                               >
@@ -1144,7 +1144,7 @@ const AdminDashboard: React.FC = () => {
                   ID_VERIFICATION_REQUESTS [{verificationRequests.length}]
                 </h2>
                 {verificationRequests.length === 0 ? (
-                  <div className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-8 text-center">
+                  <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-8 text-center">
                     <User className="h-12 w-12 text-yellow-400/50 mx-auto mb-3" />
                     <p className="text-yellow-400/70 font-mono">NO_PENDING_VERIFICATION_REQUESTS</p>
                   </div>
@@ -1156,19 +1156,19 @@ const AdminDashboard: React.FC = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-black/60 backdrop-blur-xl border-2 border-yellow-500/30 rounded-xl p-6 hover:border-yellow-500/60 transition-all shadow-lg hover:shadow-yellow-500/10"
+                        className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 hover:border-yellow-500/60 transition-all shadow-lg hover:shadow-yellow-500/10"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1 w-full">
                             <h3 className="text-lg sm:text-xl font-bold text-yellow-400 font-mono mb-2 break-words">{request.name}</h3>
                             <div className="text-xs sm:text-sm text-yellow-400/70 font-mono mb-1 truncate">
-                              <span className="text-cyan-400">EMAIL:</span> {request.email}
+                              <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">EMAIL:</span> {request.email}
                             </div>
                             {(request.university || request.department || request.roll_no) && (
                               <div className="text-xs sm:text-sm text-yellow-400/50 font-mono space-y-1 sm:space-y-0 sm:space-x-2">
-                                {request.university && <p className="inline-block"><span className="text-cyan-400">UNI:</span> {request.university}</p>}
-                                {request.department && <p className="inline-block"><span className="text-cyan-400">DEPT:</span> {request.department}</p>}
-                                {request.roll_no && <p className="inline-block"><span className="text-cyan-400">ROLL:</span> {request.roll_no}</p>}
+                                {request.university && <p className="inline-block"><span className="text-[#0A0A0C] dark:text-[#F5F4F0]">UNI:</span> {request.university}</p>}
+                                {request.department && <p className="inline-block"><span className="text-[#0A0A0C] dark:text-[#F5F4F0]">DEPT:</span> {request.department}</p>}
+                                {request.roll_no && <p className="inline-block"><span className="text-[#0A0A0C] dark:text-[#F5F4F0]">ROLL:</span> {request.roll_no}</p>}
                               </div>
                             )}
                           </div>
@@ -1182,7 +1182,7 @@ const AdminDashboard: React.FC = () => {
                         <div className="flex items-center justify-end pt-4 border-t border-yellow-500/20">
                           <motion.button
                             onClick={() => setVerificationModal({ isOpen: true, user: request })}
-                            className="flex items-center space-x-2 px-6 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all"
+                            className="flex items-center space-x-2 px-6 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all"
                             whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(6, 182, 212, 0.5)' }}
                             whileTap={{ scale: 0.95 }}
                           >
@@ -1200,14 +1200,14 @@ const AdminDashboard: React.FC = () => {
               <div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
                   <h2 className="text-xl sm:text-2xl font-bold font-mono bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                    <Database className="text-blue-400 flex-shrink-0" size={24} />
+                    <Database className="text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0" size={24} />
                     PENDING_PAPERS [{pendingPapers.length}]
                   </h2>
                   {pendingPapers.length > 0 && (
                     <motion.button
                       onClick={handleApproveAll}
                       disabled={loading}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 w-full sm:w-auto"
+                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all disabled:opacity-50 w-full sm:w-auto"
                       whileHover={{ scale: loading ? 1 : 1.05, boxShadow: loading ? 'none' : '0 0 20px rgba(34, 197, 94, 0.5)' }}
                       whileTap={{ scale: loading ? 1 : 0.95 }}
                     >
@@ -1217,9 +1217,9 @@ const AdminDashboard: React.FC = () => {
                   )}
                 </div>
                 {pendingPapers.length === 0 ? (
-                  <div className="bg-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-xl p-8 text-center">
-                    <Database className="h-12 w-12 text-blue-400/50 mx-auto mb-3" />
-                    <p className="text-blue-400/70 font-mono">NO_PENDING_PAPERS</p>
+                  <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-8 text-center">
+                    <Database className="h-12 w-12 text-[#5C5B57] dark:text-[#94938E] mx-auto mb-3" />
+                    <p className="text-[#5C5B57] dark:text-[#94938E] font-mono">NO_PENDING_PAPERS</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1229,35 +1229,35 @@ const AdminDashboard: React.FC = () => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="bg-black/60 backdrop-blur-xl border-2 border-blue-500/30 rounded-xl p-6 hover:border-blue-500/60 transition-all shadow-lg hover:shadow-blue-500/10"
+                        className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 hover:border-blue-500/60 transition-all shadow-lg hover:shadow-blue-500/10"
                       >
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-blue-400 font-mono mb-2">{paper.title}</h3>
-                            <div className="text-sm text-blue-400/70 font-mono mb-1">
-                              <span className="text-cyan-400">COURSE:</span> {paper.course_code} - {paper.course_name}
+                            <h3 className="text-xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono mb-2">{paper.title}</h3>
+                            <div className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono mb-1">
+                              <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">COURSE:</span> {paper.course_code} - {paper.course_name}
                             </div>
-                            <div className="text-sm text-blue-400/50 font-mono">
-                              <span className="text-cyan-400">UPLOADED_BY:</span> {paper.uploader_name} ({paper.uploader_email})
+                            <div className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono">
+                              <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">UPLOADED_BY:</span> {paper.uploader_name} ({paper.uploader_email})
                             </div>
                           </div>
-                          <span className="px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 text-sm font-mono rounded-lg">
+                          <span className="px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] text-sm font-mono rounded-lg">
                             {paper.paper_type.toUpperCase()}
                           </span>
                         </div>
 
                         {paper.description && (
-                          <p className="text-blue-400/60 mb-4 font-mono text-sm">{paper.description}</p>
+                          <p className="text-[#0A0A0C] dark:text-[#F5F4F0]/60 mb-4 font-mono text-sm">{paper.description}</p>
                         )}
 
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-blue-500/20 gap-4">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-[#E5E2DC] dark:border-[#232329] gap-4">
                           <div className="flex flex-col gap-1 w-full sm:w-auto">
-                            <div className="text-sm text-blue-400/50 font-mono">
+                            <div className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono">
                               {paper.year && `YEAR: ${paper.year}`}
                               {paper.semester && ` | SEMESTER: ${paper.semester}`}
                             </div>
                             {paper.file_path && (
-                              <div className="text-xs text-blue-400/40 font-mono truncate max-w-xs sm:max-w-md">
+                              <div className="text-xs text-[#0A0A0C] dark:text-[#F5F4F0]/40 font-mono truncate max-w-xs sm:max-w-md">
                                 FILE: {paper.file_path}
                               </div>
                             )}
@@ -1282,7 +1282,7 @@ const AdminDashboard: React.FC = () => {
                                 });
                               }}
                               disabled={!paper.file_name}
-                              className="flex items-center space-x-2 px-4 py-2 bg-cyan-500/20 border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                               whileHover={{ scale: paper.file_name ? 1.05 : 1, boxShadow: paper.file_name ? '0 0 15px rgba(6, 182, 212, 0.5)' : 'none' }}
                               whileTap={{ scale: paper.file_name ? 0.95 : 1 }}
                             >
@@ -1291,7 +1291,7 @@ const AdminDashboard: React.FC = () => {
                             </motion.button>
                             <motion.button
                               onClick={() => openEditModal(paper)}
-                              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 rounded-lg font-mono transition-all"
+                              className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all"
                               whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(168, 85, 247, 0.5)' }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -1300,7 +1300,7 @@ const AdminDashboard: React.FC = () => {
                             </motion.button>
                             <motion.button
                               onClick={() => reviewPaper(paper.id, 'approved')}
-                              className="flex items-center space-x-2 px-4 py-2 bg-green-500/20 border border-green-500/50 text-green-400 hover:bg-green-500/30 rounded-lg font-mono transition-all"
+                              className="flex items-center space-x-2 px-4 py-2 bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/25 rounded-lg font-mono transition-all"
                               whileHover={{ scale: 1.05, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -1335,8 +1335,8 @@ const AdminDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                <Upload className="text-green-400" size={32} />
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-[#896ABD] to-[#E04F33] bg-clip-text text-transparent flex items-center gap-3">
+                <Upload className="text-[#0A0A0C] dark:text-[#F5F4F0]" size={32} />
                 UPLOAD_PAPER
               </h2>
 
@@ -1344,19 +1344,19 @@ const AdminDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg"
+                className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 shadow-lg"
               >
                 <form onSubmit={handleUpload} className="space-y-6">
                   {/* Course Selection */}
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       COURSE
                     </label>
                     <div className="space-y-2">
                       <select
                         value={uploadForm.course_id}
                         onChange={(e) => setUploadForm(prev => ({ ...prev, course_id: e.target.value, courseText: '', courseName: '' }))}
-                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                       >
                         <option value="">Select from existing courses</option>
                         {courses.map(course => (
@@ -1365,25 +1365,25 @@ const AdminDashboard: React.FC = () => {
                           </option>
                         ))}
                       </select>
-                      <div className="text-center text-xs text-green-400/50 font-mono">OR</div>
+                      <div className="text-center text-xs text-[#5C5B57] dark:text-[#94938E] font-mono">OR</div>
                       <div className="space-y-2">
                         <input
                           type="text"
                           value={uploadForm.courseText}
                           onChange={(e) => setUploadForm(prev => ({ ...prev, courseText: e.target.value, course_id: '' }))}
                           placeholder="Course Code (e.g., CS1109)"
-                          className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                          className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                         />
                         <input
                           type="text"
                           value={uploadForm.courseName}
                           onChange={(e) => setUploadForm(prev => ({ ...prev, courseName: e.target.value, course_id: '' }))}
                           placeholder="Course Name (e.g., Python)"
-                          className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                          className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                         />
                       </div>
                     </div>
-                    <p className="text-xs text-green-400/50 font-mono mt-2">
+                    <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono mt-2">
                       {uploadForm.course_id
                         ? `Selected: ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.code} - ${courses.find(c => c.id === parseInt(uploadForm.course_id))?.name}`
                         : (uploadForm.courseText && uploadForm.courseName)
@@ -1394,14 +1394,14 @@ const AdminDashboard: React.FC = () => {
 
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       TITLE <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       value={uploadForm.title}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                       placeholder="Paper title"
                       required
                     />
@@ -1409,13 +1409,13 @@ const AdminDashboard: React.FC = () => {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       DESCRIPTION
                     </label>
                     <textarea
                       value={uploadForm.description}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50 resize-none"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60 resize-none"
                       rows={3}
                       placeholder="Optional description"
                     />
@@ -1424,13 +1424,13 @@ const AdminDashboard: React.FC = () => {
                   {/* Paper Type and Year */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                         PAPER_TYPE <span className="text-red-400">*</span>
                       </label>
                       <select
                         value={uploadForm.paper_type}
                         onChange={(e) => setUploadForm(prev => ({ ...prev, paper_type: e.target.value, quiz_set: '' }))}
-                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                       >
                         <option value="assignment">Assignment</option>
                         <option value="quiz">Quiz</option>
@@ -1441,14 +1441,14 @@ const AdminDashboard: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                         YEAR <span className="text-red-400">*</span>
                       </label>
                       <div className="space-y-1">
                         <select
                           value={uploadForm.year}
                           onChange={(e) => setUploadForm(prev => ({ ...prev, year: e.target.value, yearText: '' }))}
-                          className="w-full px-3 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                          className="w-full px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                         >
                           <option value="">Select year</option>
                           <option value="2024">2024</option>
@@ -1462,7 +1462,7 @@ const AdminDashboard: React.FC = () => {
                           value={uploadForm.yearText}
                           onChange={(e) => setUploadForm(prev => ({ ...prev, yearText: e.target.value, year: '' }))}
                           placeholder="Or type year"
-                          className="w-full px-3 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                          className="w-full px-3 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                           min="2020"
                           max="2030"
                         />
@@ -1473,13 +1473,13 @@ const AdminDashboard: React.FC = () => {
                   {/* Quiz Set (if quiz type) */}
                   {uploadForm.paper_type === 'quiz' && (
                     <div>
-                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                         QUIZ_SET <span className="text-red-400">*</span>
                       </label>
                       <select
                         value={uploadForm.quiz_set}
                         onChange={(e) => setUploadForm(prev => ({ ...prev, quiz_set: e.target.value }))}
-                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                         required
                       >
                         <option value="">Select Set</option>
@@ -1495,13 +1495,13 @@ const AdminDashboard: React.FC = () => {
 
                   {/* Semester */}
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       SEMESTER <span className="text-red-400">*</span>
                     </label>
                     <select
                       value={uploadForm.semester}
                       onChange={(e) => setUploadForm(prev => ({ ...prev, semester: e.target.value }))}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                       required
                     >
                       <option value="1st Sem">1st Sem</option>
@@ -1517,18 +1517,18 @@ const AdminDashboard: React.FC = () => {
 
                   {/* File Upload */}
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       FILE <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="file"
                       onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-500/20 file:text-green-400 hover:file:bg-green-500/30 cursor-pointer"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[#896ABD]/15 file:text-[#0A0A0C] dark:text-[#F5F4F0] hover:file:bg-green-500/30 cursor-pointer"
                       accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                       required
                     />
                     {selectedFile && (
-                      <p className="text-xs text-green-400/50 font-mono mt-2">
+                      <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono mt-2">
                         Selected: {selectedFile.name}
                       </p>
                     )}
@@ -1538,7 +1538,7 @@ const AdminDashboard: React.FC = () => {
                   <motion.button
                     type="submit"
                     disabled={uploading || !selectedFile}
-                    className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     whileHover={{ scale: uploading || !selectedFile ? 1 : 1.02 }}
                     whileTap={{ scale: uploading || !selectedFile ? 1 : 0.98 }}
                   >
@@ -1570,7 +1570,7 @@ const AdminDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-[#896ABD] to-[#E04F33] bg-clip-text text-transparent">
                 COURSE_MANAGEMENT
               </h2>
 
@@ -1579,46 +1579,46 @@ const AdminDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 mb-6 shadow-lg"
+                className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 mb-6 shadow-lg"
               >
-                <h3 className="text-xl font-bold mb-4 text-green-400 font-mono">
+                <h3 className="text-xl font-bold mb-4 text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">
                   {editingCourse ? 'EDIT_COURSE' : 'ADD_NEW_COURSE'}
                 </h3>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                         COURSE_CODE
                       </label>
                       <input
                         type="text"
                         value={courseForm.code}
                         onChange={(e) => setCourseForm({ ...courseForm, code: e.target.value })}
-                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                         placeholder="CS1108"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                      <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                         COURSE_NAME
                       </label>
                       <input
                         type="text"
                         value={courseForm.name}
                         onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
-                        className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                        className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                         placeholder="Python Programming"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       DESCRIPTION
                     </label>
                     <textarea
                       value={courseForm.description}
                       onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                       rows={2}
                       placeholder="Optional description"
                     />
@@ -1627,7 +1627,7 @@ const AdminDashboard: React.FC = () => {
                     <motion.button
                       onClick={handleCourseSubmit}
                       disabled={loading || !courseForm.code || !courseForm.name}
-                      className="w-full sm:w-auto px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                      className="w-full sm:w-auto px-6 py-2 bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all"
                       whileHover={{ scale: loading || !courseForm.code || !courseForm.name ? 1 : 1.02 }}
                       whileTap={{ scale: loading || !courseForm.code || !courseForm.name ? 1 : 0.98 }}
                     >
@@ -1639,7 +1639,7 @@ const AdminDashboard: React.FC = () => {
                           setEditingCourse(null);
                           setCourseForm({ code: '', name: '', description: '' });
                         }}
-                        className="w-full sm:w-auto px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                        className="w-full sm:w-auto px-6 py-2 bg-[#FAF9F6] dark:bg-[#18181F] border-2 border-[#E5E2DC] dark:border-[#232329] text-[#5C5B57] dark:text-[#94938E] font-mono rounded-lg hover:border-[#896ABD]/40 transition-all"
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -1658,14 +1658,14 @@ const AdminDashboard: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-green-500/60 transition-all"
+                    className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-green-500/60 transition-all"
                   >
                     <div className="w-full sm:w-auto">
-                      <div className="font-bold text-green-400 font-mono text-lg break-words">
+                      <div className="font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-lg break-words">
                         {course.code} - {course.name}
                       </div>
                       {course.description && (
-                        <div className="text-sm text-green-400/50 font-mono mt-1 break-words">
+                        <div className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono mt-1 break-words">
                           {course.description}
                         </div>
                       )}
@@ -1680,7 +1680,7 @@ const AdminDashboard: React.FC = () => {
                             description: course.description || ''
                           });
                         }}
-                        className="p-2 text-purple-400 hover:bg-purple-500/20 border border-purple-500/30 rounded-lg transition-all font-mono"
+                        className="p-2 text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/15 border border-[#E5E2DC] dark:border-[#232329] rounded-lg transition-all font-mono"
                         whileHover={{ scale: 1.1, boxShadow: '0 0 10px rgba(168, 85, 247, 0.5)' }}
                         whileTap={{ scale: 0.9 }}
                       >
@@ -1709,8 +1709,8 @@ const AdminDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                <User className="text-green-400" size={32} />
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-[#896ABD] to-[#E04F33] bg-clip-text text-transparent flex items-center gap-3">
+                <User className="text-[#0A0A0C] dark:text-[#F5F4F0]" size={32} />
                 HOST_MANAGEMENT
               </h2>
 
@@ -1718,53 +1718,53 @@ const AdminDashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg"
+                className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 shadow-lg"
               >
-                <div className="mb-6 border-b border-green-500/20 pb-4">
-                  <h3 className="text-xl font-bold text-green-400 font-mono mb-2">CREATE_NEW_HOST</h3>
-                  <p className="text-green-400/50 font-mono text-sm">
+                <div className="mb-6 border-b border-[#E5E2DC] dark:border-[#232329] pb-4">
+                  <h3 className="text-xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono mb-2">CREATE_NEW_HOST</h3>
+                  <p className="text-[#5C5B57] dark:text-[#94938E] font-mono text-sm">
                     Hosts (Sub-Admins) can create and manage weekly coding challenges but cannot access full system administration.
                   </p>
                 </div>
 
                 <form onSubmit={handleCreateSubAdmin} className="space-y-6 max-w-2xl">
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       EMAIL_ADDRESS <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="email"
                       value={hostForm.email}
                       onChange={(e) => setHostForm({ ...hostForm, email: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                       placeholder="host@jklu.edu.in"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       FULL_NAME <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       value={hostForm.name}
                       onChange={(e) => setHostForm({ ...hostForm, name: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                       placeholder="John Doe"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       PASSWORD <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="password"
                       value={hostForm.password}
                       onChange={(e) => setHostForm({ ...hostForm, password: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono text-sm focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 placeholder-green-400/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60"
                       placeholder="Min 6 characters"
                       required
                       minLength={6}
@@ -1774,7 +1774,7 @@ const AdminDashboard: React.FC = () => {
                   <motion.button
                     type="submit"
                     disabled={loading || !hostForm.email || !hostForm.name || !hostForm.password}
-                    className="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                    className="w-full bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono py-3 px-4 rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                     whileHover={{ scale: loading ? 1 : 1.02 }}
                     whileTap={{ scale: loading ? 1 : 0.98 }}
                   >
@@ -1806,12 +1806,12 @@ const AdminDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent flex items-center gap-3">
-                <User className="text-green-400" size={32} />
+              <h2 className="text-3xl font-bold mb-6 font-mono bg-gradient-to-r from-[#896ABD] to-[#E04F33] bg-clip-text text-transparent flex items-center gap-3">
+                <User className="text-[#0A0A0C] dark:text-[#F5F4F0]" size={32} />
                 USER_MANAGEMENT
               </h2>
 
-              <div className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 shadow-lg overflow-x-auto min-h-[400px]">
+              <div className="bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-[#232329] shadow-sm rounded-xl p-6 shadow-lg overflow-x-auto min-h-[400px]">
                 {usersLoading ? (
                   <div className="flex justify-center p-8">
                     <motion.div
@@ -1823,7 +1823,7 @@ const AdminDashboard: React.FC = () => {
                 ) : (
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b-2 border-green-500/30 text-green-400 font-mono text-sm uppercase">
+                      <tr className="border-b-2 border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] font-mono text-sm uppercase">
                         <th className="p-4">Name</th>
                         <th className="p-4">Email</th>
                         <th className="p-4">Admin Status</th>
@@ -1832,7 +1832,7 @@ const AdminDashboard: React.FC = () => {
                         <th className="p-4 text-right">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-green-500/10 text-green-400/80 font-mono">
+                    <tbody className="divide-y divide-green-500/10 text-[#0A0A0C] dark:text-[#F5F4F0]/80 font-mono">
                       {users.map((u) => (
                         <motion.tr
                           key={u.id}
@@ -1844,13 +1844,13 @@ const AdminDashboard: React.FC = () => {
                           <td className="p-4 whitespace-nowrap">{u.email}</td>
                           <td className="p-4">
                             {u.is_admin ? (
-                              <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded border border-green-500/30 text-xs">TRUE</span>
+                              <span className="px-2 py-1 bg-[#896ABD]/15 text-[#0A0A0C] dark:text-[#F5F4F0] rounded border border-[#E5E2DC] dark:border-[#232329] text-xs">TRUE</span>
                             ) : (
-                              <span className="px-2 py-1 bg-gray-500/20 text-gray-400 rounded border border-gray-500/30 text-xs">FALSE</span>
+                              <span className="px-2 py-1 bg-gray-500/20 text-[#5C5B57] dark:text-[#94938E] rounded border border-gray-500/30 text-xs">FALSE</span>
                             )}
                           </td>
                           <td className="p-4">
-                            {u.admin_role ? <span className="text-cyan-400">{u.admin_role}</span> : <span className="text-gray-500">-</span>}
+                            {u.admin_role ? <span className="text-[#0A0A0C] dark:text-[#F5F4F0]">{u.admin_role}</span> : <span className="text-gray-500">-</span>}
                           </td>
                           <td className="p-4 whitespace-nowrap text-sm">
                             {new Date(u.created_at).toLocaleDateString()}
@@ -1859,7 +1859,7 @@ const AdminDashboard: React.FC = () => {
                             <div className="flex justify-end space-x-2">
                               <button
                                 onClick={() => openUserEditModal(u)}
-                                className="p-2 text-blue-400 hover:bg-blue-500/20 border border-transparent hover:border-blue-500/30 rounded transition-all"
+                                className="p-2 text-[#0A0A0C] dark:text-[#F5F4F0] hover:bg-[#896ABD]/15 border border-transparent hover:border-[#E5E2DC] dark:border-[#232329] rounded transition-all"
                                 title="Edit Role"
                               >
                                 <Edit2 size={16} />
@@ -1903,36 +1903,36 @@ const AdminDashboard: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-gray-900 border-2 border-green-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+              className="bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] shadow-2xl rounded-xl p-6 max-w-md w-full mx-4"
             >
-              <h3 className="text-xl font-bold text-green-400 mb-6 font-mono">EDIT_USER: {userEditModal.user.name}</h3>
+              <h3 className="text-xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] mb-6 font-mono">EDIT_USER: {userEditModal.user.name}</h3>
 
               <div className="space-y-6 font-mono">
-                <div className="flex items-center space-x-3 p-4 bg-black/40 border border-green-500/20 rounded-lg">
+                <div className="flex items-center space-x-3 p-4 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg">
                   <input
                     type="checkbox"
                     id="isAdminCheck"
                     checked={userEditForm.is_admin}
                     onChange={(e) => setUserEditForm({ ...userEditForm, is_admin: e.target.checked })}
-                    className="w-5 h-5 accent-green-500"
+                    className="w-5 h-5 accent-[#896ABD]"
                     disabled={userEditModal.user.id === user?.id}
                   />
                   <div className="flex flex-col">
-                    <label htmlFor="isAdminCheck" className="text-sm font-bold text-green-400 uppercase cursor-pointer">
+                    <label htmlFor="isAdminCheck" className="text-sm font-bold text-[#0A0A0C] dark:text-[#F5F4F0] uppercase cursor-pointer">
                       IS_ADMIN
                     </label>
-                    <span className="text-xs text-gray-400">Grants administrative access</span>
+                    <span className="text-xs text-[#5C5B57] dark:text-[#94938E]">Grants administrative access</span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-green-400 mb-2 uppercase">
+                  <label className="block text-sm font-bold text-[#0A0A0C] dark:text-[#F5F4F0] mb-2 uppercase">
                     ADMIN_ROLE
                   </label>
                   <select
                     value={userEditForm.admin_role}
                     onChange={(e) => setUserEditForm({ ...userEditForm, admin_role: e.target.value })}
-                    className="w-full px-4 py-3 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 uppercase appearance-none"
+                    className="w-full px-4 py-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30 uppercase appearance-none"
                     disabled={userEditModal.user.id === user?.id}
                   >
                     <option value="">NONE (Super Admin or Basic User)</option>
@@ -1944,7 +1944,7 @@ const AdminDashboard: React.FC = () => {
               <div className="flex space-x-4 justify-end mt-8">
                 <motion.button
                   onClick={() => setUserEditModal({ isOpen: false, user: null })}
-                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  className="px-6 py-2 bg-[#FAF9F6] dark:bg-[#18181F] border-2 border-[#E5E2DC] dark:border-[#232329] text-[#5C5B57] dark:text-[#94938E] font-mono rounded-lg hover:border-[#896ABD]/40 transition-all"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -1953,7 +1953,7 @@ const AdminDashboard: React.FC = () => {
                 <motion.button
                   onClick={() => submitUserEdit(userEditModal.user!.id)}
                   disabled={userEditModal.user.id === user?.id}
-                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-2 bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   whileHover={{ scale: userEditModal.user.id === user?.id ? 1 : 1.02 }}
                   whileTap={{ scale: userEditModal.user.id === user?.id ? 1 : 0.98 }}
                 >
@@ -1986,11 +1986,11 @@ const AdminDashboard: React.FC = () => {
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-black/95 backdrop-blur-xl border-2 border-green-500/50 rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-4xl w-full my-8"
+              className="bg-black/95 backdrop-blur-xl border border-[#E5E2DC] dark:border-[#232329] rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-4xl w-full my-8"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-green-400 font-mono">
+                <h2 className="text-2xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">
                   VERIFICATION_REQUEST: {verificationModal.user.name}
                 </h2>
                 <motion.button
@@ -2005,8 +2005,8 @@ const AdminDashboard: React.FC = () => {
 
               <div className="grid md:grid-cols-2 gap-6 mb-6">
                 {/* Profile Photo */}
-                <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-4">
-                  <h3 className="text-sm font-mono text-green-400/70 mb-3 uppercase">PROFILE_PHOTO</h3>
+                <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
+                  <h3 className="text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">PROFILE_PHOTO</h3>
                   {verificationModal.user.photo_path ? (
                     <div className="relative">
                       {(() => {
@@ -2017,7 +2017,7 @@ const AdminDashboard: React.FC = () => {
                           <img
                             src={imageUrl}
                             alt="Profile"
-                            className="w-full h-auto rounded-lg object-cover border-2 border-green-500/30 max-h-96"
+                            className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
                             onError={(e) => {
                               const img = e.currentTarget as HTMLImageElement;
                               img.style.display = 'none';
@@ -2040,25 +2040,25 @@ const AdminDashboard: React.FC = () => {
                       })()}
                     </div>
                   ) : (
-                    <div className="w-full h-64 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
-                      <User className="h-16 w-16 text-green-400/50" />
+                    <div className="w-full h-64 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
+                      <User className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E]" />
                     </div>
                   )}
                 </div>
 
                 {/* ID Card */}
-                <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-4">
-                  <h3 className="text-sm font-mono text-green-400/70 mb-3 uppercase">ID_CARD</h3>
+                <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
+                  <h3 className="text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">ID_CARD</h3>
                   {verificationModal.user.id_card_path ? (
                     verificationModal.user.id_card_path.toLowerCase().endsWith('.pdf') ? (
-                      <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-green-500/30">
-                        <Eye className="h-16 w-16 text-green-400/50 mb-2" />
-                        <p className="text-sm text-green-400/70 font-mono mb-2">PDF_DOCUMENT</p>
+                      <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex flex-col items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
+                        <Eye className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E] mb-2" />
+                        <p className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono mb-2">PDF_DOCUMENT</p>
                         <a
                           href={getImageUrl(verificationModal.user.id_card_path)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline"
+                          className="text-xs text-[#0A0A0C] dark:text-[#F5F4F0] hover:text-cyan-300 font-mono underline"
                         >
                           VIEW_PDF
                         </a>
@@ -2073,7 +2073,7 @@ const AdminDashboard: React.FC = () => {
                             <img
                               src={imageUrl}
                               alt="ID Card"
-                              className="w-full h-auto rounded-lg object-cover border-2 border-green-500/30 max-h-96"
+                              className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
                               onError={(e) => {
                                 const img = e.currentTarget as HTMLImageElement;
                                 img.style.display = 'none';
@@ -2097,94 +2097,94 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     )
                   ) : (
-                    <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border-2 border-green-500/30">
-                      <Eye className="h-16 w-16 text-green-400/50" />
+                    <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
+                      <Eye className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E]" />
                     </div>
                   )}
                 </div>
               </div>
 
               {/* User Information */}
-              <div className="bg-black/60 border-2 border-green-500/30 rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-bold text-green-400 font-mono mb-4">USER_INFORMATION</h3>
+              <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono mb-4">USER_INFORMATION</h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                    <User className="h-5 w-5 text-green-400 flex-shrink-0" />
+                  <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                    <User className="h-5 w-5 text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0" />
                     <div>
-                      <p className="text-xs text-green-400/50 font-mono uppercase">NAME</p>
-                      <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.name}</p>
+                      <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">NAME</p>
+                      <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.name}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                    <User className="h-5 w-5 text-cyan-400 flex-shrink-0" />
+                  <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                    <User className="h-5 w-5 text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0" />
                     <div>
-                      <p className="text-xs text-green-400/50 font-mono uppercase">EMAIL</p>
-                      <p className="text-sm font-semibold text-cyan-400 font-mono">{verificationModal.user.email}</p>
+                      <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">EMAIL</p>
+                      <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.email}</p>
                     </div>
                   </div>
                   {verificationModal.user.age && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">A</span>
                       </div>
                       <div>
-                        <p className="text-xs text-green-400/50 font-mono uppercase">AGE</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.age}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">AGE</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.age}</p>
                       </div>
                     </div>
                   )}
                   {verificationModal.user.year && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">Y</span>
                       </div>
                       <div>
-                        <p className="text-xs text-green-400/50 font-mono uppercase">YEAR</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.year}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">YEAR</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.year}</p>
                       </div>
                     </div>
                   )}
                   {verificationModal.user.university && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20 md:col-span-2">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329] md:col-span-2">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">U</span>
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-green-400/50 font-mono uppercase">UNIVERSITY</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.university}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">UNIVERSITY</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.university}</p>
                       </div>
                     </div>
                   )}
                   {verificationModal.user.department && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20 md:col-span-2">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329] md:col-span-2">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">D</span>
                       </div>
                       <div className="flex-1">
-                        <p className="text-xs text-green-400/50 font-mono uppercase">DEPARTMENT</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.department}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">DEPARTMENT</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.department}</p>
                       </div>
                     </div>
                   )}
                   {verificationModal.user.roll_no && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">R</span>
                       </div>
                       <div>
-                        <p className="text-xs text-green-400/50 font-mono uppercase">ROLL_NUMBER</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.roll_no}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">ROLL_NUMBER</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.roll_no}</p>
                       </div>
                     </div>
                   )}
                   {verificationModal.user.student_id && (
-                    <div className="flex items-center gap-3 p-3 bg-black/40 rounded-lg border border-green-500/20">
-                      <div className="h-5 w-5 flex items-center justify-center bg-green-500/20 rounded text-green-400 flex-shrink-0">
+                    <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
+                      <div className="h-5 w-5 flex items-center justify-center bg-[#896ABD]/15 rounded text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0">
                         <span className="text-xs font-bold">ID</span>
                       </div>
                       <div>
-                        <p className="text-xs text-green-400/50 font-mono uppercase">STUDENT_ID</p>
-                        <p className="text-sm font-semibold text-green-400 font-mono">{verificationModal.user.student_id}</p>
+                        <p className="text-xs text-[#5C5B57] dark:text-[#94938E] font-mono uppercase">STUDENT_ID</p>
+                        <p className="text-sm font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">{verificationModal.user.student_id}</p>
                       </div>
                     </div>
                   )}
@@ -2192,7 +2192,7 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex space-x-4 justify-end pt-4 border-t border-green-500/20">
+              <div className="flex space-x-4 justify-end pt-4 border-t border-[#E5E2DC] dark:border-[#232329]">
                 <motion.button
                   onClick={() => handleRejectProfile(verificationModal.user!.id)}
                   className="px-6 py-2 bg-red-500/20 border-2 border-red-500/50 text-red-400 font-bold font-mono rounded-lg hover:bg-red-500/30 transition-all"
@@ -2203,7 +2203,7 @@ const AdminDashboard: React.FC = () => {
                 </motion.button>
                 <motion.button
                   onClick={() => verifyUser(verificationModal.user!.id, true)}
-                  className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                  className="px-6 py-2 bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all"
                   whileHover={{ scale: 1.02, boxShadow: '0 0 15px rgba(34, 197, 94, 0.5)' }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -2226,23 +2226,23 @@ const AdminDashboard: React.FC = () => {
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-black/90 backdrop-blur-xl border-2 border-green-500/50 rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-2xl w-full"
+              className="bg-black/90 backdrop-blur-xl border border-[#E5E2DC] dark:border-[#232329] rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-2xl w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-2xl font-bold mb-6 text-green-400 font-mono">
+              <h2 className="text-2xl font-bold mb-6 text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">
                 EDIT_PAPER: {editPaperModal.paper.title}
               </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                  <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                     COURSE_CODE
                   </label>
                   <input
                     type="text"
                     value={editPaperForm.course_id}
                     onChange={(e) => setEditPaperForm({ ...editPaperForm, course_id: e.target.value })}
-                    className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                    className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                     list="course-list"
                   />
                   <datalist id="course-list">
@@ -2256,13 +2256,13 @@ const AdminDashboard: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       PAPER_TYPE
                     </label>
                     <select
                       value={editPaperForm.paper_type}
                       onChange={(e) => setEditPaperForm({ ...editPaperForm, paper_type: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                     >
                       <option value="assignment">ASSIGNMENT</option>
                       <option value="quiz">QUIZ</option>
@@ -2273,27 +2273,27 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       YEAR
                     </label>
                     <input
                       type="number"
                       value={editPaperForm.year}
                       onChange={(e) => setEditPaperForm({ ...editPaperForm, year: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                       min="2020"
                       max="2030"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-mono text-green-400/70 mb-2 uppercase">
+                    <label className="block text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-2 uppercase">
                       SEMESTER
                     </label>
                     <select
                       value={editPaperForm.semester}
                       onChange={(e) => setEditPaperForm({ ...editPaperForm, semester: e.target.value })}
-                      className="w-full px-4 py-2 bg-black/40 border-2 border-green-500/30 rounded-lg text-green-400 font-mono focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      className="w-full px-4 py-2 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-[#896ABD] dark:focus:border-[#A855F7] focus:outline-none focus:ring-2 focus:ring-[#896ABD]/30"
                     >
                       <option value="">SELECT_SEMESTER</option>
                       <option value="Fall 2024">FALL_2024</option>
@@ -2303,10 +2303,10 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex space-x-2 justify-end pt-4 border-t border-green-500/20">
+                <div className="flex space-x-2 justify-end pt-4 border-t border-[#E5E2DC] dark:border-[#232329]">
                   <motion.button
                     onClick={() => setEditPaperModal({ isOpen: false, paper: null })}
-                    className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                    className="px-6 py-2 bg-[#FAF9F6] dark:bg-[#18181F] border-2 border-[#E5E2DC] dark:border-[#232329] text-[#5C5B57] dark:text-[#94938E] font-mono rounded-lg hover:border-[#896ABD]/40 transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -2314,7 +2314,7 @@ const AdminDashboard: React.FC = () => {
                   </motion.button>
                   <motion.button
                     onClick={() => editPaper(editPaperModal.paper!.id)}
-                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                    className="px-6 py-2 bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white font-bold font-mono rounded-lg hover:shadow-lg hover:shadow-[#896ABD]/30 transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -2340,7 +2340,7 @@ const AdminDashboard: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+              className="bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] shadow-2xl rounded-xl p-6 max-w-md w-full mx-4"
             >
               <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PAPER</h3>
               <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
@@ -2350,14 +2350,14 @@ const AdminDashboard: React.FC = () => {
                 value={rejectionModal.feedback}
                 onChange={(e) => setRejectionModal({ ...rejectionModal, feedback: e.target.value })}
                 placeholder="Enter feedback for rejection (e.g., 'Incomplete information', 'File format not supported', etc.)"
-                className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                className="w-full px-4 py-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border-2 border-red-500/30 rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
                 rows={5}
                 autoFocus
               />
               <div className="flex space-x-4 justify-end mt-4">
                 <motion.button
                   onClick={() => setRejectionModal({ isOpen: false, paperId: 0, feedback: '' })}
-                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  className="px-6 py-2 bg-[#FAF9F6] dark:bg-[#18181F] border-2 border-[#E5E2DC] dark:border-[#232329] text-[#5C5B57] dark:text-[#94938E] font-mono rounded-lg hover:border-[#896ABD]/40 transition-all"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -2390,7 +2390,7 @@ const AdminDashboard: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-gray-900 border-2 border-red-500/50 rounded-xl p-6 max-w-md w-full mx-4"
+              className="bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0] shadow-2xl rounded-xl p-6 max-w-md w-full mx-4"
             >
               <h3 className="text-xl font-bold text-red-400 mb-4 font-mono">REJECT PROFILE</h3>
               <label className="block text-sm font-mono text-red-400/70 mb-2 uppercase">
@@ -2400,14 +2400,14 @@ const AdminDashboard: React.FC = () => {
                 value={profileRejectionModal.feedback}
                 onChange={(e) => setProfileRejectionModal({ ...profileRejectionModal, feedback: e.target.value })}
                 placeholder="Enter feedback for rejection (e.g., 'ID card not clear', 'Missing information', etc.)"
-                className="w-full px-4 py-3 bg-black/40 border-2 border-red-500/30 rounded-lg text-white font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
+                className="w-full px-4 py-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border-2 border-red-500/30 rounded-lg text-[#0A0A0C] dark:text-[#F5F4F0] font-mono focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/50 resize-none"
                 rows={5}
                 autoFocus
               />
               <div className="flex space-x-4 justify-end mt-4">
                 <motion.button
                   onClick={() => setProfileRejectionModal({ isOpen: false, userId: 0, feedback: '' })}
-                  className="px-6 py-2 bg-gray-800 border-2 border-gray-700 text-gray-400 font-mono rounded-lg hover:border-gray-600 transition-all"
+                  className="px-6 py-2 bg-[#FAF9F6] dark:bg-[#18181F] border-2 border-[#E5E2DC] dark:border-[#232329] text-[#5C5B57] dark:text-[#94938E] font-mono rounded-lg hover:border-[#896ABD]/40 transition-all"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
