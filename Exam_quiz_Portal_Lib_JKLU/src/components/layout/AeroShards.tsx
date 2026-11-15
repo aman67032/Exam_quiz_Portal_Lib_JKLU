@@ -918,6 +918,25 @@ const parseColor = (value: string, fallback: RGB | null): RGB | null => {
 const prefersReduced = () =>
   typeof window !== 'undefined' && (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
 
+const detectDeviceTier = (): 'static' | 'lite' | 'full' => {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return 'full';
+  if (prefersReduced()) return 'static';
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean; effectiveType?: string };
+  };
+  if (nav.connection?.saveData) return 'static';
+  if (nav.connection?.effectiveType === 'slow-2g' || nav.connection?.effectiveType === '2g') {
+    return 'static';
+  }
+  if (typeof nav.deviceMemory === 'number' && nav.deviceMemory <= 2) return 'static';
+  if (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 2) return 'static';
+  if (window.innerWidth < 768 || (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 4)) {
+    return 'lite';
+  }
+  return 'full';
+};
+
 const latticeHash = (a: number, b: number, c: number, d: number) => {
   let h = Math.imul(a + 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b + 0x632be5ab, 0xc2b2ae35);
   h ^= Math.imul(c + 0x27d4eb2f, 0x165667b1) ^ Math.imul(d + 0x7f4a7c15, 0x9e3779b1);
@@ -1080,6 +1099,11 @@ export default function AeroShards({
   const containerRef = useRef<HTMLDivElement>(null);
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
+  const deviceTier = detectDeviceTier();
+
+  const effectiveCount =
+    deviceTier === 'lite' ? Math.min(Math.round(clamp(count, 100, 6000)), 260) : Math.round(clamp(count, 100, 6000));
+  const effectiveDpr = deviceTier === 'lite' ? Math.min(Math.max(0.5, dpr), 1.25) : Math.max(0.5, dpr);
 
   const settings = {
     shard: parseColor(shardColor, [0.54, 0.42, 0.74]) ?? [0.54, 0.42, 0.74],
@@ -1088,7 +1112,7 @@ export default function AeroShards({
     lightMode,
     placement: Math.max(0, PLACEMENTS.indexOf(placement)),
     material: MATERIALS[material] ?? MATERIALS.glass,
-    count: Math.round(clamp(count, 100, 6000)),
+    count: effectiveCount,
     shardSize: clamp(shardSize, 0.2, 4),
     spread: clamp(spread, 0, 3),
     twist: clamp(twist, 0, 3),
@@ -1107,12 +1131,13 @@ export default function AeroShards({
     holdToGather,
     parallax: clamp(parallax, 0, 1),
     paused,
-    dpr: Math.max(0.5, dpr)
+    dpr: effectiveDpr
   };
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
   useEffect(() => {
+    if (deviceTier === 'static') return undefined;
     const container = containerRef.current;
     if (!container) return undefined;
     const canvas = document.createElement('canvas');
@@ -2531,7 +2556,21 @@ export default function AeroShards({
       gpu?.dispose();
       canvas.remove();
     };
-  }, []);
+  }, [deviceTier]);
+
+  if (deviceTier === 'static') {
+    return (
+      <div
+        ref={containerRef}
+        className={[ROOT, className].filter(Boolean).join(' ')}
+        style={{
+          background:
+            'radial-gradient(circle at 20% 20%, rgba(137, 106, 189, 0.16), transparent 55%), radial-gradient(circle at 80% 75%, rgba(168, 85, 247, 0.12), transparent 55%)',
+          ...style,
+        }}
+      />
+    );
+  }
 
   return <div ref={containerRef} className={[ROOT, className].filter(Boolean).join(' ')} style={style} />;
 }
