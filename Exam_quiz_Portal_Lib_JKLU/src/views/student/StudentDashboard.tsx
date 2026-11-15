@@ -47,6 +47,7 @@ const StudentDashboard: React.FC = () => {
   const [papers, setPapers] = useState<Paper[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [showVerifyPopup, setShowVerifyPopup] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' as 'success' | 'error' | 'info' });
 
   // Upload form state
@@ -130,8 +131,7 @@ const StudentDashboard: React.FC = () => {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!(user as any)?.id_verified && localStorage.getItem('idVerified') !== 'yes') {
-      showToast('Please upload your ID card in Profile to enable uploads', 'error');
-      navigate('/profile');
+      setShowVerifyPopup(true);
       return;
     }
     if (!selectedFile) {
@@ -670,6 +670,51 @@ const StudentDashboard: React.FC = () => {
           </motion.section>
         </div>
       </main>
+
+      {showVerifyPopup && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setShowVerifyPopup(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="max-w-md w-full rounded-2xl p-6 bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329] shadow-2xl space-y-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold">ID Verification Required</h3>
+                <p className="text-xs text-[#5C5B57] dark:text-[#94938E] mt-1 leading-relaxed">
+                  You need to upload your university ID card and complete verification in your Profile before uploading question papers.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowVerifyPopup(false)}
+                className="px-4 py-2 rounded-xl border border-[#E5E2DC] dark:border-[#232329] text-xs font-medium hover:bg-[#FAF9F6] dark:hover:bg-[#18181F]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowVerifyPopup(false);
+                  navigate('/profile');
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#896ABD] to-[#E04F33] text-white text-xs font-semibold hover:opacity-95 transition-opacity"
+              >
+                Go to Profile
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
