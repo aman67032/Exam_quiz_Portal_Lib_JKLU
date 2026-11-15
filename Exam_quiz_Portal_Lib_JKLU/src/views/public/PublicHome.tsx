@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowUpDown,
+  Download,
 } from 'lucide-react';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
@@ -233,6 +234,54 @@ const PublicHome: React.FC = () => {
       return true;
     });
   }, [courses, selectedDept, selectedSemester]);
+
+  const [selectedPaperIds, setSelectedPaperIds] = useState<number[]>([]);
+  const [batchDownloading, setBatchDownloading] = useState(false);
+  const [batchNotice, setBatchNotice] = useState('');
+
+  const handleToggleSelect = (paper: any) => {
+    setBatchNotice('');
+    setSelectedPaperIds((prev) => {
+      if (prev.includes(paper.id)) {
+        return prev.filter((id) => id !== paper.id);
+      }
+      if (prev.length >= 5) {
+        setBatchNotice('Maximum 5 papers can be selected at once.');
+        return prev;
+      }
+      return [...prev, paper.id];
+    });
+  };
+
+  const handleBatchDownload = async () => {
+    if (selectedPaperIds.length === 0 || batchDownloading) return;
+    setBatchDownloading(true);
+    setBatchNotice('');
+    try {
+      const response = await API.client.post(
+        '/papers/batch-download',
+        { ids: selectedPaperIds.slice(0, 5) },
+        { responseType: 'blob', timeout: 55000 }
+      );
+      const blob = new Blob([response.data], { type: 'application/zip' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.setAttribute('download', 'LearnJKLU_Papers_Batch.zip');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err: any) {
+      setBatchNotice(
+        err?.response?.data?.detail ||
+          err?.message ||
+          'Batch download limit reached or failed. Please try again shortly.'
+      );
+    } finally {
+      setBatchDownloading(false);
+    }
+  };
 
   const handlePreview = (paper: any) => {
     const url = `${API.baseURL}/papers/${paper.id}/preview`;
@@ -692,6 +741,8 @@ const PublicHome: React.FC = () => {
                   paper={paper}
                   onPreview={handlePreview}
                   onDownload={handleDownload}
+                  isSelected={selectedPaperIds.includes(paper.id)}
+                  onToggleSelect={handleToggleSelect}
                 />
               ))}
             </div>
@@ -767,6 +818,39 @@ const PublicHome: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Floating Batch Download Bar (Max 5 PDFs) */}
+      {(selectedPaperIds.length > 0 || batchNotice) && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-xl rounded-2xl px-4 py-3 bg-[#0A0A0C]/95 dark:bg-[#16161D]/95 text-[#FAF9F6] border border-white/15 shadow-2xl backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="space-y-0.5">
+            <div className="text-xs font-mono-tabular font-semibold">
+              Selected {selectedPaperIds.length} / 5 PDFs
+            </div>
+            {batchNotice && <div className="text-[11px] text-[#FF8A75]">{batchNotice}</div>}
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPaperIds([]);
+                setBatchNotice('');
+              }}
+              className="px-3 py-1.5 rounded-lg text-xs font-mono-tabular border border-white/20 hover:bg-white/10 transition-colors"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              disabled={selectedPaperIds.length === 0 || batchDownloading}
+              onClick={handleBatchDownload}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-[#896ABD] hover:bg-[#7A5BAE] disabled:opacity-50 text-white transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>{batchDownloading ? 'Bundling ZIP...' : 'Download All (ZIP)'}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* PDF Preview Modal */}
       {previewPaper && previewUrl && (

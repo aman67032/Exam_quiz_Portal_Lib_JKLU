@@ -42,9 +42,17 @@ export interface PaperCardProps {
   };
   onPreview: (paper: any) => void;
   onDownload: (paper: any) => void;
+  isSelected?: boolean;
+  onToggleSelect?: (paper: any) => void;
 }
 
-const PaperCard: React.FC<PaperCardProps> = ({ paper, onPreview, onDownload }) => {
+const PaperCard: React.FC<PaperCardProps> = ({
+  paper,
+  onPreview,
+  onDownload,
+  isSelected = false,
+  onToggleSelect,
+}) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -150,7 +158,11 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, onPreview, onDownload }) =
     <div
       ref={cardRef}
       onClick={() => onPreview(paper)}
-      className="paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/88 dark:bg-[#111117]/86 backdrop-blur-sm border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 min-h-[268px] transform-gpu"
+      className={`paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/88 dark:bg-[#111117]/86 backdrop-blur-sm border shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 min-h-[268px] transform-gpu ${
+        isSelected
+          ? 'border-[#896ABD] ring-2 ring-[#896ABD]/40 dark:border-[#A855F7] dark:ring-[#A855F7]/40'
+          : 'border-[#E5E2DC]/90 dark:border-white/10'
+      }`}
     >
       {/* Subtle Top Gradient Accent Line */}
       <div
@@ -158,9 +170,27 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, onPreview, onDownload }) =
       />
 
       <div>
-        {/* Top Row: Course Code Badge + Programme Pill + Exam Type */}
+        {/* Top Row: Select Checkbox + Course Code Badge + Programme Pill + Exam Type */}
         <div className="flex items-center justify-between gap-2.5 mb-4 flex-wrap">
           <div className="flex items-center gap-2 flex-wrap">
+            {onToggleSelect && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelect(paper);
+                }}
+                aria-label={isSelected ? 'Deselect paper' : 'Select paper for batch download'}
+                title={isSelected ? 'Selected' : 'Select for batch download (max 5)'}
+                className={`w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
+                  isSelected
+                    ? 'bg-[#896ABD] border-[#896ABD] text-white'
+                    : 'bg-white/80 dark:bg-white/5 border-[#D4D0C8] dark:border-white/20 text-transparent hover:border-[#896ABD]'
+                }`}
+              >
+                <Check className="w-3.5 h-3.5" />
+              </button>
+            )}
             <span className="font-mono-tabular text-xs sm:text-sm font-bold tracking-tight px-3 py-1 rounded-lg bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] shadow-sm">
               {paper.course_code || 'COURSE'}
             </span>

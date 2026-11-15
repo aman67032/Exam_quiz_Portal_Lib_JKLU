@@ -3,6 +3,7 @@ import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import JSZip from 'jszip';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import path from 'node:path';
@@ -121,6 +122,74 @@ const uploadLimiter = rateLimit({
   legacyHeaders: false,
   message: { detail: 'Upload rate limit exceeded. Please wait before uploading again.' },
 });
+
+const previewDownloadLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Too many preview/download requests. Please wait a minute and try again.' },
+});
+
+const batchDownloadLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Batch download limit reached (max 5 bundles per 10 minutes). Please wait.' },
+});
+
+const MAX_CONCURRENT_STREAMS_PER_IP = 5;
+const activeStreamsByIp = new Map();
+const recentDownloadByIpPaper = new Map();
+
+function getClientIp(req) {
+  return String(req.ip || req.socket?.remoteAddress || 'unknown');
+}
+
+function acquireIpStreamSlot(req, res) {
+  const ip = getClientIp(req);
+  const current = activeStreamsByIp.get(ip) || 0;
+  if (current >= MAX_CONCURRENT_STREAMS_PER_IP) {
+    res.status(429).json({
+      detail: `Maximum ${MAX_CONCURRENT_STREAMS_PER_IP} concurrent previews/downloads allowed at once.`,
+    });
+    return false;
+  }
+  activeStreamsByIp.set(ip, current + 1);
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    const nextCount = (activeStreamsByIp.get(ip) || 1) - 1;
+    if (nextCount <= 0) activeStreamsByIp.delete(ip);
+    else activeStreamsByIp.set(ip, nextCount);
+  };
+  res.on('finish', release);
+  res.on('close', release);
+  return true;
+}
+
+function parsePositiveInt(val) {
+  const n = Number(val);
+  return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+function recordDownloadCount(req, paperId) {
+  if (req.headers.range) return;
+  const ip = getClientIp(req);
+  const key = `${ip}:${paperId}`;
+  const now = Date.now();
+  const last = recentDownloadByIpPaper.get(key) || 0;
+  if (now - last < 60 * 1000) return;
+  if (recentDownloadByIpPaper.size > 5000) {
+    for (const [k, ts] of recentDownloadByIpPaper.entries()) {
+      if (now - ts >= 60 * 1000) recentDownloadByIpPaper.delete(k);
+    }
+  }
+  recentDownloadByIpPaper.set(key, now);
+  pendingDownloadCounts.set(paperId, (pendingDownloadCounts.get(paperId) || 0) + 1);
+}
 
 app.use(apiLimiter);
 
@@ -1159,27 +1228,33 @@ function buildPaperFilterWhere(query, forceApproved) {
   }
 
   if (query.course_id) {
-    params.push(Number(query.course_id));
-    conditions.push(`p.course_id = $${params.length}`);
+    const cid = parsePositiveInt(query.course_id);
+    if (cid) {
+      params.push(cid);
+      conditions.push(`p.course_id = $${params.length}`);
+    }
   }
   if (query.paper_type) {
-    params.push(String(query.paper_type).toUpperCase());
+    params.push(String(query.paper_type).slice(0, 40).toUpperCase());
     conditions.push(`UPPER(p.paper_type) = $${params.length}`);
   }
   if (query.year) {
-    params.push(Number(query.year));
-    conditions.push(`p.year = $${params.length}`);
+    const yr = parsePositiveInt(query.year);
+    if (yr) {
+      params.push(yr);
+      conditions.push(`p.year = $${params.length}`);
+    }
   }
   if (query.semester) {
-    params.push(String(query.semester));
+    params.push(String(query.semester).slice(0, 20));
     conditions.push(`p.semester = $${params.length}`);
   }
   if (query.department) {
-    params.push(`%${String(query.department).trim()}%`);
+    params.push(`%${String(query.department).trim().slice(0, 40)}%`);
     conditions.push(`(p.department ILIKE $${params.length} OR p.description ILIKE $${params.length})`);
   }
   if (query.q || query.search) {
-    const q = `%${String(query.q || query.search).trim()}%`;
+    const q = `%${String(query.q || query.search).trim().slice(0, 120)}%`;
     params.push(q);
     conditions.push(
       `(p.title ILIKE $${params.length} OR c.code ILIKE $${params.length} OR c.name ILIKE $${params.length} OR p.description ILIKE $${params.length})`
@@ -1255,7 +1330,7 @@ function executeSmartCatalogSearch(allPapers, query) {
       ? String(query.course_code).trim().toUpperCase()
       : null;
 
-  const rawSearch = String(query.q || query.search || '').trim();
+  const rawSearch = String(query.q || query.search || '').trim().slice(0, 120);
   const queryAnalysis = analyzeSearchQuery(rawSearch);
 
   const scoredResults = [];
@@ -1565,8 +1640,79 @@ app.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUpload.
   }
 });
 
-app.get('/papers/:paper_id/preview', async (req, res) => {
-  const paperId = Number(req.params.paper_id);
+app.post('/papers/batch-download', batchDownloadLimiter, async (req, res) => {
+  if (!acquireIpStreamSlot(req, res)) return;
+  try {
+    const rawIds = Array.isArray(req.body?.ids) ? req.body.ids : [];
+    const uniqueIds = Array.from(
+      new Set(rawIds.map((v) => parsePositiveInt(v)).filter((v) => v !== null))
+    );
+    if (uniqueIds.length === 0) {
+      res.status(400).json({ detail: 'Select at least 1 valid paper ID to download.' });
+      return;
+    }
+    if (uniqueIds.length > 5) {
+      res.status(400).json({ detail: 'Maximum 5 papers can be downloaded at once.' });
+      return;
+    }
+
+    const db = await getDb();
+    const zip = new JSZip();
+    const usedNames = new Set();
+    let addedCount = 0;
+
+    for (const paperId of uniqueIds) {
+      const paper = await getOrSetCache(`papers:meta:${paperId}`, 120000, async () => {
+        const result = await db.query(
+          `SELECT ${PAPER_META_COLS} FROM papers p WHERE p.id = $1 LIMIT 1`,
+          [paperId]
+        );
+        if (result.rowCount > 0) return result.rows[0];
+        return getLocalPastpaperCatalog().papers.find((p) => p.id === paperId) || null;
+      });
+      if (!paper) continue;
+
+      const diskInfo = await resolveOrFetchPdfDiskInfo(paper);
+      if (!diskInfo || !fs.existsSync(diskInfo.path)) continue;
+
+      let baseName = String(paper.file_name || `paper_${paper.id}.pdf`)
+        .replace(/[^a-zA-Z0-9._-]/g, '_');
+      if (!baseName.toLowerCase().endsWith('.pdf')) baseName += '.pdf';
+      let finalName = baseName;
+      let suffix = 1;
+      while (usedNames.has(finalName)) {
+        finalName = baseName.replace(/\.pdf$/i, `_${suffix++}.pdf`);
+      }
+      usedNames.add(finalName);
+
+      zip.file(finalName, fs.readFileSync(diskInfo.path));
+      recordDownloadCount(req, paperId);
+      addedCount++;
+    }
+
+    if (addedCount === 0) {
+      res.status(404).json({ detail: 'None of the selected PDFs could be found on storage.' });
+      return;
+    }
+
+    const zipBuffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="LearnJKLU_Papers_Batch.zip"');
+    res.setHeader('Content-Length', String(zipBuffer.length));
+    res.send(zipBuffer);
+  } catch (err) {
+    res.status(500).json({ detail: err.message || 'Batch download failed' });
+  }
+});
+
+app.get('/papers/:paper_id/preview', previewDownloadLimiter, async (req, res) => {
+  const paperId = parsePositiveInt(req.params.paper_id);
+  if (!paperId) {
+    res.status(400).json({ detail: 'Invalid paper ID' });
+    return;
+  }
+  if (!acquireIpStreamSlot(req, res)) return;
+
   const paper = await getOrSetCache(`papers:meta:${paperId}`, 120000, async () => {
     const db = await getDb();
     const result = await db.query(
@@ -1598,8 +1744,14 @@ app.get('/papers/:paper_id/preview', async (req, res) => {
   );
 });
 
-app.get('/papers/:paper_id/download', async (req, res) => {
-  const paperId = Number(req.params.paper_id);
+app.get('/papers/:paper_id/download', previewDownloadLimiter, async (req, res) => {
+  const paperId = parsePositiveInt(req.params.paper_id);
+  if (!paperId) {
+    res.status(400).json({ detail: 'Invalid paper ID' });
+    return;
+  }
+  if (!acquireIpStreamSlot(req, res)) return;
+
   const paper = await getOrSetCache(`papers:meta:${paperId}`, 120000, async () => {
     const db = await getDb();
     const result = await db.query(
@@ -1613,7 +1765,7 @@ app.get('/papers/:paper_id/download', async (req, res) => {
     res.status(404).json({ detail: 'Paper not found' });
     return;
   }
-  pendingDownloadCounts.set(paperId, (pendingDownloadCounts.get(paperId) || 0) + 1);
+  recordDownloadCount(req, paperId);
 
   if (CDN_BASE_URL && !/^https?:\/\//i.test(paper.file_path || '')) {
     res.redirect(302, `${CDN_BASE_URL}/${encodeURIComponent(paper.file_path)}`);
@@ -1638,8 +1790,13 @@ app.get('/papers/:paper_id/download', async (req, res) => {
   );
 });
 
-app.get('/public/papers/:public_link_id', async (req, res) => {
+app.get('/public/papers/:public_link_id', previewDownloadLimiter, async (req, res) => {
   const pubId = String(req.params.public_link_id || '').trim();
+  if (!pubId || pubId.length > 64) {
+    res.status(400).json({ detail: 'Invalid shared paper link' });
+    return;
+  }
+  if (!acquireIpStreamSlot(req, res)) return;
   const paper = await getOrSetCache(`papers:publink:${pubId}`, 120000, async () => {
     const db = await getDb();
     const result = await db.query(
