@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 import { API } from '@/utils/api';
+import { useTheme } from '@/contexts/ThemeContext';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
 import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
+import CrystalizedBall from '@/components/layout/CrystalizedBall';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -14,6 +16,7 @@ const AdminLogin: React.FC = () => {
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -49,8 +52,36 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] px-4 py-6">
-      <div className="max-w-6xl w-full mx-auto flex items-center justify-between">
+    <div className="relative min-h-screen flex flex-col justify-between bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] px-4 py-6 overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <CrystalizedBall
+          preset="plasma"
+          color="#F25BD0"
+          theme={theme === 'dark' ? 'dark' : 'light'}
+          size={0.7}
+          crackle={0.85}
+          fill={0.5}
+          interactive
+          hoverStrength={0.7}
+          strands={6}
+          flares={0.65}
+          glow={0.9}
+          sparks={0.6}
+          particleCount={15000}
+          motion="rise"
+          particleShape="square"
+          depth={0.6}
+          sway={0.5}
+          twinkle={0.5}
+          haze={0.7}
+          dustSpeed={1}
+          speed={1}
+          intro
+          paused={false}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <JKLULogo size="sm" />
           <button
@@ -64,7 +95,7 @@ const AdminLogin: React.FC = () => {
         <ThemeSwitcher />
       </div>
 
-      <div className="max-w-md w-full mx-auto editorial-card rounded-lg p-8 space-y-6">
+      <div className="relative z-10 max-w-md w-full mx-auto editorial-card backdrop-blur-md bg-white/85 dark:bg-[#111117]/82 rounded-lg p-8 space-y-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#E04F33]/10 text-[#E04F33] text-xs font-mono-tabular">
             <Shield className="w-3.5 h-3.5" />

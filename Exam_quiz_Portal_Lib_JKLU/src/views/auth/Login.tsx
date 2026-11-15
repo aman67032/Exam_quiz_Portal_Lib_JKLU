@@ -3,9 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import anime from 'animejs';
 import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
 import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
+import CrystalizedBall from '@/components/layout/CrystalizedBall';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +19,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const { login } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,8 +61,36 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] px-4 py-6">
-      <div className="max-w-6xl w-full mx-auto flex items-center justify-between">
+    <div className="relative min-h-screen flex flex-col justify-between bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] px-4 py-6 overflow-hidden">
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <CrystalizedBall
+          preset="plasma"
+          color="#F25BD0"
+          theme={theme === 'dark' ? 'dark' : 'light'}
+          size={0.7}
+          crackle={0.85}
+          fill={0.5}
+          interactive
+          hoverStrength={0.7}
+          strands={6}
+          flares={0.65}
+          glow={0.9}
+          sparks={0.6}
+          particleCount={15000}
+          motion="rise"
+          particleShape="square"
+          depth={0.6}
+          sway={0.5}
+          twinkle={0.5}
+          haze={0.7}
+          dustSpeed={1}
+          speed={1}
+          intro
+          paused={false}
+        />
+      </div>
+
+      <div className="relative z-10 max-w-6xl w-full mx-auto flex items-center justify-between">
         <div className="flex items-center gap-4">
           <JKLULogo size="sm" />
           <button
@@ -73,7 +104,7 @@ const Login: React.FC = () => {
         <ThemeSwitcher />
       </div>
 
-      <div className="auth-editorial-panel max-w-md w-full mx-auto editorial-card rounded-lg p-8 space-y-6">
+      <div className="relative z-10 auth-editorial-panel max-w-md w-full mx-auto editorial-card backdrop-blur-md bg-white/85 dark:bg-[#111117]/82 rounded-lg p-8 space-y-6">
         <div className="space-y-2">
           <span className="font-mono-tabular text-[11px] uppercase tracking-wider text-[#E04F33]">
             JK LAKSHMIPAT UNIVERSITY · STUDENT PORTAL
