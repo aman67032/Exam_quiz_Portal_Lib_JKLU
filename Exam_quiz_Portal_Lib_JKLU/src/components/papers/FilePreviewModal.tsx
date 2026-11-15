@@ -5,6 +5,7 @@ import Toast from '@/components/ui/Toast';
 import { API } from '@/utils/api';
 import { buildUploadUrl } from '@/utils/uploads';
 import Loader from '@/components/ui/Loader';
+import MobilePdfViewer from '@/components/papers/MobilePdfViewer';
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
@@ -355,24 +356,14 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               ) : isPdf ? (
                 <>
                   {isMobile ? (
-                    // Mobile: Direct PDF card (avoids broken gview downloads on mobile Chrome)
-                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
-                        <FileText className="w-8 h-8 text-red-500" />
-                      </div>
-                      <div className="space-y-1 max-w-xs">
-                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">
-                          {fileName}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Tap below to open the PDF in your device viewer or download it.
-                        </p>
-                      </div>
+                    // Mobile: Client-side PDF.js canvas preview + Open Full PDF button (no gview)
+                    <div className="w-full h-full flex flex-col gap-2.5">
+                      <MobilePdfViewer url={getPreviewUrl(paperId)} token={token} />
                       <a
                         href={getPreviewUrl(paperId)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full max-w-xs"
+                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full shrink-0"
                       >
                         <FileText className="w-4 h-4" />
                         <span>Open Full PDF</span>
