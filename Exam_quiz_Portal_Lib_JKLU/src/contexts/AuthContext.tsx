@@ -4,6 +4,7 @@ import axios from 'axios';
 import { buildUploadUrl } from '@/utils/uploads';
 import { wakeUpBackend } from '@/utils/keepAlive';
 import type { CaptchaPayload } from '@/components/auth/RobotCheck';
+import { sanitizeErrorMessage } from '@/utils/errorSanitizer';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
@@ -130,7 +131,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       return userResponse.data;
     } catch (error: any) {
-      const message = error.response?.data?.detail || 'Login failed';
+      const status = error.response?.status;
+      const message =
+        !error.response || (status !== undefined && status >= 500)
+          ? 'Error'
+          : sanitizeErrorMessage(error.response?.data?.detail, 'Error');
       throw new Error(message);
     }
   };
@@ -167,7 +172,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('profile.photo');
       }
     } catch (error: any) {
-      const message = error.response?.data?.detail || 'Registration failed';
+      const status = error.response?.status;
+      const message =
+        !error.response || (status !== undefined && status >= 500)
+          ? 'Error'
+          : sanitizeErrorMessage(error.response?.data?.detail, 'Error');
       throw new Error(message);
     }
   };

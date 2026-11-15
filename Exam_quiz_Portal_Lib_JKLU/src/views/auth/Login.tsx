@@ -142,17 +142,9 @@ const Login: React.FC = () => {
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
-                Password
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-xs text-[#4F46E5] dark:text-[#818CF8] hover:underline"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <label className="block text-xs font-mono-tabular uppercase text-[#5C5B57] dark:text-[#94938E]">
+              Password
+            </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-[#5C5B57] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input

@@ -15,7 +15,6 @@ const PublicHome = lazy(() => import('@/views/public/PublicHome'));
 const Login = lazy(() => import('@/views/auth/Login'));
 const AdminLogin = lazy(() => import('@/views/auth/AdminLogin'));
 const Register = lazy(() => import('@/views/auth/Register'));
-const ForgotPassword = lazy(() => import('@/views/auth/ForgotPassword'));
 const StudentDashboard = lazy(() => import('@/views/student/StudentDashboard'));
 const Profile = lazy(() => import('@/views/student/Profile'));
 const AdminDashboard = lazy(() => import('@/views/admin/AdminDashboard'));
@@ -89,13 +88,7 @@ function AppContent() {
             />
             <Route
               path="/forgot-password"
-              element={
-                user ? (
-                  <Navigate to={user.is_admin ? "/admin" : user.admin_role === 'coding_ta' ? "/admin/coding-hour" : user.is_sub_admin ? "/admin/contests" : "/home"} replace />
-                ) : (
-                  <ForgotPassword />
-                )
-              }
+              element={<Navigate to="/login" replace />}
             />
             {/* Protected routes - redirect to home if not logged in (login blocked for testing) */}
             <Route

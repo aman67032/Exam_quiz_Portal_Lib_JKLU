@@ -900,7 +900,8 @@ app.post('/login', authLimiter, async (req, res) => {
       user: formatUserResponse(user),
     });
   } catch (err) {
-    res.status(500).json({ detail: err.message || 'Login failed' });
+    console.error('[Login Error]', err);
+    res.status(500).json({ detail: 'Error' });
   }
 });
 
@@ -954,7 +955,8 @@ app.post('/admin-login', authLimiter, async (req, res) => {
       user: formatUserResponse(user),
     });
   } catch (err) {
-    res.status(500).json({ detail: err.message || 'Admin login failed' });
+    console.error('[Admin Login Error]', err);
+    res.status(500).json({ detail: 'Error' });
   }
 });
 
@@ -1009,7 +1011,8 @@ app.post('/register', authLimiter, async (req, res) => {
       user: formatUserResponse(newUser),
     });
   } catch (err) {
-    res.status(500).json({ detail: err.message || 'Registration failed' });
+    console.error('[Register Error]', err);
+    res.status(500).json({ detail: 'Error' });
   }
 });
 
@@ -1036,7 +1039,8 @@ app.post('/create-admin', requireFullAdmin, async (req, res) => {
     invalidateCachePrefix('auth:');
     res.json(formatUserResponse(inserted.rows[0]));
   } catch (err) {
-    res.status(500).json({ detail: err.message });
+    console.error('[Create Admin Error]', err);
+    res.status(500).json({ detail: 'Error' });
   }
 });
 

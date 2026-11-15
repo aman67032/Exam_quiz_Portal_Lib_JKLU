@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
+import { sanitizeErrorMessage } from '@/utils/errorSanitizer';
 
 // API Base URL Configuration
 // Priority: 1. VITE_API_URL env var, 2. VITE_BACKEND_URL env var, 3. Production backend (default)
@@ -140,10 +141,12 @@ apiClient.interceptors.response.use(
       }
     }
 
+    const status = error.response?.status;
+    const rawDetail = (error.response?.data as any)?.detail;
     const message =
-      (error.response?.data as any)?.detail ||
-      error.message ||
-      'An error occurred';
+      !error.response || (status !== undefined && status >= 500)
+        ? 'Error'
+        : sanitizeErrorMessage(rawDetail ?? error.message, 'Error');
     return Promise.reject(new Error(message));
   }
 );
