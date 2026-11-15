@@ -5,10 +5,11 @@ import type { AxiosInstance, AxiosError, AxiosResponse } from 'axios';
 // Priority: 1. VITE_API_URL env var, 2. VITE_BACKEND_URL env var, 3. Production backend (default)
 // For localhost development, this will use the production backend on Railway
 // To override, create a .env file with: VITE_API_URL=your-backend-url
-const API_BASE_URL =
+const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'http://localhost:8000';
+  'http://localhost:8000'
+).replace(/\/+$/, '');
 
 // Log backend URL in development mode for debugging
 if ((process.env.NODE_ENV === 'development')) {

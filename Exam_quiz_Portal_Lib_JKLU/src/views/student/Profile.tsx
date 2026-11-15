@@ -9,7 +9,7 @@ import { buildUploadUrl } from '@/utils/uploads';
 import Loader from '@/components/ui/Loader';
 import JKLULogo from '@/components/layout/JKLULogo';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 type Me = {
   id: number;

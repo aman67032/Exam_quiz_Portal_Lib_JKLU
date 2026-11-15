@@ -8,7 +8,7 @@ import FilePreviewModal from '@/components/papers/FilePreviewModal';
 import { buildUploadUrl } from '@/utils/uploads';
 import JKLULogo from '@/components/layout/JKLULogo';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 interface Stats {
   total_papers: number;

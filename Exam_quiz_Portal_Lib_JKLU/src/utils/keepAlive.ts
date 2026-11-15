@@ -3,7 +3,7 @@
  * Pings the backend health endpoint every 5 minutes to keep it active
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
 let isActive = false;

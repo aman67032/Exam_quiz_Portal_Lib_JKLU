@@ -5,7 +5,7 @@ import { buildUploadUrl } from '@/utils/uploads';
 import { wakeUpBackend } from '@/utils/keepAlive';
 import type { CaptchaPayload } from '@/components/auth/RobotCheck';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
 interface User {
   id: number;
