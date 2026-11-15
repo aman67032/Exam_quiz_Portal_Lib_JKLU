@@ -11,9 +11,21 @@ const getImageUrl = (filePath: string | undefined): string => {
   return buildUploadUrl(filePath);
 };
 
-// Helper to get preview URL using download endpoint
+// Helper to get inline preview URL
 const getPreviewUrl = (paperId: number): string => {
+  return `${API.baseURL}/papers/${paperId}/preview`;
+};
+
+const getDownloadUrl = (paperId: number): string => {
   return `${API.baseURL}/papers/${paperId}/download`;
+};
+
+const detectMobileDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth <= 768
+  );
 };
 
 interface FilePreviewModalProps {
@@ -38,7 +50,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [retryKey, setRetryKey] = useState(0); // Force reload on retry
   const [errorMessage, setErrorMessage] = useState<string>(''); // Store specific error message
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState<boolean>(() => detectMobileDevice());
   const pdfUrlRef = useRef<string>('');
   const abortControllerRef = useRef<AbortController | null>(null);
   const [toast, setToast] = useState({ 
@@ -47,14 +59,11 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
     type: 'success' as 'success' | 'error' | 'info' 
   });
 
-  // Detect mobile device
+  // Sync mobile detection on resize
   useEffect(() => {
     const checkMobile = () => {
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-        (window.innerWidth <= 768);
-      setIsMobile(isMobileDevice);
+      setIsMobile(detectMobileDevice());
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
@@ -346,133 +355,33 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               ) : isPdf ? (
                 <>
                   {isMobile ? (
-                    // Mobile: Show options to open in new tab or download
-                    <div className="text-center p-6 sm:p-8 w-full">
-                      <FileText className="w-20 h-20 sm:w-24 sm:h-24 text-red-500 mx-auto mb-4" />
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        PDF Document
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
-                      PDF preview works best when accessed directly. For optimal display, please use a laptop. Choose an option below:
-                      </p>
-                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center max-w-md mx-auto">
-                        <button
-                          onClick={async (e) => {
-                            e.preventDefault();
-                            const authToken = token || localStorage.getItem('token') || '';
-                            
-                            try {
-                              const response = await fetch(getPreviewUrl(paperId), {
-                                headers: authToken ? { Authorization: `Bearer ${authToken}` } : {}
-                              });
-                              
-                              if (response.ok) {
-                                const blob = await response.blob();
-                                // Get content type from response or default to PDF
-                                const contentType = response.headers.get('content-type') || 'application/pdf';
-                                // Ensure blob has PDF MIME type
-                                const pdfBlob = new Blob([blob], { type: contentType });
-                                const blobUrl = window.URL.createObjectURL(pdfBlob);
-                                
-                                // Create a new window with an object tag to display PDF
-                                const newWindow = window.open('', '_blank');
-                                
-                                if (newWindow) {
-                                  // Write HTML to display PDF (using embed for better mobile support)
-                                  newWindow.document.write(`
-                                    <!DOCTYPE html>
-                                    <html>
-                                      <head>
-                                        <title>${fileName}</title>
-                                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                                        <style>
-                                          * { margin: 0; padding: 0; box-sizing: border-box; }
-                                          html, body { width: 100%; height: 100%; overflow: hidden; }
-                                          embed, iframe, object { 
-                                            width: 100%; 
-                                            height: 100vh; 
-                                            border: none;
-                                          }
-                                          .fallback {
-                                            display: flex;
-                                            flex-direction: column;
-                                            align-items: center;
-                                            justify-content: center;
-                                            height: 100vh;
-                                            padding: 20px;
-                                            text-align: center;
-                                          }
-                                        </style>
-                                      </head>
-                                      <body>
-                                        <embed src="${blobUrl}" type="application/pdf" width="100%" height="100%" />
-                                        <noscript>
-                                          <div class="fallback">
-                                            <p>JavaScript is required to view PDFs.</p>
-                                            <a href="${blobUrl}" download="${fileName}" style="margin-top: 20px; padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">Download PDF</a>
-                                          </div>
-                                        </noscript>
-                                      </body>
-                                    </html>
-                                  `);
-                                  newWindow.document.close();
-                                  
-                                  // Clean up blob URL after window is closed or after 10 minutes
-                                  const cleanup = () => {
-                                    try {
-                                      window.URL.revokeObjectURL(blobUrl);
-                                    } catch (err) {
-                                      console.warn('Error revoking blob URL:', err);
-                                    }
-                                  };
-                                  
-                                  // Try to detect when window closes
-                                  const checkClosed = setInterval(() => {
-                                    if (newWindow.closed) {
-                                      clearInterval(checkClosed);
-                                      cleanup();
-                                    }
-                                  }, 1000);
-                                  
-                                  // Fallback cleanup after 10 minutes
-                                  setTimeout(() => {
-                                    clearInterval(checkClosed);
-                                    cleanup();
-                                  }, 600000);
-                                } else {
-                                  // Popup blocked, show error
-                                  showToast('Please allow popups to open PDF in new tab', 'error');
-                                  // Fallback: trigger download
-                                  const downloadUrl = window.URL.createObjectURL(pdfBlob);
-                                  const a = document.createElement('a');
-                                  a.href = downloadUrl;
-                                  a.download = fileName;
-                                  document.body.appendChild(a);
-                                  a.click();
-                                  document.body.removeChild(a);
-                                  window.URL.revokeObjectURL(downloadUrl);
-                                }
-                              } else {
-                                showToast('Failed to load PDF. Please try downloading.', 'error');
-                              }
-                            } catch (error) {
-                              console.error('Error opening PDF:', error);
-                              showToast('Failed to open PDF. Please try downloading.', 'error');
-                            }
-                          }}
-                          className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full sm:w-auto"
-                          type="button"
+                    // Mobile: Direct native PDF link + embedded viewer fallback (avoids blob/fetch issues on mobile browsers)
+                    <div className="w-full flex flex-col items-center gap-4 p-2 sm:p-4">
+                      <div className="w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                        <iframe
+                          src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(getPreviewUrl(paperId))}`}
+                          className="w-full h-[52vh] min-h-[320px] border-0"
+                          title={fileName}
+                        />
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2.5 w-full max-w-md">
+                        <a
+                          href={getPreviewUrl(paperId)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full"
                         >
                           <FileText className="w-5 h-5" />
-                          <span>Open in New Tab</span>
-                        </button>
-                        <button
-                          onClick={handleDownload}
-                          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation"
+                          <span>Open Full PDF</span>
+                        </a>
+                        <a
+                          href={getDownloadUrl(paperId)}
+                          download={fileName}
+                          className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full"
                         >
                           <Download className="w-5 h-5" />
                           <span>Download PDF</span>
-                        </button>
+                        </a>
                       </div>
                     </div>
                   ) : (

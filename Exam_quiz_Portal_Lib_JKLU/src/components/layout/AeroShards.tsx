@@ -5,18 +5,24 @@ import { draw as rawDraw, frame, init, sampler, storage, surface, target, unifor
 import { prepareShader } from '@vgpu/wgsl/prepare';
 
 const preparedShaderCache = new Map<string, ReturnType<typeof prepareShader>>();
-const draw: typeof rawDraw = ((gpu: any, opts: any) => {
-  const raw = opts?.shader;
-  let shader = raw;
-  if (typeof raw === 'string') {
-    shader = preparedShaderCache.get(raw);
-    if (!shader) {
-      shader = prepareShader(raw);
-      preparedShaderCache.set(raw, shader);
-    }
+const draw = (
+  gpu: Parameters<typeof rawDraw>[0],
+  opts: Omit<Parameters<typeof rawDraw>[1], 'shader'> & {
+    shader: string | Parameters<typeof rawDraw>[1]['shader'];
   }
-  return rawDraw(gpu, { ...opts, shader });
-}) as typeof rawDraw;
+) => {
+  const raw = opts?.shader;
+  const shader =
+    typeof raw === 'string'
+      ? preparedShaderCache.get(raw) ??
+        (() => {
+          const prepared = prepareShader(raw);
+          preparedShaderCache.set(raw, prepared);
+          return prepared;
+        })()
+      : raw;
+  return rawDraw(gpu, { ...opts, shader } as Parameters<typeof rawDraw>[1]);
+};
 
 export interface AeroShardsProps {
   shardColor?: string;
@@ -1118,13 +1124,183 @@ export default function AeroShards({
     let raf = 0;
     const cleanups: Array<() => void> = [];
 
+    const startCanvas2DFallback = () => {
+      if (disposed) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const s = settingsRef.current;
+      const fallbackCount = Math.min(220, Math.max(90, Math.round(s.count * 0.16)));
+      const shards2d = createShards(fallbackCount, 1337);
+      const markerPts = Array.from({ length: 42 }, (_, i) => ({
+        x: latticeHash(i, 1, 7, 11),
+        y: latticeHash(i, 2, 13, 19),
+        depth: 0.35 + latticeHash(i, 3, 29, 31) * 0.65,
+        phase: latticeHash(i, 4, 37, 41) * TAU,
+      }));
+
+      let width = 1;
+      let height = 1;
+      let dprVal = 1;
+      let clock = 0;
+      let last = 0;
+      let pointerX = 0.5;
+      let pointerY = 0.5;
+      let visible = true;
+
+      const resize2d = () => {
+        dprVal = Math.min(window.devicePixelRatio || 1, 2);
+        width = Math.max(1, container.clientWidth);
+        height = Math.max(1, container.clientHeight);
+        canvas.width = Math.round(width * dprVal);
+        canvas.height = Math.round(height * dprVal);
+      };
+      resize2d();
+      const ro = new ResizeObserver(resize2d);
+      ro.observe(container);
+      cleanups.push(() => ro.disconnect());
+
+      const onMove2d = (e: PointerEvent) => {
+        const rect = container.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          pointerX = clamp((e.clientX - rect.left) / rect.width, 0, 1);
+          pointerY = clamp((e.clientY - rect.top) / rect.height, 0, 1);
+        }
+      };
+      window.addEventListener('pointermove', onMove2d, { passive: true });
+      cleanups.push(() => window.removeEventListener('pointermove', onMove2d));
+
+      const vis = new IntersectionObserver(entries => {
+        visible = entries.some(entry => entry.isIntersecting);
+      });
+      vis.observe(container);
+      cleanups.push(() => vis.disconnect());
+
+      const toRgb = (rgb: RGB, alpha: number) =>
+        `rgba(${Math.round(rgb[0] * 255)}, ${Math.round(rgb[1] * 255)}, ${Math.round(rgb[2] * 255)}, ${alpha.toFixed(3)})`;
+
+      const tick2d = (now: number) => {
+        if (disposed) return;
+        raf = requestAnimationFrame(tick2d);
+        if (!visible || document.hidden) {
+          last = now;
+          return;
+        }
+        const dt = last ? Math.min((now - last) / 1000, 0.05) : 0.016;
+        last = now;
+        const cfg = settingsRef.current;
+        const reduced = prefersReduced();
+        if (!cfg.paused && !reduced) clock += dt * cfg.speed;
+
+        ctx.setTransform(dprVal, 0, 0, dprVal, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+
+        // Ambient violet/indigo glow behind the shard ribbon
+        const cx = width * 0.5 + (pointerX - 0.5) * 40 * cfg.parallax;
+        const cy = height * 0.48 + (pointerY - 0.5) * 30 * cfg.parallax;
+        const grad = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(width, height) * 0.72);
+        grad.addColorStop(0, toRgb(cfg.accent, cfg.lightMode ? 0.14 : 0.24));
+        grad.addColorStop(0.45, toRgb(cfg.shard, cfg.lightMode ? 0.07 : 0.12));
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // Subtle '+' / dot markers
+        if (cfg.markers !== -1) {
+          ctx.strokeStyle = toRgb(cfg.shard, cfg.lightMode ? 0.25 : 0.35);
+          ctx.fillStyle = toRgb(cfg.accent, cfg.lightMode ? 0.25 : 0.35);
+          ctx.lineWidth = 1;
+          for (const m of markerPts) {
+            const mx = m.x * width + Math.sin(clock * 0.3 + m.phase) * 8;
+            const my = m.y * height + Math.cos(clock * 0.25 + m.phase) * 6;
+            const pulse = 0.5 + 0.5 * Math.sin(clock * 1.4 + m.phase);
+            ctx.globalAlpha = (0.22 + 0.35 * pulse) * m.depth;
+            if (cfg.markers === 0) {
+              const arm = 3.5 * m.depth;
+              ctx.beginPath();
+              ctx.moveTo(mx - arm, my);
+              ctx.lineTo(mx + arm, my);
+              ctx.moveTo(mx, my - arm);
+              ctx.lineTo(mx, my + arm);
+              ctx.stroke();
+            } else {
+              ctx.beginPath();
+              ctx.arc(mx, my, 1.8 * m.depth, 0, TAU);
+              ctx.fill();
+            }
+          }
+          ctx.globalAlpha = 1;
+        }
+
+        // Flowing 3D-projected glass shards along the diagonal ribbon
+        const aspect = width / Math.max(height, 1);
+        const focal = Math.min(width, height) * 0.62 * cfg.scale;
+        const pt = [0, 0, 0];
+
+        for (let i = shards2d.length - 1; i >= 0; i -= 1) {
+          const sh = shards2d[i];
+          const s0 = (sh.phase + clock * 0.025 * (1 - sh.level * 0.12)) % 1;
+          ribbonPoint(cfg.placement, sh.level, s0, Math.max(aspect, 0.85), pt);
+
+          const depth = Math.max(1.2, CAMERA - pt[2]);
+          const px =
+            width * 0.5 +
+            ((pt[0] + sh.lane * 0.32 * cfg.spread + Math.sin(clock * sh.rate[0] + sh.drift[0]) * 0.04) *
+              focal) /
+              depth +
+            (pointerX - 0.5) * (36 / depth) * cfg.parallax;
+          const py =
+            height * 0.5 -
+            ((pt[1] + sh.layer * 0.09 * cfg.billow + Math.cos(clock * sh.rate[1] + sh.drift[1]) * 0.04) *
+              focal) /
+              depth +
+            (pointerY - 0.5) * (28 / depth) * cfg.parallax;
+
+          const r = (0.085 * cfg.shardSize * sh.size * GROWTH[sh.level] * focal) / depth;
+          if (px < -r * 2 || px > width + r * 2 || py < -r * 2 || py > height + r * 2) continue;
+
+          const rot = sh.yaw + clock * 0.35 * sh.sign + s0 * Math.PI * cfg.twist;
+          const cosR = Math.cos(rot);
+          const sinR = Math.sin(rot);
+          const bankScale = 0.55 + 0.45 * Math.abs(Math.cos(clock * 0.6 + sh.bank * 4));
+
+          const mixT = sh.tint;
+          const col: RGB = [
+            cfg.shard[0] * (1 - mixT) + cfg.accent[0] * mixT,
+            cfg.shard[1] * (1 - mixT) + cfg.accent[1] * mixT,
+            cfg.shard[2] * (1 - mixT) + cfg.accent[2] * mixT,
+          ];
+          const alpha = FADE[sh.level] * (cfg.lightMode ? 0.38 : 0.48);
+
+          ctx.beginPath();
+          for (let k = 0; k < sh.sides; k += 1) {
+            const lx = sh.shape[k * 2] * r;
+            const ly = sh.shape[k * 2 + 1] * r * bankScale;
+            const sx = px + lx * cosR - ly * sinR;
+            const sy = py + lx * sinR + ly * cosR;
+            if (k === 0) ctx.moveTo(sx, sy);
+            else ctx.lineTo(sx, sy);
+          }
+          ctx.closePath();
+
+          ctx.fillStyle = toRgb(col, alpha);
+          ctx.fill();
+          ctx.strokeStyle = toRgb([1, 1, 1], alpha * 0.65);
+          ctx.lineWidth = Math.max(0.6, 1.1 - sh.level * 0.15);
+          ctx.stroke();
+        }
+      };
+
+      raf = requestAnimationFrame(tick2d);
+    };
+
     const fail = (error: unknown) => {
       if (disposed) return;
-      disposed = true;
       cancelAnimationFrame(raf);
       gpu?.dispose();
       gpu = null;
       onErrorRef.current?.(error instanceof Error ? error : new Error(String(error)));
+      startCanvas2DFallback();
     };
 
     const start = async () => {
