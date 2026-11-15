@@ -86,7 +86,7 @@ const AdminLogin: React.FC = () => {
               <input
                 type="email"
                 required
-                placeholder="counciloftechnicalaffairs@jklu.edu.in"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="input-field pl-10 text-sm"
@@ -103,6 +103,7 @@ const AdminLogin: React.FC = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="input-field pl-10 pr-10 text-sm"
