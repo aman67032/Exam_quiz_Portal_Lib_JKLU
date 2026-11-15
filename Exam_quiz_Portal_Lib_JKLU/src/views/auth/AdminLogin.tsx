@@ -95,7 +95,7 @@ const AdminLogin: React.FC = () => {
         <ThemeSwitcher />
       </div>
 
-      <div className="relative z-10 max-w-md w-full mx-auto editorial-card backdrop-blur-md bg-white/85 dark:bg-[#111117]/82 rounded-lg p-8 space-y-6">
+      <div className="relative z-10 max-w-md w-full mx-auto backdrop-blur-md bg-white/90 dark:bg-[#111117]/85 border border-[#E5E2DC] dark:border-[#232329] shadow-xl rounded-lg p-5 sm:p-8 space-y-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-[#E04F33]/10 text-[#E04F33] text-xs font-mono-tabular">
             <Shield className="w-3.5 h-3.5" />

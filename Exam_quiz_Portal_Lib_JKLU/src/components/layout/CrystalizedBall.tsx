@@ -1242,10 +1242,16 @@ const CrystalizedBall = ({
     const look = { x: 0, y: 0, vx: 0, vy: 0 };
 
     let resizePending = false;
+    const computeRadius = (w: number, h: number, sizeVal: number) => {
+      const baseDim = w < 640 ? Math.min(h * 0.82, w * 1.42) : Math.min(w, h);
+      return Math.max(8, (clamp(sizeVal, 0.1, 1.5) * baseDim) / 2);
+    };
+
     const applyResize = () => {
       width = Math.max(1, container.clientWidth);
       height = Math.max(1, container.clientHeight);
-      renderer.dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(PIXEL_BUDGET / (width * height)));
+      const maxDpr = width < 640 ? 1.5 : 2;
+      renderer.dpr = Math.min(window.devicePixelRatio || 1, maxDpr, Math.sqrt(PIXEL_BUDGET / (width * height)));
       renderer.setSize(width, height);
       sceneTarget.setSize(gl.canvas.width, gl.canvas.height);
     };
@@ -1285,7 +1291,7 @@ const CrystalizedBall = ({
       const presence = easeOut(smooth(0, 0.42, introClock));
       const unfold = easeOut(smooth(0, 0.32, introClock));
       const charge = Math.sin(Math.PI * smooth(0.22, 0.78, introClock)) * 0.35;
-      const radius = Math.max(8, (clamp(s.size, 0.1, 1.5) * Math.min(width, height)) / 2);
+      const radius = computeRadius(width, height, s.size);
 
       const strength = s.interactive && !reducedMotion ? clamp(s.hoverStrength, 0, 1) : 0;
       const px = pointer.x - width / 2;
@@ -1363,7 +1369,8 @@ const CrystalizedBall = ({
         arcData[i * 4 + 3] = arc ? Math.sin((Math.PI * arc.life) / arc.duration) * arc.strength : 0;
       }
 
-      rebuildDust(s.particleCount);
+      const effectiveParticles = width < 640 ? Math.min(s.particleCount, 7500) : s.particleCount;
+      rebuildDust(effectiveParticles);
       const palette = s.palette;
 
       fieldUniforms.uCenter.value = [width / 2, height / 2];
@@ -1487,7 +1494,7 @@ const CrystalizedBall = ({
       pointer.x = spot.x;
       pointer.y = spot.y;
       pointer.inside = true;
-      const radius = Math.max(8, (clamp(s.size, 0.1, 1.5) * Math.min(width, height)) / 2);
+      const radius = computeRadius(width, height, s.size);
       const kx = (spot.x - width / 2) / radius;
       const ky = (height / 2 - spot.y) / radius;
       const distance = Math.hypot(kx, ky);

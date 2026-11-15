@@ -104,7 +104,7 @@ const Login: React.FC = () => {
         <ThemeSwitcher />
       </div>
 
-      <div className="relative z-10 auth-editorial-panel max-w-md w-full mx-auto editorial-card backdrop-blur-md bg-white/85 dark:bg-[#111117]/82 rounded-lg p-8 space-y-6">
+      <div className="relative z-10 auth-editorial-panel max-w-md w-full mx-auto backdrop-blur-md bg-white/90 dark:bg-[#111117]/85 border border-[#E5E2DC] dark:border-[#232329] shadow-xl rounded-lg p-5 sm:p-8 space-y-6">
         <div className="space-y-2">
           <span className="font-mono-tabular text-[11px] uppercase tracking-wider text-[#E04F33]">
             JK LAKSHMIPAT UNIVERSITY · STUDENT PORTAL
