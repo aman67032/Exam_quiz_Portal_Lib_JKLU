@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Terminal, Database, Activity, Book, Upload } from 'lucide-react';
+import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, User, Eye, Database, Activity, Book, Upload, Shield, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import FilePreviewModal from '@/components/papers/FilePreviewModal';
 import { buildUploadUrl } from '@/utils/uploads';
 import JKLULogo from '@/components/layout/JKLULogo';
+import AeroShards from '@/components/layout/AeroShards';
+import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
 
@@ -111,7 +113,6 @@ const AdminDashboard: React.FC = () => {
     semester: '',
     status: ''
   });
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // File Preview Modal State
   const [previewModal, setPreviewModal] = useState({
@@ -177,59 +178,6 @@ const AdminDashboard: React.FC = () => {
   const [hostForm, setHostForm] = useState({ email: '', name: '', password: '' });
 
   const token = localStorage.getItem('token');
-
-  // Matrix rain animation
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const matrix = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops: number[] = [];
-
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
-    }
-
-    const draw = () => {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#00ff41';
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = matrix[Math.floor(Math.random() * matrix.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    };
-
-    const interval = setInterval(draw, 35);
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, []);
 
   useEffect(() => {
     if (token) {
@@ -709,88 +657,82 @@ const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-black">
-      {/* Matrix Rain Background */}
-      <canvas
-        ref={canvasRef}
-        className="fixed inset-0 z-0 opacity-20"
-        style={{ mixBlendMode: 'screen' }}
-      />
-
-      {/* Animated Grid Overlay */}
-      <div className="fixed inset-0 z-0 opacity-10">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(0, 255, 65, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 255, 65, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
-        }} />
-      </div>
-
-      {/* Glitch Effect Overlay */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-500/5 to-transparent animate-pulse" />
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/5 to-transparent" style={{
-          animation: 'glitch 3s infinite'
-        }} />
+    <div className="min-h-screen relative overflow-x-hidden bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0]">
+      {/* AeroShards Interactive Glass Background */}
+      <div className="fixed inset-0 z-0 pointer-events-none transform-gpu" style={{ width: '100%', height: '100vh' }}>
+        <AeroShards
+          shardColor="#896ABD"
+          accentColor="#A855F7"
+          placement="full"
+          material="glass"
+          markers="plus"
+          count={700}
+          depthOfField={0.6}
+          vignette={0.3}
+          mouseInteraction
+          pulseOnClick
+          holdToGather
+          lightMode={false}
+          dpr={1.5}
+          intro
+          mouseStrength={0.5}
+          parallax={0.4}
+          paused={false}
+        />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10">
-        {/* Header */}
+        {/* Glassmorphic Header */}
         <motion.header
-          initial={{ y: -100 }}
-          animate={{ y: 0 }}
-          className="bg-black/80 backdrop-blur-xl border-b border-green-500/30 shadow-lg shadow-green-500/20"
+          initial={{ y: -24, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="sticky top-0 z-40 bg-[#FAF9F6]/88 dark:bg-[#0A0A0C]/88 backdrop-blur-md border-b border-[#E5E2DC]/80 dark:border-white/10"
         >
-          <div className="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
               <div className="flex items-center gap-3">
-                <motion.div
-                  className="relative flex-shrink-0"
-                  animate={{
-                    boxShadow: [
-                      '0 0 10px #00ff41',
-                      '0 0 20px #00ff41',
-                      '0 0 10px #00ff41'
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <div className="bg-gradient-to-br from-green-500 to-cyan-500 w-10 h-10 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center">
-                    <Terminal className="text-black w-6 h-6 sm:w-7 sm:h-7" />
-                  </div>
-                </motion.div>
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#896ABD] to-[#E04F33] flex items-center justify-center shadow-md shadow-[#896ABD]/25">
+                  <Shield className="text-white w-5 h-5" />
+                </div>
                 <div>
-                  <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent font-mono whitespace-nowrap">
-                    ADMIN_DASHBOARD
+                  <h1 className="text-base sm:text-xl font-bold tracking-tight">
+                    Admin Console
                   </h1>
-                  <p className="text-xs sm:text-sm text-green-400 font-mono">USER: {user?.name}</p>
+                  <p className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
+                    Signed in as {user?.name || 'Admin'}
+                  </p>
                 </div>
               </div>
-              <div className="flex items-center sm:hidden flex-shrink-0">
+              <div className="flex items-center gap-2 sm:hidden">
+                <ThemeSwitcher />
                 <JKLULogo size="sm" className="opacity-90" />
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto justify-between sm:justify-end">
-              <div className="hidden sm:block flex-shrink-0 mr-2">
-                <JKLULogo size="md" className="opacity-90 hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="flex items-center space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <Activity className="h-3 w-3 sm:h-4 sm:w-4 text-green-400 animate-pulse" />
-                <span className="text-xs sm:text-sm text-green-400 font-mono">ONLINE</span>
-              </div>
-              <motion.button
-                onClick={logout}
-                className="flex items-center space-x-1 sm:space-x-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500/20 border border-red-500/30 text-red-400 hover:bg-red-500/30 rounded-lg font-mono text-xs sm:text-sm transition-all"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end">
+              <button
+                onClick={() => navigate('/home')}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E2DC] dark:border-white/15 bg-white/75 dark:bg-white/5 text-xs font-mono-tabular hover:border-[#896ABD] transition-colors"
               >
-                <LogOut size={16} />
-                <span className="hidden sm:inline">LOGOUT</span>
-              </motion.button>
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Archive</span>
+              </button>
+              <div className="hidden sm:flex items-center gap-2">
+                <ThemeSwitcher />
+                <JKLULogo size="sm" className="opacity-90" />
+              </div>
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-mono-tabular">
+                <Activity className="h-3.5 w-3.5 animate-pulse" />
+                <span>LIVE</span>
+              </div>
+              <button
+                onClick={logout}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E04F33]/12 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 text-xs font-mono-tabular transition-colors"
+              >
+                <LogOut size={15} />
+                <span>Logout</span>
+              </button>
             </div>
           </div>
         </motion.header>
@@ -798,18 +740,18 @@ const AdminDashboard: React.FC = () => {
         {/* Message */}
         {message.text && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -12 }}
             className="max-w-7xl mx-auto px-4 mt-4"
           >
-            <div className={`p-4 rounded-lg border-2 font-mono ${message.type === 'success'
-              ? 'bg-green-500/10 border-green-500/50 text-green-400 shadow-lg shadow-green-500/20'
-              : 'bg-red-500/10 border-red-500/50 text-red-400 shadow-lg shadow-red-500/20'
+            <div className={`p-3.5 rounded-xl border backdrop-blur-md text-xs font-mono-tabular ${message.type === 'success'
+              ? 'bg-emerald-500/12 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+              : 'bg-[#E04F33]/12 border-[#E04F33]/40 text-[#E04F33]'
               }`}>
-              <div className="flex items-center space-x-2">
-                {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                <span className="font-bold">[{message.type.toUpperCase()}]</span>
+              <div className="flex items-center gap-2">
+                {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                <span className="font-bold uppercase">[{message.type}]</span>
                 <span>{message.text}</span>
               </div>
             </div>
@@ -817,14 +759,14 @@ const AdminDashboard: React.FC = () => {
         )}
 
         <div className="max-w-7xl mx-auto px-4 mt-6">
-          {/* Express 2.0 Bulk PDF Sync & Purge Bar */}
-          <div className="mb-6 p-4 rounded-lg bg-zinc-900/90 border border-zinc-800 flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+          {/* Bulk PDF Sync & Purge Bar */}
+          <div className="mb-5 p-4 rounded-2xl bg-white/85 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 shadow-sm flex flex-wrap items-center justify-between gap-4 font-mono-tabular text-xs">
             <div className="space-y-1">
-              <div className="text-emerald-400 font-semibold">
-                ⚡ EXPRESS.JS + POSTGRESQL BULK PAPER ENGINE
+              <div className="text-[#896ABD] dark:text-[#C4B5FD] font-semibold">
+                BULK PAPER ENGINE · EXPRESS.JS + POSTGRESQL
               </div>
-              <div className="text-zinc-400">
-                Drop your new PDFs into <code className="text-white">/pastpaper</code> and click Sync, or Purge legacy PDFs before importing.
+              <div className="text-[#5C5B57] dark:text-[#94938E]">
+                Drop PDFs into <code className="text-[#0A0A0C] dark:text-white">/pastpaper</code> and click Sync, or Purge legacy PDFs before importing.
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2.5">
@@ -842,7 +784,7 @@ const AdminDashboard: React.FC = () => {
                     showMessage('error', e.response?.data?.detail || 'Failed to purge old papers');
                   }
                 }}
-                className="px-3 py-2 rounded bg-red-500/20 border border-red-500/40 text-red-300 hover:bg-red-500/30 transition"
+                className="px-3 py-2 rounded-lg bg-[#E04F33]/12 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 transition"
               >
                 1. Purge Old PDFs
               </button>
@@ -861,83 +803,77 @@ const AdminDashboard: React.FC = () => {
                     showMessage('error', e.response?.data?.detail || 'Failed to sync /pastpaper folder');
                   }
                 }}
-                className="px-3 py-2 rounded bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-500/30 transition"
+                className="px-3 py-2 rounded-lg bg-[#896ABD]/15 border border-[#896ABD]/40 text-[#6D4AFF] dark:text-[#C4B5FD] hover:bg-[#896ABD]/25 transition"
               >
                 2. Auto-Index /pastpaper Folder
               </button>
             </div>
           </div>
 
-          {/* Tabs */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-lg p-2 flex space-x-2 overflow-x-auto shadow-lg shadow-green-500/10 custom-scrollbar pb-2"
-          >
+          {/* Glassmorphic Tabs */}
+          <div className="bg-white/85 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 rounded-2xl p-2 flex gap-1.5 overflow-x-auto shadow-sm custom-scrollbar">
             {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts', 'users'].map(tab => (
-              <motion.button
+              <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-md font-mono font-bold text-xs sm:text-sm uppercase transition-all whitespace-nowrap ${activeTab === tab
-                  ? 'bg-gradient-to-r from-green-500 to-cyan-500 text-black shadow-lg shadow-green-500/50'
-                  : 'text-green-400 hover:bg-green-500/10 border border-transparent hover:border-green-500/30'
+                className={`flex-none px-4 sm:px-5 py-2.5 rounded-xl font-mono-tabular font-semibold text-xs sm:text-sm transition-all whitespace-nowrap ${activeTab === tab
+                  ? 'bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] shadow-sm'
+                  : 'text-[#5C5B57] dark:text-[#94938E] hover:bg-[#896ABD]/10 hover:text-[#0A0A0C] dark:hover:text-white'
                   }`}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
               >
                 {tab === 'dashboard' ? 'Overview' : tab === 'upload' ? 'Upload' : tab === 'all-papers' ? 'Documents' : tab === 'pending' ? 'Pending' : tab === 'courses' ? 'Courses' : tab === 'hosts' ? 'Hosts' : 'Users'}
-              </motion.button>
+              </button>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-6">
           {/* Dashboard Tab */}
           {activeTab === 'dashboard' && stats && (
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ duration: 0.3 }}
             >
-              <h2 className="text-3xl font-bold mb-6 flex items-center font-mono bg-gradient-to-r from-green-400 to-cyan-400 bg-clip-text text-transparent">
-                <BarChart3 className="mr-3 text-green-400" size={32} />
-                SYSTEM_OVERVIEW
+              <h2 className="text-2xl font-bold mb-6 flex items-center tracking-tight">
+                <BarChart3 className="mr-2.5 text-[#896ABD] dark:text-[#A855F7]" size={26} />
+                System Overview
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {[
-                  { label: 'TOTAL_PAPERS', value: stats.total_papers, icon: Database, color: 'from-blue-500 to-cyan-500' },
-                  { label: 'PENDING_REVIEW', value: stats.pending_papers, icon: AlertCircle, color: 'from-yellow-500 to-orange-500' },
-                  { label: 'APPROVED', value: stats.approved_papers, icon: CheckCircle, color: 'from-green-500 to-emerald-500' },
-                  { label: 'REJECTED', value: stats.rejected_papers, icon: XCircle, color: 'from-red-500 to-pink-500' },
-                  { label: 'TOTAL_COURSES', value: stats.total_courses, icon: Book, color: 'from-purple-500 to-indigo-500' },
-                  { label: 'TOTAL_USERS', value: stats.total_users, icon: User, color: 'from-cyan-500 to-blue-500' }
+                  { label: 'Total Papers', value: stats.total_papers, icon: Database, color: 'from-[#896ABD] to-[#A855F7]' },
+                  { label: 'Pending Review', value: stats.pending_papers, icon: AlertCircle, color: 'from-amber-500 to-orange-500' },
+                  { label: 'Approved', value: stats.approved_papers, icon: CheckCircle, color: 'from-emerald-500 to-teal-500' },
+                  { label: 'Rejected', value: stats.rejected_papers, icon: XCircle, color: 'from-[#E04F33] to-pink-500' },
+                  { label: 'Total Courses', value: stats.total_courses, icon: Book, color: 'from-indigo-500 to-[#896ABD]' },
+                  { label: 'Total Users', value: stats.total_users, icon: User, color: 'from-cyan-500 to-blue-500' }
                 ].map((stat, index) => (
                   <motion.div
                     key={stat.label}
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                    className="relative group"
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="relative overflow-hidden rounded-2xl bg-white/88 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 p-6 shadow-sm hover:border-[#896ABD]/60 transition-all"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300"
-                      style={{ background: `linear-gradient(135deg, var(--tw-gradient-stops))` }}
-                    />
-                    <div className="relative bg-black/60 backdrop-blur-xl border-2 border-green-500/30 rounded-xl p-6 hover:border-green-500/60 transition-all shadow-lg hover:shadow-green-500/20">
-                      <div className="flex items-center justify-between mb-4">
-                        <stat.icon className={`h-8 w-8 bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`} />
-                        <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" />
-                      </div>
-                      <div className="text-xs text-green-400/70 font-mono uppercase mb-2">{stat.label}</div>
-                      <div className={`text-4xl font-bold font-mono bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
-                        {stat.value}
-                      </div>
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${stat.color}`} />
+                    <div className="flex items-center justify-between mb-3">
+                      <stat.icon className="h-6 w-6 text-[#896ABD] dark:text-[#C4B5FD]" />
+                      <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse" />
+                    </div>
+                    <div className="text-xs font-mono-tabular uppercase tracking-wider text-[#5C5B57] dark:text-[#94938E] mb-1.5">
+                      {stat.label}
+                    </div>
+                    <div className={`text-3xl sm:text-4xl font-bold font-mono-tabular bg-gradient-to-r ${stat.color} bg-clip-text text-transparent`}>
+                      {stat.value}
                     </div>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
           )}
+
+          {/* Inner Management Panels Container (keeps dark-surface tables/forms crisp over AeroShards) */}
+          <div className={activeTab === 'dashboard' ? 'hidden' : 'rounded-2xl bg-[#111117]/92 text-[#F5F4F0] backdrop-blur-md border border-white/10 p-4 sm:p-6 shadow-2xl'}>
 
           {/* All Documents Tab */}
           {activeTab === 'all-papers' && (
@@ -1951,6 +1887,7 @@ const AdminDashboard: React.FC = () => {
               </div>
             </motion.div>
           )}
+          </div>
 
         </div>
 
