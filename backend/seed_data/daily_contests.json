@@ -1,0 +1,58 @@
+[
+  {
+    "id": 14,
+    "course_id": 128,
+    "date": "Week 1 - Contest 0",
+    "title": "DSA CONCEPTS (DAA Contest 0)",
+    "description": "JKLU-DAA-Contest-1 is a coding contest focused on Data Structures and Algorithms (DAA) concepts. It includes medium-level problems that test logical thinking, graph traversal, and binary tree understanding",
+    "created_at": "2026-01-16T12:29:22.790Z"
+  },
+  {
+    "id": 15,
+    "course_id": 128,
+    "date": "Week 2 - Contest 1",
+    "title": "Contest 1: Algorithm Foundations & Complexity",
+    "description": "JKLU-DAA-contest1 contains three algorithmic problems of varying difficulty that test array traversal, hashing techniques, and number theory. The challenges include finding K-distance elements, detecting duplicates efficiently, and counting consecutive integer sum representations.",
+    "created_at": "2026-01-16T12:41:18.472Z"
+  },
+  {
+    "id": 17,
+    "course_id": 127,
+    "date": "15/01/2026 - Contest-1",
+    "title": "Conditional Statements (If-else, switch-case, Ternary Operators)",
+    "description": "Contest contains 3 questions each of 10 marks",
+    "created_at": "2026-01-16T14:25:14.103Z"
+  },
+  {
+    "id": 16,
+    "course_id": 127,
+    "date": "08/01/2026 - warmup contest",
+    "title": "Introduction to C Programming",
+    "description": "Starting in C Programming with basic (printf and scanf)",
+    "created_at": "2026-01-16T14:12:59.560Z"
+  },
+  {
+    "id": 18,
+    "course_id": 127,
+    "date": "contest-2 22/01/2026",
+    "title": "Conditional Statements and loops",
+    "description": null,
+    "created_at": "2026-01-22T08:57:01.420Z"
+  },
+  {
+    "id": 20,
+    "course_id": 128,
+    "date": "Week 3- Contest 2",
+    "title": "Contest 2: Recursion and Recurrence Application",
+    "description": "This contest topics includes Recursion and its related application. It consists 3 Question of difficulty Easy ,Medium and Hard.",
+    "created_at": "2026-01-24T05:28:15.478Z"
+  },
+  {
+    "id": 21,
+    "course_id": 127,
+    "date": "contest-3 29/01/2026",
+    "title": "Nested Loops and Patterns",
+    "description": null,
+    "created_at": "2026-01-29T08:28:13.602Z"
+  }
+]

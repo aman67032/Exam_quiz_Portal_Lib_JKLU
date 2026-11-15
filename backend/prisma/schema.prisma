@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CAP THEOREM ARCHITECTURE NOTES:
+// - User & AuditLog (CP): Strict ACID consistency for Auth, RBAC, and Moderation
+// - Course & Paper (AP Read-Optimized + CP Write): Denormalized counters +
+//   composite covering indexes + L1/L2 Redis cache for 1,000 concurrent users
+// ============================================================================
+
+model User {
+  id             Int        @id @default(autoincrement())
+  email          String     @unique
+  name           String
+  password_hash  String
+  is_admin       Boolean    @default(false)
+  admin_role     String?    // 'full_admin' | 'sub_admin' | 'moderator'
+  age            Int?
+  year           String?
+  university     String?    @default("JK Lakshmipat University")
+  department     String?
+  roll_no        String?
+  student_id     String?
+  photo_path     String?
+  id_card_path   String?
+  id_verified    Boolean    @default(false)
+  verified_by    Int?
+  verified_at    DateTime?  @db.Timestamptz(6)
+  email_verified Boolean    @default(true)
+  is_active      Boolean    @default(true)
+  last_login_at  DateTime?  @db.Timestamptz(6)
+  admin_feedback Json?
+  created_at     DateTime   @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime   @default(now()) @updatedAt @db.Timestamptz(6)
+
+  uploaded_papers Paper[]    @relation("UploadedPapers")
+  audit_logs      AuditLog[] @relation("ActorAuditLogs")
+
+  @@index([email], map: "idx_users_email_lower")
+  @@index([is_admin, admin_role], map: "idx_users_admin_role")
+  @@index([id_verified, is_admin], map: "idx_users_verification_queue")
+  @@map("users")
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique
+  name        String
+  department  String?  @default("B.TECH")
+  school      String?  // 'IET' | 'IM' | 'ID' | 'PHD'
+  semester    String?
+  paper_count Int      @default(0)
+  description String?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  papers      Paper[]
+
+  @@index([code], map: "idx_courses_code")
+  @@index([department, semester], map: "idx_courses_dept_sem")
+  @@map("courses")
+}
+
+model Paper {
+  id               Int       @id @default(autoincrement())
+  course_id        Int?
+  uploaded_by      Int?
+  aura_uuid        String?   @unique
+  title            String
+  description      String?
+  paper_type       String    @default("ENDTERM") // 'ENDTERM' | 'MIDTERM' | 'QUIZ' | 'ASSIGNMENT'
+  exam_session     String?   // e.g. 'May 2026', 'Dec 2025'
+  year             Int       @default(2026)
+  semester         String    @default("1")
+  department       String?   @default("B.TECH")
+  file_path        String
+  file_name        String
+  file_size        Int?      @default(0)
+  file_blob        Bytes?    // Compressed binary (.bin) deflated PDF payload
+  checksum_md5     String?
+  source_uri       String?
+  status           String    @default("APPROVED") // 'APPROVED' | 'PENDING' | 'REJECTED'
+  reviewed_by      Int?
+  reviewed_at      DateTime? @db.Timestamptz(6)
+  rejection_reason String?
+  admin_feedback   Json?
+  public_link_id   String?   @unique
+  download_count   Int       @default(0)
+  view_count       Int       @default(0)
+  uploaded_at      DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  course           Course?   @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  uploader         User?     @relation("UploadedPapers", fields: [uploaded_by], references: [id], onDelete: SetNull)
+
+  @@index([status, department, semester, year(sort: Desc)], map: "idx_papers_dept_sem_year")
+  @@index([status, course_id, year(sort: Desc)], map: "idx_papers_status_course")
+  @@index([status, paper_type, year(sort: Desc)], map: "idx_papers_type_year")
+  @@index([status, year(sort: Desc), uploaded_at(sort: Desc)], map: "idx_papers_recent")
+  @@index([public_link_id], map: "idx_papers_public_link")
+  @@map("papers")
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  actor_id    Int?
+  action      String
+  entity_type String
+  entity_id   String?
+  metadata    Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  actor       User?    @relation("ActorAuditLogs", fields: [actor_id], references: [id], onDelete: SetNull)
+
+  @@index([created_at(sort: Desc)], map: "idx_audit_logs_created_at")
+  @@index([actor_id, created_at(sort: Desc)], map: "idx_audit_logs_actor")
+  @@map("audit_logs")
+}

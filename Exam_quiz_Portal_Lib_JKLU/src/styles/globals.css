@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --editorial-bg: #FAF9F6;
+  --editorial-surface: #FFFFFF;
+  --editorial-ink: #0A0A0C;
+  --editorial-muted: #5C5B57;
+  --editorial-border: #E5E2DC;
+  --editorial-vermilion: #E04F33;
+  --editorial-indigo: #4F46E5;
+}
+
+.dark {
+  --editorial-bg: #0A0A0C;
+  --editorial-surface: #121216;
+  --editorial-ink: #F5F4F0;
+  --editorial-muted: #94938E;
+  --editorial-border: #232329;
+  --editorial-vermilion: #F26346;
+  --editorial-indigo: #6366F1;
+}
+
+@layer base {
+  html,
+  body {
+    @apply scroll-smooth antialiased overflow-x-hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--editorial-bg);
+    color: var(--editorial-ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .font-serif-editorial {
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  .font-mono-tabular {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .editorial-grid-bg {
+    background-color: var(--editorial-bg);
+    background-image: radial-gradient(var(--editorial-border) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  .editorial-card {
+    background-color: var(--editorial-surface);
+    border: 1px solid var(--editorial-border);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .editorial-card:hover {
+    border-color: var(--editorial-ink);
+  }
+
+  .btn-primary {
+    @apply bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] font-medium py-2.5 px-5 rounded-md transition-all duration-200 hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply border border-[#E5E2DC] dark:border-[#232329] bg-white dark:bg-[#121216] text-[#0A0A0C] dark:text-[#F5F4F0] font-medium py-2.5 px-5 rounded-md transition-all duration-200 hover:border-[#0A0A0C] dark:hover:border-[#F5F4F0];
+  }
+
+  .input-field {
+    @apply w-full px-3.5 py-2.5 border border-[#E5E2DC] dark:border-[#232329] rounded-md bg-white dark:bg-[#121216] text-[#0A0A0C] dark:text-[#F5F4F0] focus:outline-none focus:border-[#4F46E5] transition-colors;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

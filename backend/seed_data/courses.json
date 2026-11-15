@@ -1,0 +1,1002 @@
+[
+  {
+    "id": 1,
+    "code": "BS1102",
+    "name": "Human Resource Management",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:30:43.121Z",
+    "updated_at": "2025-11-30T01:30:43.121Z"
+  },
+  {
+    "id": 2,
+    "code": "CC1101",
+    "name": "Fundamentals Of Communication",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:30:48.815Z",
+    "updated_at": "2025-11-30T01:30:48.815Z"
+  },
+  {
+    "id": 3,
+    "code": "ED1104",
+    "name": "Sustaining And Growing Start Upsi",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:30:57.809Z",
+    "updated_at": "2025-11-30T01:30:57.809Z"
+  },
+  {
+    "id": 4,
+    "code": "ED1109",
+    "name": "Introduction To Entrepreneurship",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:03.488Z",
+    "updated_at": "2025-11-30T01:31:03.488Z"
+  },
+  {
+    "id": 5,
+    "code": "ED1110",
+    "name": "Creativity And Innovation",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:11.747Z",
+    "updated_at": "2025-11-30T01:31:11.747Z"
+  },
+  {
+    "id": 6,
+    "code": "EP1101",
+    "name": "Economics I",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:20.566Z",
+    "updated_at": "2025-11-30T01:31:20.566Z"
+  },
+  {
+    "id": 7,
+    "code": "FA1101",
+    "name": "Accounting For Business",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:25.352Z",
+    "updated_at": "2025-11-30T01:31:25.352Z"
+  },
+  {
+    "id": 8,
+    "code": "FA1102",
+    "name": "Management Accounting",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:31.816Z",
+    "updated_at": "2025-11-30T01:31:31.816Z"
+  },
+  {
+    "id": 9,
+    "code": "FA1105",
+    "name": "Indian Financial System",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:38.050Z",
+    "updated_at": "2025-11-30T01:31:38.050Z"
+  },
+  {
+    "id": 10,
+    "code": "FA1109",
+    "name": "Wealth Management & Investments",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:42.109Z",
+    "updated_at": "2025-11-30T01:31:42.109Z"
+  },
+  {
+    "id": 11,
+    "code": "FA1110",
+    "name": "Direct Taxation",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:45.954Z",
+    "updated_at": "2025-11-30T01:31:45.954Z"
+  },
+  {
+    "id": 12,
+    "code": "FA1111",
+    "name": "Banking Operations &Risk Management",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:50.434Z",
+    "updated_at": "2025-11-30T01:31:50.434Z"
+  },
+  {
+    "id": 13,
+    "code": "FA1129",
+    "name": "Banking Securities And Collection Operations",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:31:54.775Z",
+    "updated_at": "2025-11-30T01:31:54.775Z"
+  },
+  {
+    "id": 14,
+    "code": "FA1131",
+    "name": "Contemporary Banking Payments And Insurance",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:32:00.389Z",
+    "updated_at": "2025-11-30T01:32:00.389Z"
+  },
+  {
+    "id": 15,
+    "code": "ID1121",
+    "name": "Intelligent Automation",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:32:04.885Z",
+    "updated_at": "2025-11-30T01:32:04.885Z"
+  },
+  {
+    "id": 16,
+    "code": "LD1101",
+    "name": "Understanding And Leading Self",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:32:09.211Z",
+    "updated_at": "2025-11-30T01:32:09.211Z"
+  },
+  {
+    "id": 17,
+    "code": "LS1106",
+    "name": "Foundations Of Business Management",
+    "description": "Auto-created from OCR processing on 2025-11-30",
+    "created_at": "2025-11-30T01:32:13.094Z",
+    "updated_at": "2025-11-30T01:32:13.094Z"
+  },
+  {
+    "id": 18,
+    "code": "LS1107",
+    "name": "Environmental Studies",
+    "description": null,
+    "created_at": "2025-11-30T01:57:28.960Z",
+    "updated_at": "2025-11-30T01:57:28.960Z"
+  },
+  {
+    "id": 19,
+    "code": "MA1102",
+    "name": "Advertising & Sales Management",
+    "description": null,
+    "created_at": "2025-11-30T01:57:35.521Z",
+    "updated_at": "2025-11-30T01:57:35.521Z"
+  },
+  {
+    "id": 20,
+    "code": "MA1103",
+    "name": "Consumer Behavior",
+    "description": null,
+    "created_at": "2025-11-30T01:57:42.052Z",
+    "updated_at": "2025-11-30T01:57:42.052Z"
+  },
+  {
+    "id": 21,
+    "code": "MA1105",
+    "name": "Consumer Behaviour & Brand Management In BFSI",
+    "description": null,
+    "created_at": "2025-11-30T01:57:48.485Z",
+    "updated_at": "2025-11-30T01:57:48.485Z"
+  },
+  {
+    "id": 22,
+    "code": "MA1128",
+    "name": "Sales & Distribution Management",
+    "description": null,
+    "created_at": "2025-11-30T01:57:54.772Z",
+    "updated_at": "2025-11-30T01:57:54.772Z"
+  },
+  {
+    "id": 23,
+    "code": "OP1101",
+    "name": "Operations Management (2)",
+    "description": null,
+    "created_at": "2025-11-30T01:58:02.104Z",
+    "updated_at": "2025-11-30T01:58:02.104Z"
+  },
+  {
+    "id": 24,
+    "code": "ST1102",
+    "name": "Business, Competitive, And Digital Strategies",
+    "description": null,
+    "created_at": "2025-11-30T01:58:12.691Z",
+    "updated_at": "2025-11-30T01:58:12.691Z"
+  },
+  {
+    "id": 25,
+    "code": "AS1110",
+    "name": "Differential EQuations",
+    "description": null,
+    "created_at": "2025-11-30T01:58:15.872Z",
+    "updated_at": "2025-11-30T01:58:15.872Z"
+  },
+  {
+    "id": 26,
+    "code": "AS1202",
+    "name": "Advanced Statistics",
+    "description": null,
+    "created_at": "2025-11-30T01:58:21.975Z",
+    "updated_at": "2025-11-30T01:58:21.975Z"
+  },
+  {
+    "id": 27,
+    "code": "AS1211",
+    "name": "Sustainable Electronic Waste Management",
+    "description": null,
+    "created_at": "2025-11-30T01:58:30.560Z",
+    "updated_at": "2025-11-30T01:58:30.560Z"
+  },
+  {
+    "id": 28,
+    "code": "CC1103",
+    "name": "Perspectives Of Contemporary Issues",
+    "description": null,
+    "created_at": "2025-11-30T01:58:33.930Z",
+    "updated_at": "2025-11-30T01:58:33.930Z"
+  },
+  {
+    "id": 29,
+    "code": "CC1105",
+    "name": "Understanding And Managing Conflict",
+    "description": null,
+    "created_at": "2025-11-30T01:58:42.040Z",
+    "updated_at": "2025-11-30T01:58:42.040Z"
+  },
+  {
+    "id": 30,
+    "code": "CC1106",
+    "name": "Critical Thinking For Decisions AT Workplace",
+    "description": null,
+    "created_at": "2025-11-30T01:58:48.897Z",
+    "updated_at": "2025-11-30T01:58:48.897Z"
+  },
+  {
+    "id": 31,
+    "code": "CE1206",
+    "name": "Disaster Management",
+    "description": null,
+    "created_at": "2025-11-30T01:58:55.186Z",
+    "updated_at": "2025-11-30T01:58:55.186Z"
+  },
+  {
+    "id": 32,
+    "code": "CS1102",
+    "name": "Data Structures",
+    "description": null,
+    "created_at": "2025-11-30T01:59:01.356Z",
+    "updated_at": "2025-11-30T01:59:01.356Z"
+  },
+  {
+    "id": 33,
+    "code": "CS1105",
+    "name": "Design And Analysis Of Algorithms",
+    "description": null,
+    "created_at": "2025-11-30T01:59:08.765Z",
+    "updated_at": "2025-11-30T01:59:08.765Z"
+  },
+  {
+    "id": 34,
+    "code": "CS1108",
+    "name": "Operating Systems",
+    "description": null,
+    "created_at": "2025-11-30T01:59:15.009Z",
+    "updated_at": "2025-11-30T01:59:15.009Z"
+  },
+  {
+    "id": 35,
+    "code": "CS1116",
+    "name": "Database Management And Applications",
+    "description": null,
+    "created_at": "2025-11-30T01:59:21.904Z",
+    "updated_at": "2025-11-30T01:59:21.904Z"
+  },
+  {
+    "id": 36,
+    "code": "CS1120",
+    "name": "Operating Systems And Linux Administration",
+    "description": null,
+    "created_at": "2025-11-30T01:59:28.458Z",
+    "updated_at": "2025-11-30T01:59:28.458Z"
+  },
+  {
+    "id": 37,
+    "code": "CS1131",
+    "name": "Data Structure And Algorithms",
+    "description": null,
+    "created_at": "2025-11-30T01:59:35.115Z",
+    "updated_at": "2025-11-30T01:59:35.115Z"
+  },
+  {
+    "id": 38,
+    "code": "CS1132",
+    "name": "C Programming And Data Structures",
+    "description": null,
+    "created_at": "2025-11-30T01:59:41.583Z",
+    "updated_at": "2025-11-30T01:59:41.583Z"
+  },
+  {
+    "id": 39,
+    "code": "CS1133",
+    "name": "Database Management Systems",
+    "description": null,
+    "created_at": "2025-11-30T01:59:48.135Z",
+    "updated_at": "2025-11-30T01:59:48.135Z"
+  },
+  {
+    "id": 40,
+    "code": "CS1134",
+    "name": "CS1117 Computer Organization And Architecture Computer Organization And Systems (A) (2)",
+    "description": null,
+    "created_at": "2025-11-30T01:59:55.036Z",
+    "updated_at": "2025-11-30T01:59:55.036Z"
+  },
+  {
+    "id": 41,
+    "code": "CS1139",
+    "name": "Programming I (A)",
+    "description": null,
+    "created_at": "2025-11-30T02:00:00.855Z",
+    "updated_at": "2025-11-30T02:00:00.855Z"
+  },
+  {
+    "id": 42,
+    "code": "CS1140",
+    "name": "Computer Networks",
+    "description": null,
+    "created_at": "2025-11-30T02:00:08.598Z",
+    "updated_at": "2025-11-30T02:00:08.598Z"
+  },
+  {
+    "id": 43,
+    "code": "CS1142",
+    "name": "Discrete Mathematics (A)",
+    "description": null,
+    "created_at": "2025-11-30T02:00:15.970Z",
+    "updated_at": "2025-11-30T02:00:15.970Z"
+  },
+  {
+    "id": 44,
+    "code": "CS1203",
+    "name": "Blockchain Technology And Applications",
+    "description": null,
+    "created_at": "2025-11-30T02:00:28.903Z",
+    "updated_at": "2025-11-30T02:00:28.903Z"
+  },
+  {
+    "id": 45,
+    "code": "CS1218",
+    "name": "Deep Learning",
+    "description": null,
+    "created_at": "2025-11-30T02:00:35.280Z",
+    "updated_at": "2025-11-30T02:00:35.280Z"
+  },
+  {
+    "id": 46,
+    "code": "CS1224",
+    "name": "Artificial Intelligence",
+    "description": null,
+    "created_at": "2025-11-30T02:00:40.910Z",
+    "updated_at": "2025-11-30T02:00:40.910Z"
+  },
+  {
+    "id": 47,
+    "code": "CS1233",
+    "name": "Introduction To Cyber Security(B)",
+    "description": null,
+    "created_at": "2025-11-30T02:00:47.286Z",
+    "updated_at": "2025-11-30T02:00:47.286Z"
+  },
+  {
+    "id": 48,
+    "code": "CS1236",
+    "name": "Advanced Data Structures",
+    "description": null,
+    "created_at": "2025-11-30T02:00:50.759Z",
+    "updated_at": "2025-11-30T02:00:50.759Z"
+  },
+  {
+    "id": 49,
+    "code": "CS1239",
+    "name": "Security Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:00:57.882Z",
+    "updated_at": "2025-11-30T02:00:57.882Z"
+  },
+  {
+    "id": 50,
+    "code": "EE1122",
+    "name": "Signals And Systems",
+    "description": null,
+    "created_at": "2025-11-30T02:01:04.376Z",
+    "updated_at": "2025-11-30T02:01:04.376Z"
+  },
+  {
+    "id": 51,
+    "code": "EE1222",
+    "name": "Introduction To Iot And Automation Projects EE1410 Iot Protocol And Applications",
+    "description": null,
+    "created_at": "2025-11-30T02:01:10.763Z",
+    "updated_at": "2025-11-30T02:01:10.763Z"
+  },
+  {
+    "id": 52,
+    "code": "EE1227",
+    "name": "Introduction To RUST Programming",
+    "description": null,
+    "created_at": "2025-11-30T02:01:17.233Z",
+    "updated_at": "2025-11-30T02:01:17.233Z"
+  },
+  {
+    "id": 53,
+    "code": "EE1228",
+    "name": "Iot Application",
+    "description": null,
+    "created_at": "2025-11-30T02:01:23.564Z",
+    "updated_at": "2025-11-30T02:01:23.564Z"
+  },
+  {
+    "id": 54,
+    "code": "EE1406",
+    "name": "Graph Theory And Filter Circuits",
+    "description": null,
+    "created_at": "2025-11-30T02:01:32.601Z",
+    "updated_at": "2025-11-30T02:01:32.601Z"
+  },
+  {
+    "id": 55,
+    "code": "EE1408",
+    "name": "Microprocessor And Microcontroller",
+    "description": null,
+    "created_at": "2025-11-30T02:01:39.570Z",
+    "updated_at": "2025-11-30T02:01:39.570Z"
+  },
+  {
+    "id": 56,
+    "code": "LS1108",
+    "name": "Essentials Of Business Management",
+    "description": null,
+    "created_at": "2025-11-30T02:01:45.909Z",
+    "updated_at": "2025-11-30T02:01:45.909Z"
+  },
+  {
+    "id": 57,
+    "code": "ME1105",
+    "name": "Strength Of Material & Analysis",
+    "description": null,
+    "created_at": "2025-11-30T02:01:52.124Z",
+    "updated_at": "2025-11-30T02:01:52.124Z"
+  },
+  {
+    "id": 58,
+    "code": "AS1106",
+    "name": "Statistical Computing",
+    "description": null,
+    "created_at": "2025-11-30T02:01:58.575Z",
+    "updated_at": "2025-11-30T02:01:58.575Z"
+  },
+  {
+    "id": 59,
+    "code": "CS1232",
+    "name": "Introduction To AR VR",
+    "description": null,
+    "created_at": "2025-11-30T02:02:06.095Z",
+    "updated_at": "2025-11-30T02:02:06.095Z"
+  },
+  {
+    "id": 60,
+    "code": "CS1234",
+    "name": "Applied Computer Vision",
+    "description": null,
+    "created_at": "2025-11-30T02:02:09.539Z",
+    "updated_at": "2025-11-30T02:02:09.539Z"
+  },
+  {
+    "id": 61,
+    "code": "CS1240",
+    "name": "Project Based Advanced Programming",
+    "description": null,
+    "created_at": "2025-11-30T02:02:17.632Z",
+    "updated_at": "2025-11-30T02:02:17.632Z"
+  },
+  {
+    "id": 62,
+    "code": "ED1102",
+    "name": "Idea To Business Model",
+    "description": null,
+    "created_at": "2025-11-30T02:02:24.122Z",
+    "updated_at": "2025-11-30T02:02:24.122Z"
+  },
+  {
+    "id": 63,
+    "code": "AS1108",
+    "name": "Applied Physics",
+    "description": null,
+    "created_at": "2025-11-30T02:02:30.555Z",
+    "updated_at": "2025-11-30T02:02:30.555Z"
+  },
+  {
+    "id": 64,
+    "code": "AS1109",
+    "name": "Calculus (A)",
+    "description": null,
+    "created_at": "2025-11-30T02:02:38.261Z",
+    "updated_at": "2025-11-30T02:02:38.261Z"
+  },
+  {
+    "id": 65,
+    "code": "AS1111",
+    "name": "AS1104 Mathematics I",
+    "description": null,
+    "created_at": "2025-11-30T02:02:48.920Z",
+    "updated_at": "2025-11-30T02:02:48.920Z"
+  },
+  {
+    "id": 66,
+    "code": "AS1117",
+    "name": "Probability And Statistics",
+    "description": null,
+    "created_at": "2025-11-30T02:02:52.343Z",
+    "updated_at": "2025-11-30T02:02:52.343Z"
+  },
+  {
+    "id": 67,
+    "code": "AS1209",
+    "name": "Matrix Computations",
+    "description": null,
+    "created_at": "2025-11-30T02:02:55.599Z",
+    "updated_at": "2025-11-30T02:02:55.599Z"
+  },
+  {
+    "id": 68,
+    "code": "AS1406",
+    "name": "Partial Differential Equation And Fourier Transform",
+    "description": null,
+    "created_at": "2025-11-30T02:03:02.825Z",
+    "updated_at": "2025-11-30T02:03:02.825Z"
+  },
+  {
+    "id": 69,
+    "code": "CS1241",
+    "name": "Ipv6",
+    "description": null,
+    "created_at": "2025-11-30T02:03:08.666Z",
+    "updated_at": "2025-11-30T02:03:08.666Z"
+  },
+  {
+    "id": 70,
+    "code": "EE1118",
+    "name": "Fundamentals Of Electrical And Electronics Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:03:11.999Z",
+    "updated_at": "2025-11-30T02:03:11.999Z"
+  },
+  {
+    "id": 71,
+    "code": "ES1114",
+    "name": "Environmental Studies",
+    "description": null,
+    "created_at": "2025-11-30T02:03:19.072Z",
+    "updated_at": "2025-11-30T02:03:19.072Z"
+  },
+  {
+    "id": 72,
+    "code": "ME1103",
+    "name": "Engineering Drawing (Backlog)",
+    "description": null,
+    "created_at": "2025-11-30T02:03:26.201Z",
+    "updated_at": "2025-11-30T02:03:26.201Z"
+  },
+  {
+    "id": 73,
+    "code": "FA1104",
+    "name": "; Taxation",
+    "description": null,
+    "created_at": "2025-11-30T02:03:55.631Z",
+    "updated_at": "2025-11-30T02:03:55.631Z"
+  },
+  {
+    "id": 74,
+    "code": "FA1108",
+    "name": "; Principles Of Financial Risk Management",
+    "description": null,
+    "created_at": "2025-11-30T02:04:02.999Z",
+    "updated_at": "2025-11-30T02:04:02.999Z"
+  },
+  {
+    "id": 75,
+    "code": "ID1104",
+    "name": "; Business Mathematics",
+    "description": null,
+    "created_at": "2025-11-30T02:04:22.254Z",
+    "updated_at": "2025-11-30T02:04:22.254Z"
+  },
+  {
+    "id": 76,
+    "code": "LS1102",
+    "name": "; Legal Aspects Of Business",
+    "description": null,
+    "created_at": "2025-11-30T02:04:39.089Z",
+    "updated_at": "2025-11-30T02:04:39.089Z"
+  },
+  {
+    "id": 77,
+    "code": "LS1103",
+    "name": "; Legal Aspects Of Banking And Fintech",
+    "description": null,
+    "created_at": "2025-11-30T02:04:46.526Z",
+    "updated_at": "2025-11-30T02:04:46.526Z"
+  },
+  {
+    "id": 78,
+    "code": "MA1101",
+    "name": "; Principles Of Marketing",
+    "description": null,
+    "created_at": "2025-11-30T02:05:05.175Z",
+    "updated_at": "2025-11-30T02:05:05.175Z"
+  },
+  {
+    "id": 79,
+    "code": "MA1106",
+    "name": "; Sales In Retail Banking & Insurance",
+    "description": null,
+    "created_at": "2025-11-30T02:05:22.921Z",
+    "updated_at": "2025-11-30T02:05:22.921Z"
+  },
+  {
+    "id": 80,
+    "code": "MA1127",
+    "name": "; Services Marketing",
+    "description": null,
+    "created_at": "2025-11-30T02:05:29.933Z",
+    "updated_at": "2025-11-30T02:05:29.933Z"
+  },
+  {
+    "id": 81,
+    "code": "AS1107",
+    "name": "Applied Chemistry",
+    "description": null,
+    "created_at": "2025-11-30T02:05:37.780Z",
+    "updated_at": "2025-11-30T02:05:37.780Z"
+  },
+  {
+    "id": 82,
+    "code": "AS1405",
+    "name": "Ordinary Differential Equations And Laplace Transforms",
+    "description": null,
+    "created_at": "2025-11-30T02:05:49.338Z",
+    "updated_at": "2025-11-30T02:05:49.338Z"
+  },
+  {
+    "id": 83,
+    "code": "AS2202",
+    "name": "Numerical And Scientific Computing",
+    "description": null,
+    "created_at": "2025-11-30T02:05:56.271Z",
+    "updated_at": "2025-11-30T02:05:56.271Z"
+  },
+  {
+    "id": 84,
+    "code": "CE1113",
+    "name": "Design Of Rc Structures",
+    "description": null,
+    "created_at": "2025-11-30T02:06:02.363Z",
+    "updated_at": "2025-11-30T02:06:02.363Z"
+  },
+  {
+    "id": 85,
+    "code": "CE1201",
+    "name": "Public Health Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:06:09.558Z",
+    "updated_at": "2025-11-30T02:06:09.558Z"
+  },
+  {
+    "id": 87,
+    "code": "ME1108",
+    "name": "Theory Of Machines",
+    "description": null,
+    "created_at": "2025-11-30T02:06:46.206Z",
+    "updated_at": "2025-11-30T02:06:46.206Z"
+  },
+  {
+    "id": 88,
+    "code": "ES1105",
+    "name": "Energy And Environmental Studies",
+    "description": null,
+    "created_at": "2025-11-30T02:06:53.391Z",
+    "updated_at": "2025-11-30T02:06:53.391Z"
+  },
+  {
+    "id": 89,
+    "code": "ME1408",
+    "name": "Applied Mechanics",
+    "description": null,
+    "created_at": "2025-11-30T02:07:00.003Z",
+    "updated_at": "2025-11-30T02:07:00.003Z"
+  },
+  {
+    "id": 90,
+    "code": "CSE1132",
+    "name": "C Programming And Data Structures",
+    "description": null,
+    "created_at": "2025-11-30T02:07:21.447Z",
+    "updated_at": "2025-11-30T02:07:21.447Z"
+  },
+  {
+    "id": 92,
+    "code": "EE1101",
+    "name": "Electronic Devices And Circuits",
+    "description": null,
+    "created_at": "2025-11-30T02:07:32.714Z",
+    "updated_at": "2025-11-30T02:07:32.714Z"
+  },
+  {
+    "id": 93,
+    "code": "EE1110",
+    "name": "Digital System Design",
+    "description": null,
+    "created_at": "2025-11-30T02:07:41.826Z",
+    "updated_at": "2025-11-30T02:07:41.826Z"
+  },
+  {
+    "id": 94,
+    "code": "ME1226",
+    "name": "Introduction To Robotics",
+    "description": null,
+    "created_at": "2025-11-30T02:07:59.164Z",
+    "updated_at": "2025-11-30T02:07:59.164Z"
+  },
+  {
+    "id": 95,
+    "code": "EE1404",
+    "name": "Introduction To Electrical And Electronics Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:08:08.532Z",
+    "updated_at": "2025-11-30T02:08:08.532Z"
+  },
+  {
+    "id": 96,
+    "code": "ME1221",
+    "name": "Energy Resources Economics And Environment",
+    "description": null,
+    "created_at": "2025-11-30T02:08:16.646Z",
+    "updated_at": "2025-11-30T02:08:16.646Z"
+  },
+  {
+    "id": 97,
+    "code": "ME1409",
+    "name": "Design And Documentation",
+    "description": null,
+    "created_at": "2025-11-30T02:08:26.208Z",
+    "updated_at": "2025-11-30T02:08:26.208Z"
+  },
+  {
+    "id": 98,
+    "code": "CE1213",
+    "name": "Hydrology And Water Resources Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:08:47.642Z",
+    "updated_at": "2025-11-30T02:08:47.642Z"
+  },
+  {
+    "id": 99,
+    "code": "CS1205",
+    "name": "Mobile Application Development",
+    "description": null,
+    "created_at": "2025-11-30T02:09:00.054Z",
+    "updated_at": "2025-11-30T02:09:00.054Z"
+  },
+  {
+    "id": 100,
+    "code": "CS1227",
+    "name": "Game Design And Development",
+    "description": null,
+    "created_at": "2025-11-30T02:09:06.997Z",
+    "updated_at": "2025-11-30T02:09:06.997Z"
+  },
+  {
+    "id": 101,
+    "code": "CSE1135",
+    "name": "Programming II (C)",
+    "description": null,
+    "created_at": "2025-11-30T02:09:13.679Z",
+    "updated_at": "2025-11-30T02:09:13.679Z"
+  },
+  {
+    "id": 102,
+    "code": "EE1224",
+    "name": "Digital Image Processing And Introduction",
+    "description": null,
+    "created_at": "2025-11-30T02:09:24.226Z",
+    "updated_at": "2025-11-30T02:09:24.226Z"
+  },
+  {
+    "id": 103,
+    "code": "CE1210",
+    "name": "Advanced Foundation Engineering",
+    "description": null,
+    "created_at": "2025-11-30T02:09:43.992Z",
+    "updated_at": "2025-11-30T02:09:43.992Z"
+  },
+  {
+    "id": 104,
+    "code": "ME1410",
+    "name": "Machine Design",
+    "description": null,
+    "created_at": "2025-11-30T02:09:51.009Z",
+    "updated_at": "2025-11-30T02:09:51.009Z"
+  },
+  {
+    "id": 105,
+    "code": "AS1201",
+    "name": "Operations Research",
+    "description": null,
+    "created_at": "2025-11-30T02:09:58.736Z",
+    "updated_at": "2025-11-30T02:09:58.736Z"
+  },
+  {
+    "id": 106,
+    "code": "CS1225",
+    "name": "Multi Dimensional And Nosql",
+    "description": null,
+    "created_at": "2025-11-30T02:10:13.170Z",
+    "updated_at": "2025-11-30T02:10:13.170Z"
+  },
+  {
+    "id": 107,
+    "code": "CS1226",
+    "name": "Foundation Of Blockchain Technology",
+    "description": null,
+    "created_at": "2025-11-30T02:10:21.076Z",
+    "updated_at": "2025-11-30T02:10:21.076Z"
+  },
+  {
+    "id": 108,
+    "code": "CS1228",
+    "name": "Computer Vision",
+    "description": null,
+    "created_at": "2025-11-30T02:10:28.496Z",
+    "updated_at": "2025-11-30T02:10:28.496Z"
+  },
+  {
+    "id": 110,
+    "code": "FA1127",
+    "name": "Fundamentals Of Investing",
+    "description": null,
+    "created_at": "2025-11-30T02:10:44.407Z",
+    "updated_at": "2025-11-30T02:10:44.407Z"
+  },
+  {
+    "id": 111,
+    "code": "ME1223",
+    "name": "Product Design And Manufacturing",
+    "description": null,
+    "created_at": "2025-11-30T02:10:53.078Z",
+    "updated_at": "2025-11-30T02:10:53.078Z"
+  },
+  {
+    "id": 112,
+    "code": "ME1225",
+    "name": "Industrial Waste Management",
+    "description": null,
+    "created_at": "2025-11-30T02:10:59.364Z",
+    "updated_at": "2025-11-30T02:10:59.364Z"
+  },
+  {
+    "id": 113,
+    "code": "ME1227",
+    "name": "Fundamental of Sustainable Development",
+    "description": null,
+    "created_at": "2025-11-30T02:11:09.284Z",
+    "updated_at": "2025-11-30T02:11:09.284Z"
+  },
+  {
+    "id": 114,
+    "code": "ME2101",
+    "name": "Industrial Safety Management",
+    "description": null,
+    "created_at": "2025-11-30T02:11:15.962Z",
+    "updated_at": "2025-11-30T02:11:15.962Z"
+  },
+  {
+    "id": 115,
+    "code": "AS1104",
+    "name": "Mathematics",
+    "description": null,
+    "created_at": "2025-11-30T02:11:23.010Z",
+    "updated_at": "2025-11-30T02:11:23.010Z"
+  },
+  {
+    "id": 116,
+    "code": "CS1115",
+    "name": "(Backlog) Programming I (Python)",
+    "description": null,
+    "created_at": "2025-11-30T02:11:35.278Z",
+    "updated_at": "2025-11-30T02:11:35.278Z"
+  },
+  {
+    "id": 117,
+    "code": "CS1117",
+    "name": "Computer Organisation And Systems",
+    "description": null,
+    "created_at": "2025-11-30T02:11:41.720Z",
+    "updated_at": "2025-11-30T02:11:41.720Z"
+  },
+  {
+    "id": 118,
+    "code": "CS1136",
+    "name": "Fundamentals Of Information Technology",
+    "description": null,
+    "created_at": "2025-11-30T02:11:48.849Z",
+    "updated_at": "2025-11-30T02:11:48.849Z"
+  },
+  {
+    "id": 119,
+    "code": "CS1137",
+    "name": "Design And Modelling",
+    "description": null,
+    "created_at": "2025-11-30T02:11:57.007Z",
+    "updated_at": "2025-11-30T02:11:57.007Z"
+  },
+  {
+    "id": 120,
+    "code": "CS1417",
+    "name": "Database",
+    "description": null,
+    "created_at": "2025-11-30T02:12:12.367Z",
+    "updated_at": "2025-11-30T02:12:12.367Z"
+  },
+  {
+    "id": 121,
+    "code": "CS1122",
+    "name": "C++Programming And Data Structures",
+    "description": null,
+    "created_at": "2025-11-30T02:12:28.761Z",
+    "updated_at": "2025-11-30T02:12:28.761Z"
+  },
+  {
+    "id": 122,
+    "code": "CS1135",
+    "name": "Programming II",
+    "description": null,
+    "created_at": "2025-11-30T02:12:40.910Z",
+    "updated_at": "2025-11-30T02:12:40.910Z"
+  },
+  {
+    "id": 123,
+    "code": "EE1119",
+    "name": "Arduino",
+    "description": null,
+    "created_at": "2025-11-30T02:12:47.961Z",
+    "updated_at": "2025-11-30T02:12:47.961Z"
+  },
+  {
+    "id": 124,
+    "code": "IL1104",
+    "name": "Accounting",
+    "description": null,
+    "created_at": "2025-11-30T02:12:55.404Z",
+    "updated_at": "2025-11-30T02:12:55.404Z"
+  },
+  {
+    "id": 125,
+    "code": "CS1138",
+    "name": "Machine Learing",
+    "description": null,
+    "created_at": "2025-11-30T02:13:02.235Z",
+    "updated_at": "2025-11-30T02:13:02.235Z"
+  },
+  {
+    "id": 126,
+    "code": "CS1418",
+    "name": "Operating",
+    "description": null,
+    "created_at": "2025-11-30T02:13:08.922Z",
+    "updated_at": "2025-11-30T02:13:08.922Z"
+  },
+  {
+    "id": 128,
+    "code": "CODING_DAA",
+    "name": "Coding Hour DAA",
+    "description": " Design and Analysis of Algorithms challenges",
+    "created_at": "2026-01-14T21:58:39.728Z",
+    "updated_at": "2026-01-14T21:58:39.728Z"
+  },
+  {
+    "id": 127,
+    "code": "CODING_C",
+    "name": "Coding Hour - C",
+    "description": "Weekly C coding challenges",
+    "created_at": "2026-01-14T21:58:38.247Z",
+    "updated_at": "2026-01-14T21:58:38.247Z"
+  }
+]

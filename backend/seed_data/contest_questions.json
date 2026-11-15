@@ -1,0 +1,284 @@
+[
+  {
+    "id": 11,
+    "contest_id": 14,
+    "order": 1,
+    "title": "Travel Between Cities",
+    "question": "You are planning a road trip across a country, and you want to know the shortest   route between two cities. The country is connected by a network of roads, each linking two cities directly. You want to travel from City A to City B using the fewest number of roads. You are given a list of cities and roads, where each road connects two cities, and you need to figure out the minimum number of roads you need to take to get from City A to City B. If there is no way to reach City B from City A, you should return -1.\n\nInput Format\nThe first line of input contains two integers, N and M, representing the number of cities and the number of roads, respectively.\nThe next M lines each contain two integers, u and v, representing a bidirectional road between cities u and v.\nThe last line contains two integers, s and t, representing the source city and the destination city.\nConstraints\n1 ≤ N ≤ 10^5\n1 ≤ M ≤ 10^5\n1 ≤ u, v ≤ N\n1 ≤ s,t ≤ 10^9\nOutput Format\nPrint a single line:\nThe length of the shortest path between s and t found using BFS. If no path exists, print -1.\nSample Input 0\n5 6\n1 2\n1 3\n2 3\n2 4\n3 5\n4 5\n1 5\n\nSample Output 0\n2\n\nSample Input 1\n3 2\n1 2\n2 3\n1 3\n\nSample Output 1\n2",
+    "code_snippets": {
+      "python": "from collections import deque\n\n# Read input\nn, m = map(int, input().split())\n\n# Create graph\ngraph = [[] for x in range(n + 1)]\n\n# Read roads\nfor _ in range(m):\n    u, v = map(int, input().split())\n    graph[u].append(v)\n    graph[v].append(u)\n\ns, t = map(int, input().split())\n\n# BFS\nqueue = deque()\nqueue.append(s)\n\ndistance = [-1] * (n + 1)   # -1 means not visited\ndistance[s] = 0\n\nwhile queue:\n    city = queue.popleft()\n\n    # If we reached destination\n    if city == t:\n        print(distance[city])\n        exit()\n\n    # Visit neighbors\n    for next_city in graph[city]:\n        if distance[next_city] == -1:\n            distance[next_city] = distance[city] + 1\n            queue.append(next_city)\n\n# If destination never reached\nprint(-1)\n",
+      "c": "#include <stdio.h>\n\n// graph[x] will store all cities connected to city x\nint graph[MAX][10];     \n\n// size[x] tells how many neighbors city x has\nint size[MAX];          \n\n// distance[x] stores how many roads needed to reach city x\n// -1 means city not visited yet\nint distance[MAX];      \n\n// Queue for BFS\nint queue[MAX];\nint front = 0, rear = 0;\n\n// Add a city to the queue\nvoid push(int city) {\n    queue[rear++] = city;\n}\n\n// Remove a city from the queue\nint pop() {\n    return queue[front++];\n}\n\nint main() {\n\n    int n, m;\n    scanf(\"%d %d\", &n, &m);\n\n    // Read all roads\n    for(int i = 0; i < m; i++) {\n        int u, v;\n        scanf(\"%d %d\", &u, &v);\n\n        // Add both directions because the road is bidirectional\n        graph[u][size[u]++] = v;\n        graph[v][size[v]++] = u;\n    }\n\n    int s, t;\n    scanf(\"%d %d\", &s, &t);\n\n    // Initialize all distances as -1 (not visited)\n    for(int i = 1; i <= n; i++) {\n        distance[i] = -1;\n    }\n\n    // Start BFS from source city\n    push(s);\n    distance[s] = 0;\n\n    // BFS loop\n    while(front < rear) {\n\n        int city = pop();\n\n        // If we reached destination, print distance\n        if(city == t) {\n            printf(\"%d\\n\", distance[city]);\n            return 0;\n        }\n\n        // Visit all neighboring cities\n        for(int i = 0; i < size[city]; i++) {\n            int next_city = graph[city][i];\n\n            // If not visited\n            if(distance[next_city] == -1) {\n                distance[next_city] = distance[city] + 1;\n                push(next_city);\n            }\n        }\n    }\n\n    // If destination was never reached\n    printf(\"-1\\n\");\n    return 0;\n}",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n\n    int n, m;\n    cin >> n >> m;\n\n    // graph[x] will store all cities connected to x\n    vector<vector<int>> graph(n + 1);\n\n    // Read all roads\n    for(int i = 0; i < m; i++) {\n        int u, v;\n        cin >> u >> v;\n\n        // Add both directions\n        graph[u].push_back(v);\n        graph[v].push_back(u);\n    }\n\n    int s, t;\n    cin >> s >> t;\n\n    // distance[x] = number of roads from s to x\n    // -1 means not visited\n    vector<int> distance(n + 1, -1);\n\n    queue<int> q;\n\n    // Start BFS from source\n    q.push(s);\n    distance[s] = 0;\n\n    while(!q.empty()) {\n\n        int city = q.front();\n        q.pop();\n\n        // If destination found\n        if(city == t) {\n            cout << distance[city];\n            return 0;\n        }\n\n        // Visit neighbors\n        for(int next_city : graph[city]) {\n            if(distance[next_city] == -1) {\n                distance[next_city] = distance[city] + 1;\n                q.push(next_city);\n            }\n        }\n    }\n\n    // If unreachable\n    cout << -1;\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n\n        Scanner sc = new Scanner(System.in);\n\n        int n = sc.nextInt();\n        int m = sc.nextInt();\n\n        // graph.get(x) gives list of cities connected to x\n        ArrayList<ArrayList<Integer>> graph = new ArrayList<>();\n\n        for(int i = 0; i <= n; i++) {\n            graph.add(new ArrayList<>());\n        }\n\n        // Read all roads\n        for(int i = 0; i < m; i++) {\n            int u = sc.nextInt();\n            int v = sc.nextInt();\n\n            // Add both directions\n            graph.get(u).add(v);\n            graph.get(v).add(u);\n        }\n\n        int s = sc.nextInt();\n        int t = sc.nextInt();\n\n        // distance[x] = number of roads from s to x\n        // -1 means not visited\n        int[] distance = new int[n + 1];\n        Arrays.fill(distance, -1);\n\n        Queue<Integer> queue = new LinkedList<>();\n\n        // Start BFS\n        queue.add(s);\n        distance[s] = 0;\n\n        while(!queue.isEmpty()) {\n\n            int city = queue.poll();\n\n            // If destination found\n            if(city == t) {\n                System.out.println(distance[city]);\n                return;\n            }\n\n            // Visit neighbors\n            for(int next_city : graph.get(city)) {\n                if(distance[next_city] == -1) {\n                    distance[next_city] = distance[city] + 1;\n                    queue.add(next_city);\n                }\n            }\n        }\n        // If unreachable\n        System.out.println(-1);\n    }\n}\n"
+    },
+    "explanation": "We had to find the minimum number of roads from City A to City B which implies finding the shortest path in terms of number of edges. Cities → Nodes (vertices), Roads → Edges and Want minimum number of roads → Shortest path. \ni) Build the graph: Store roads using an adjacency list.\nii) Start BFS from source city s: Use a queue.\niii) Track distance \nKeep an array: distance[x] = how many roads from s to x\niv) Explore level by level\nBFS visits:\nfirst all cities 1 road away\n\n\nthen all cities 2 roads away\n\n\nthen 3 roads away...\n\n\nSo the first time we reach ‘t’, that path is the shortest.\n",
+    "media_link": "",
+    "created_at": "2026-01-16T12:29:22.794Z"
+  },
+  {
+    "id": 12,
+    "contest_id": 14,
+    "order": 2,
+    "title": "Identify all leaves of a BST",
+    "question": "Make a binary search tree, your task is to identify and print all the leaf nodes of the graph in left-to-right order.\nInput Format\nValue at each node\nConstraints\nNumber of Nodes: 1 ≤ n ≤ 10^5\nOutput Format\nPrint the value at leaf nodes\n\nSample Input 0\n7\n5 3 8 1 4 7 10\n\nSample Output 0\n1 4 7 10\n\n\nExplanation 0\n   5\n   / \\\n  3   8\n / \\  / \\\n1   4 7  10\nSo, the leaf nodes are: 1, 4, 7, and 10.\nSample Input 1\n4\n5 3 2 1\n\nSample Output 1\n1",
+    "code_snippets": {
+      "python": "# Simple BST using dictionary nodes\n\ndef insert(root, val):\n    if root is None:\n        return {\"val\": val, \"left\": None, \"right\": None}\n\n    if val < root[\"val\"]:\n        root[\"left\"] = insert(root[\"left\"], val)\n    else:\n        root[\"right\"] = insert(root[\"right\"], val)\n\n    return root\n\n\ndef print_leaves(root):\n    if root is None:\n        return\n\n    # go left\n    print_leaves(root[\"left\"])\n\n    # check leaf\n    if root[\"left\"] is None and root[\"right\"] is None:\n        print(root[\"val\"], end=\" \")\n\n    # go right\n    print_leaves(root[\"right\"])\n\n\n# Input\nn = int(input())\narr = list(map(int, input().split()))\n\nroot = None\nfor x in arr:\n    root = insert(root, x)\n\nprint_leaves(root)\n",
+      "cpp": "#include <iostream>\nusing namespace std;\n\nstruct Node {\n    int val;\n    Node* left;\n    Node* right;\n};\n\nNode* newNode(int val) {\n    Node* node = new Node();\n    node->val = val;\n    node->left = node->right = NULL;\n    return node;\n}\n\nNode* insert(Node* root, int val) {\n    if (root == NULL)\n        return newNode(val);\n\n    if (val < root->val)\n        root->left = insert(root->left, val);\n    else\n        root->right = insert(root->right, val);\n\n    return root;\n}\n\nvoid printLeaves(Node* root) {\n    if (root == NULL) return;\n\n    printLeaves(root->left);\n\n    if (root->left == NULL && root->right == NULL)\n        cout << root->val << \" \";\n\n    printLeaves(root->right);\n}\n\nint main() {\n    int n;\n    cin >> n;\n\n    Node* root = NULL;\n\n    for (int i = 0; i < n; i++) {\n        int x;\n        cin >> x;\n        root = insert(root, x);\n    }\n\n    printLeaves(root);\n    return 0;\n}\n",
+      "java": "import java.util.*;\n\nclass Node {\n    int val;\n    Node left, right;\n\n    Node(int v) {\n        val = v;\n        left = right = null;\n    }\n}\n\npublic class Main {\n\n    static Node insert(Node root, int val) {\n        if (root == null)\n            return new Node(val);\n\n        if (val < root.val)\n            root.left = insert(root.left, val);\n        else\n            root.right = insert(root.right, val);\n\n        return root;\n    }\n\n    static void printLeaves(Node root) {\n        if (root == null) return;\n\n        printLeaves(root.left);\n\n        if (root.left == null && root.right == null)\n            System.out.print(root.val + \" \");\n\n        printLeaves(root.right);\n    }\n\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n\n        int n = sc.nextInt();\n        Node root = null;\n\n        for (int i = 0; i < n; i++) {\n            int x = sc.nextInt();\n            root = insert(root, x);\n        }\n\n        printLeaves(root);\n    }\n}\n",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nstruct Node {\n    int val;\n    struct Node *left, *right;\n};\n\nstruct Node* newNode(int val) {\n    struct Node* node = (struct Node*)malloc(sizeof(struct Node));\n    node->val = val;\n    node->left = node->right = NULL;\n    return node;\n}\n\nstruct Node* insert(struct Node* root, int val) {\n    if (root == NULL)\n        return newNode(val);\n\n    if (val < root->val)\n        root->left = insert(root->left, val);\n    else\n        root->right = insert(root->right, val);\n\n    return root;\n}\n\nvoid printLeaves(struct Node* root) {\n    if (root == NULL) return;\n\n    printLeaves(root->left);\n\n    if (root->left == NULL && root->right == NULL)\n        printf(\"%d \", root->val);\n\n    printLeaves(root->right);\n}\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n\n    struct Node* root = NULL;\n\n    for (int i = 0; i < n; i++) {\n        int x;\n        scanf(\"%d\", &x);\n        root = insert(root, x);\n    }\n\n    printLeaves(root);\n    return 0;\n}\n"
+    },
+    "explanation": "Create the Binary Search Tree (BST)\n We insert the given numbers one by one to form the tree.\n\nGo through the tree from left to right\n We use inorder traversal (left → root → right) so we visit nodes in left-to-right order.\n\nPrint only leaf nodes\n A leaf node is a node that has no left child and no right child.\n",
+    "media_link": "",
+    "created_at": "2026-01-16T12:29:22.794Z"
+  },
+  {
+    "id": 13,
+    "contest_id": 15,
+    "order": 1,
+    "title": "K-Distance Good Elements",
+    "question": "You are given an array of integers nums and an integer k. An element nums[i] is considered good if it is strictly greater than:\nthe element at index i − k, if this index exists, and\nthe element at index i + k, if this index exists.\nIf neither i − k nor i + k exists within the array bounds, then nums[i] is still considered good. \nYour task is to find the sum of all good elements in the array.\n\nInput Format\nThe first line contains an integer n, denoting the number of elements in the array.\nThe second line contains n space-separated integers representing the array nums.\nThe third line contains an integer k.\nConstraints\n1≤n≤105\n−109≤nums[i]≤109\n0≤k≤n\nOutput Format\nPrint a single integer representing the sum of all good elements in the array.\n\nSample Input 0\n6\n1 3 2 1 5 4\n2\n\nSample Output 0\n12\n\nExplanation 0\nThe good numbers are nums[1] = 3, nums[4] = 5, and nums[5] = 4 because they are strictly greater than the numbers at indices i - k and i + k.\nSample Input 1\n2\n2 1\n1\n\nSample Output 1\n2",
+    "code_snippets": {
+      "python": "n = int(input().strip())\nnums = list(map(int, input().split()))\nk = int(input().strip())\n\ntotal = 0\n\nfor i in range(n):\n    \tok = True\n\n    \tif i - k >= 0:\n        \t\tif nums[i] <= nums[i - k]:\n            \t\tok = False\n\n    \tif i + k < n:\n        \t\tif nums[i] <= nums[i + k]:\n            \t\tok = False\n\n    \tif ok:\n        \t\ttotal += nums[i]\n\nprint(total)",
+      "c": "#include <stdio.h>\n\nint main() {\n    \tint n, k;\n    \tscanf(\"%d\", &n);\n   \t long long nums[n];\n\n    \tfor (int i = 0; i < n; i++)\n        \t\tscanf(\"%lld\", &nums[i]);\n\n    \tscanf(\"%d\", &k);\n\n   \tlong long sum = 0;\n\n    \tfor (int i = 0; i < n; i++) {\n       \t\t int ok = 1;\n\n        \tif (i - k >= 0 && nums[i] <= nums[i - k])\n           \t ok = 0;\n       \t if (i + k < n && nums[i] <= nums[i + k])\n           \t ok = 0;\n\t\n       \t if (ok)\n           \t sum += nums[i];\n   \t }\n\n  \t  printf(\"%lld\", sum);\n   \t return 0;\n}",
+      "cpp": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    \t\tios::sync_with_stdio(false);\n    \t\tcin.tie(NULL);\n\n   \t int n, k;\n    \tcin >> n;\n    \tvector<long long> nums(n);\n\t\n    \tfor (int i = 0; i < n; i++) cin >> nums[i];\n    \tcin >> k;\n\n    \tlong long sum = 0;\n\n    \tfor (int i = 0; i < n; i++) {\n        \t\tbool ok = true;\n\n        \t\tif (i - k >= 0 && nums[i] <= nums[i - k]) ok = false;\n        \t\tif (i + k < n && nums[i] <= nums[i + k]) ok = false;\n\n        \t\tif (ok) sum += nums[i];\n    \t}\n\n    \tcout << sum;\n   \t return 0;\n}",
+      "java": "import java.util.*;\npublic class Main {\n    \t\tpublic static void main(String[] args) {\n        \t\tScanner sc = new Scanner(System.in);\n        \tint n = sc.nextInt();\n        \tlong[] nums = new long[n];\n        \tfor (int i = 0; i < n; i++)\n           \t nums[i] = sc.nextLong();\n\n        \tint k = sc.nextInt();\n        \tlong sum = 0;\n\n        \tfor (int i = 0; i < n; i++) {\n            \tboolean ok = true;\n            \tif (i - k >= 0 && nums[i] <= nums[i - k])\n                \t\tok = false;\n            \tif (i + k < n && nums[i] <= nums[i + k])\n                \t\tok = false;\n            \tif (ok) sum += nums[i];\n        \t}\n        \tSystem.out.println(sum);\n    }\n}"
+    },
+    "explanation": "We had to find the sum of all good elements in the array.\n An element is considered good if it is strictly greater than the elements k positions away from it (if they exist).\nApproach:\n i) Traverse the array index by index.\n ii) For each index i, compare nums[i] with:\nnums[i − k] if i − k is within bounds\n\nnums[i + k] if i + k is within bounds\n iii) If nums[i] is smaller than or equal to either of them, it is not good.\n iv) If both checks pass (or the indices do not exist), add nums[i] to the sum.\n\nThis way, each element is checked independently and the total sum of good elements is obtained efficiently.",
+    "media_link": "",
+    "created_at": "2026-01-16T12:41:18.475Z"
+  },
+  {
+    "id": 14,
+    "contest_id": 15,
+    "order": 2,
+    "title": "Elements Appearing Twice",
+    "question": "You are given an integer array nums of length n, where each element lies in the range 1 to n (inclusive). Each integer in the array appears at most twice. Your task is to identify and return all the integers that appear exactly twice in the array. The solution must run in O(n) time and use only constant extra space, excluding the space required to store the output.\n\nInput Format\nThe first line contains an integer n, the number of elements in the array.\nThe second line contains n space-separated integers representing the array nums.\nConstraints\n1≤n≤10^5\n1≤nums[i]≤n\nEach integer appears at most twice\nOutput Format\nPrint all integers that appear exactly twice in the array.\nIf no such element exists, print an empty array.\nSample Input 0\n8\n4 3 2 7 8 2 3 1\n\nSample Output 0\n2 3\n\nSample Input 1\n5\n1 2 3 4 5\n\nSample Output 1\n[ ]",
+    "code_snippets": {
+      "python": "def findDuplicates(nums):\n    \tresult = []\n\n    \tfor i in range(len(nums)):\n        \t# Convert value to index\n        \t\tidx = abs(nums[i]) - 1\n\n        # If already negative → duplicate found\n       \t if nums[idx] < 0:\n            \tresult.append(abs(nums[i]))\n        \telse:\n            # Mark as visited\n           \t nums[idx] = -nums[idx]\n\n   \t return result\n\n\n# Input\nn = int(input())\nnums = list(map(int, input().split()))\n\nans = findDuplicates(nums)\n\nif len(ans) == 0:\n    \t\tprint(\"[ ]\")\nelse:\n    \t\tprint(*ans)",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\nvoid findDuplicates(int nums[], int n) {\n    int found = 0;\n\n    for(int i = 0; i < n; i++) {\n        int idx = abs(nums[i]) - 1;\n\n        if(nums[idx] < 0) {\n            printf(\"%d \", abs(nums[i]));\n            found = 1;\n        } else {\n            nums[idx] = -nums[idx];\n        }\n    }\n\n    if(!found)\n        printf(\"[ ]\");\n}\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n\n    int nums[n];\n    for(int i = 0; i < n; i++)\n        scanf(\"%d\", &nums[i]);\n\n    findDuplicates(nums, n);\n\n    return 0;\n}",
+      "cpp": "#include <iostream>\n#include <vector>\n#include <cmath>\nusing namespace std;\n\nint main() {\n    int n;\n    cin >> n;\n\n    vector<int> nums(n);\n    for(int i = 0; i < n; i++)\n        cin >> nums[i];\n\n    bool found = false;\n\n    for(int i = 0; i < n; i++) {\n        int idx = abs(nums[i]) - 1;\n\n        if(nums[idx] < 0) {\n            cout << abs(nums[i]) << \" \";\n            found = true;\n        } else {\n            nums[idx] = -nums[idx];\n        }\n    }\n\n    if(!found)\n        cout << \"[ ]\";\n\n    return 0;\n}",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n\n        int n = sc.nextInt();\n        int[] nums = new int[n];\n\n        for(int i = 0; i < n; i++)\n            nums[i] = sc.nextInt();\n\n        boolean found = false;\n\n        for(int i = 0; i < n; i++) {\n            int idx = Math.abs(nums[i]) - 1;\n\n            if(nums[idx] < 0) {\n                System.out.print(Math.abs(nums[i]) + \" \");\n                found = true;\n            } else {\n                nums[idx] = -nums[idx];\n            }\n        }\n\n        if(!found)\n            System.out.print(\"[ ]\");\n    }\n}"
+    },
+    "explanation": "1️) Pick a number x from the array\n2️) Go to index x - 1\n3️) Check the value there:\nIf it is positive\n → This number is seen for the first time\n → Make it negative (mark as visited)\n\n\nIf it is already negative\n → This number is seen before\n → So it is a duplicate\nNegative value = “I have already seen this number”. It’s just a flag stored inside the same array.",
+    "media_link": "",
+    "created_at": "2026-01-16T12:41:18.475Z"
+  },
+  {
+    "id": 15,
+    "contest_id": 15,
+    "order": 3,
+    "title": "Consecutive Sum Representations",
+    "question": "You are given a positive integer n. Your task is to determine the number of distinct ways in which n can be expressed as the sum of one or more consecutive positive integers. Each representation must consist of consecutive numbers, and different sequences are considered different ways.\nInput Format\nThe first line contains a single integer n.\nConstraints\n1≤n≤10^9\nOutput Format\nPrint a single integer representing the number of ways to write n as the sum of consecutive positive integers.\nSample Input 0\n5\n\nSample Output 0\n2",
+    "code_snippets": {
+      "python": "n = int(input())\ncount = 0\nk = 1\nwhile (k * (k - 1)) // 2 < n:\n    \t\tremaining = n - (k * (k - 1)) // 2\n# Check if remaining is divisible by k\n    \tif remaining % k == 0:\n        \t\ta = remaining // k\n        \tif a > 0:\n            count += 1\n  k += 1\nprint(count)",
+      "c": "#include <stdio.h>\n\nint main() {\n    long long n;\n    scanf(\"%lld\", &n);\n\n    int count = 0;\n\n    for (long long k = 1; (k * (k - 1)) / 2 < n; k++) {\n\n        long long remaining = n - (k * (k - 1)) / 2;\n\n        if (remaining % k == 0) {\n            long long a = remaining / k;\n            if (a > 0) {\n                count++;\n            }\n        }\n    }\n\n    printf(\"%d\\n\", count);\n    return 0;\n}",
+      "cpp": "#include <iostream>\nusing namespace std;\n\nint main() {\n    long long n;\n    cin >> n;\n\n    int count = 0;\n\n    for (long long k = 1; (k * (k - 1)) / 2 < n; k++) {\n\n        long long remaining = n - (k * (k - 1)) / 2;\n\n        if (remaining % k == 0) {\n            long long a = remaining / k;\n            if (a > 0) {\n                count++;\n            }\n        }\n    }\n\n    cout << count << endl;\n    return 0;\n}",
+      "java": "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        long n = sc.nextLong();\n\n        int count = 0;\n\n        for (long k = 1; (k * (k - 1)) / 2 < n; k++) {\n\n            long remaining = n - (k * (k - 1)) / 2;\n\n            if (remaining % k == 0) {\n                long a = remaining / k;\n                if (a > 0) {\n                    count++;\n                }\n            }\n        }\n\n        System.out.println(count);\n    }\n}"
+    },
+    "explanation": " We want to write n as a sum of consecutive positive numbers.\n   Assume the sequence has k numbers: a, a+1, a+2, ... , a+k-1\n \t  The sum becomes:\n\t   n = k*a + k*(k-1)/2\n   Rearrange to find a:\n   a = (n - k*(k-1)/2) / k\n   For a valid sequence:\na must be a whole number\n\n\na must be greater than 0\n             Start with k = 1 and keep increasing k.\n\t  Stop when: k*(k-1)/2 >= n\n  Count every valid k that gives a valid a. Print the total count.",
+    "media_link": "",
+    "created_at": "2026-01-16T12:41:18.475Z"
+  },
+  {
+    "id": 16,
+    "contest_id": 16,
+    "order": 1,
+    "title": "Taking Input and Print",
+    "question": "Write a C program that reads an integer, a decimal number, and a character, and prints them in the same order, each on a new line.\n\nINPUT FORMAT\n\nFirst line contains the integer.\nSecond line contains the float.\nThird line contains the single character.\n\nConstraints\n-10^9 ≤ i ≤ 10^9\n0.0 ≤ f ≤ 10^6\nc is a single printable ASCII character (no spaces)\n\nOUTPUT FORMAT\nPrint the input taken.",
+    "code_snippets": {
+      "python": "NO NEED",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    long a;\n    float b;\n    char c;\n    scanf(\"%ld\",&a);\n    scanf(\"%f\",&b);\n    scanf(\" %c\",&c);\n    printf(\"%ld\\n\",a);\n    printf(\"%.1f\\n\",b);\n    printf(\"%c\\n\",c);\n    return 0;\n}\n"
+    },
+    "explanation": "Tip: Always look at the constraint while selecting the datatype as it may results in ovdrflow/ wrap-around error.",
+    "media_link": "",
+    "created_at": "2026-01-16T14:12:59.562Z"
+  },
+  {
+    "id": 17,
+    "contest_id": 16,
+    "order": 2,
+    "title": "Addition of Two",
+    "question": "Write a C program that reads two integers and prints their sum.\n\nINPUT FORMAT\n\nFirst line contains the two space separated integers.\nCONSTRAINTS\n\n-10^18 ≤ A ≤ 10^18\n-10^18 ≤ B ≤ 10^18\nOUTPUT FORMAT\n\nPrint a single value: Sum of A and B",
+    "code_snippets": {
+      "python": "NO NEED",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    long a;\n    long b;\n    scanf(\"%ld %ld\",&a,&b);\n    printf(\"%ld\", a+b);\n    return 0;\n}"
+    },
+    "explanation": "",
+    "media_link": "",
+    "created_at": "2026-01-16T14:12:59.562Z"
+  },
+  {
+    "id": 18,
+    "contest_id": 17,
+    "order": 1,
+    "title": "The Celestial Telescope",
+    "question": "The Great Telescope is controlled by a console that accepts single-character commands to rotate toward different constellations. Each constellation requires a specific power adjustment (P). The console accepts the following commands:\n\n’N’ (North Star): P = 100\n\n’S’ (Southern Cross): P = 150\n\n’E’ (East Dragon): P = 200\n\n’W’ (West Phoenix): P = 250\n\nThe Twist: If the apprentice enters a lowercase version of the command (e.g., ’n’), the telescope works but the power is halved (P/2). If any other character is entered, the system prints \"Error\".\n\nInput Format\n\nA single character representing the command.\n\nConstraints\n\nInput is a single ASCII character.\n\nOutput Format\n\nIf the command is valid, print the integer power value P. If invalid, print Error.",
+    "code_snippets": {
+      "python": "No need",
+      "c": "#include <stdio.h>\n\nint main() {\n    char cmd;\n    scanf(\" %c\", &cmd);\n\n    switch (cmd) {\n        case 'N':\n            printf(\"100\");\n            break;\n        case 'S':\n            printf(\"150\");\n            break;\n        case 'E':\n            printf(\"200\");\n            break;\n        case 'W':\n            printf(\"250\");\n            break;\n        case 'n':\n            printf(\"50\");\n            break;\n        case 's':\n            printf(\"75\");\n            break;\n        case 'e':\n            printf(\"100\");\n            break;\n        case 'w':\n            printf(\"125\");\n            break;\n        default:\n            printf(\"Error\");\n    }\n\n    return 0;\n}"
+    },
+    "explanation": "Explaination:\nThe program reads one character (cmd) as input using scanf(\"%c\").\n\nA switch statement is used to compare that character with different cases.\n\nUppercase letters (N, S, E, W) and lowercase letters (n, s, e, w) are treated differently in C.\n\nEach case prints a specific number and then uses break to stop further checking.\n\nIf the input does not match any case, the default case prints \"Error\".\n\nNote:\nAlways remember that C is case-sensitive, so 'N' and 'n' are not the same. Also, use break in every case to avoid executing multiple cases by mistake.",
+    "media_link": "",
+    "created_at": "2026-01-16T14:25:14.107Z"
+  },
+  {
+    "id": 19,
+    "contest_id": 17,
+    "order": 2,
+    "title": "The Triangle Inspector",
+    "question": "In the city of Geometra, a royal inspector is assigned the task of validating triangular structures before they are approved for construction. Each structure is defined by three integers representing the lengths of its sides.\n\nThe inspector follows these rules:\n\nThe given sides must first form a valid triangle.\nIf the sides form a valid triangle:\n\nThe structure is classified as an Equilateral Triangle if all three sides are equal.\nThe structure is classified as an Isosceles Triangle if exactly two sides are equal.\nThe structure is classified as a Scalene Triangle if all three sides are different.\nIf the sides do not form a valid triangle, the structure is rejected.\n\nNote: A triangle is considered valid if and only if:\n\nThe sum of any two sides is strictly greater than the third side\nSide lengths that are zero or negative cannot form a triangle.\nInput Format\n\nA single line containing three space-separated integers a b c - representing the lengths of the three sides.\n\nConstraints\n\n-10^9 ≤ a, b, c ≤ 10^9\nSide lengths may be zero or negative\nOutput Format\n\nPrint exactly one line:\n\nEquilateral Triangle\nIsosceles Triangle\nScalene Triangle\nNot a Triangle",
+    "code_snippets": {
+      "python": "No need",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    long long a, b, c;\n    scanf(\"%lld %lld %lld\", &a, &b, &c);\n\n    if (a <= 0 || b <= 0 || c <= 0 ||\n        a + b <= c || a + c <= b || b + c <= a) {\n        printf(\"Not a Triangle\");\n    }\n    else if (a == b && b == c) {\n        printf(\"Equilateral Triangle\");\n    }\n    else if (a == b || b == c || a == c) {\n        printf(\"Isosceles Triangle\");\n    }\n    else {\n        printf(\"Scalene Triangle\");\n    }\n\n    return 0;\n}"
+    },
+    "explanation": "long long is used to store large side lengths safely without overflow.\n\nFirst if checks whether the three sides can form a valid triangle\n(all sides must be positive and the sum of any two sides must be greater than the third).\n\nIf all sides are equal → Equilateral Triangle\n\nIf any two sides are equal → Isosceles Triangle\n\nIf all sides are different → Scalene Triangle\n\nTip:\nAlways check triangle validity first before classifying its type, otherwise the result can be incorrect.",
+    "media_link": "",
+    "created_at": "2026-01-16T14:25:14.107Z"
+  },
+  {
+    "id": 20,
+    "contest_id": 17,
+    "order": 3,
+    "title": "The Guardian of the Whispering Woods",
+    "question": "A group of travelers is trying to enter the Whispering Woods. The Guardian of the gate only allows travelers to pass if they fulfill specific, ancient criteria based on their Age, Gold, and whether they possess a Magic Map.\n\nMinors (Age < 18): Can only enter if they have a Magic Map. They do not need any gold.\nAdults (Age 18 to 60): Must have at least 500 Gold. If they have a Magic Map, the requirement is reduced to 100 Gold.\nSeniors (Age > 60): Are always allowed in for free, regardless of gold or maps.\nThe Curse: The Guardian is grumpy. No one is allowed in if their Age is a multiple of 7, regardless of any other conditions, as 7 is considered an unlucky number.\n\nInput Format\n\nThree space-separated integers: Age, Gold, and HasMap (1 for Yes, 0 for No)\n\nConstraints\n\n0 ≤ Age ≤ 120\n0 ≤ Gold ≤ 10,000\nHasMap ∈{0,1}\nOutput Format\n\nPrint \"YES\" if the traveler can enter, and \"NO\" if they are rejected with their age. (Output is case-sensitive. Print exactly as specified.)",
+    "code_snippets": {
+      "python": "No need",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    int age, gold, hasMap;\n    scanf(\"%d %d %d\", &age, &gold, &hasMap);\n\n    // Curse condition\n    if (age % 7 == 0) {\n        printf(\"NO%d\",age);\n    }\n    // Minors\n    else if (age < 18) {\n        if (hasMap == 1)\n            printf(\"YES%d\",age);\n        else\n            printf(\"NO%d\",age);\n    }\n    // Adults\n    else if (age <= 60) {\n        if ((hasMap == 1 && gold >= 100) || (hasMap == 0 && gold >= 500))\n            printf(\"YES%d\",age);\n        else\n            printf(\"NO%d\",age);\n    }\n    // Seniors\n    else {\n        printf(\"YES%d\",age);\n    }\n\n    return 0;\n}"
+    },
+    "explanation": "Checks conditions using if–else in a fixed order.\n\nFirst rejects ages divisible by 7 (curse rule).\n\nThen applies different rules for minors, adults, and seniors.\n\nPrints YES or NO along with the age.\n\nTip:\nAlways place special rejection conditions first to avoid wrong decisions later.",
+    "media_link": "",
+    "created_at": "2026-01-16T14:25:14.107Z"
+  },
+  {
+    "id": 21,
+    "contest_id": 18,
+    "order": 1,
+    "title": "The Alchemist’s Precision",
+    "question": "An Alchemist is brewing a Potion of Wisdom. To succeed, the temperature of the cauldron must be adjusted based on the Volume of the liquid and the Type of essence used.\n\nWater Essence (Type 1): If Volume < 50L, temperature = 100°C. If Volume ≥ 50L, temperature = 150°C.\nFire Essence (Type 2): If Volume < 30L, temperature = 200°C. Otherwise, temperature = 250°C.\nShadow Essence (Type 3): The temperature must always be 50°C regardless of volume.\nThe Volatility Rule: If the Volume is an even number AND the Essence Type is 2, the final required temperature increases by 20°C due to thermal expansion.\n\nInput Format\n\nTwo space-separated integers: Volume and EssenceType.\n\nConstraints\n\nNone\n\nOutput Format\n\nPrint the required integer temperature. If invalid, print Invalid.",
+    "code_snippets": {
+      "python": "check c code",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    long long volume;\n    int type;\n    scanf(\"%lld %d\", &volume, &type);\n\n    if (volume < 0 || type < 1 || type > 3) {\n        printf(\"Invalid\");\n        return 0;\n    }\n\n    int temperature;\n\n    if (type == 1) {               // Water Essence\n        if (volume < 50)\n            temperature = 100;\n        else\n            temperature = 150;\n    }\n    else if (type == 2) {          // Fire Essence\n        if (volume < 30)\n            temperature = 200;\n        else\n            temperature = 250;\n\n        // Volatility rule\n        if (volume % 2 == 0)\n            temperature += 20;\n    }\n    else {                         // Shadow Essence\n        temperature = 50;\n    }\n\n    printf(\"%d\", temperature);\n    return 0;\n}\n\n"
+    },
+    "explanation": "always see constraints\nas mentioned constraints are none means tescase can contains false value which needs to excluded like in this question volume cannot be negative anf type needs to lie between 1 and 3",
+    "media_link": "",
+    "created_at": "2026-01-22T08:57:01.425Z"
+  },
+  {
+    "id": 22,
+    "contest_id": 18,
+    "order": 2,
+    "title": "The Vault of the Cipher King",
+    "question": "To open the Cipher King’s vault, you must pass three security layers. Each layer checks a Key against a Master Code.\n\nLayer 1: The Key must be greater than the Master Code.\nLayer 2: The sum of the Key and Master Code must be even.\nLayer 3: The Key must NOT be a multiple of 10.\nThe Breach Protocol: If all three layers are passed, print OPEN. If exactly two layers are passed, print STANDBY. Otherwise, print ALARM.\n\nInput Format\n\nA single line containing two space-separated integers: - Key - MasterCode\n\nConstraints\n\n1 ≤ Key,MasterCode ≤ 10^18\n\nOutput Format\n\nPrint OPEN if all three security layers are passed.\nPrint STANDBY if exactly two security layers are passed.\nPrint ALARM if fewer than two security layers are passed.",
+    "code_snippets": {
+      "python": "check c code",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\nint main() {\n    long long key, masterCode;\n    scanf(\"%lld %lld\", &key, &masterCode);\n\n    int passed = 0;\n\n    // Layer 1\n    if (key > masterCode)\n        passed++;\n\n    // Layer 2\n    if ((key + masterCode) % 2 == 0)\n        passed++;\n\n    // Layer 3\n    if (key % 10 != 0)\n        passed++;\n\n    if (passed == 3)\n        printf(\"OPEN\");\n    else if (passed == 2)\n        printf(\"STANDBY\");\n    else\n        printf(\"ALARM\");\n\n    return 0;\n}\n\n"
+    },
+    "explanation": "\nlong is necesssary as contraint is high integet cannot handle.",
+    "media_link": "",
+    "created_at": "2026-01-22T08:57:01.425Z"
+  },
+  {
+    "id": 23,
+    "contest_id": 18,
+    "order": 3,
+    "title": "The Echoing Canyon",
+    "question": "Problem\nSubmissions\nLeaderboard\nDiscussions\nA hiker stands at the edge of the Echoing Canyon. When they shout a word, the canyon echoes back based on its length, but it is extremely case-sensitive.\n\nIf the word starts with an Uppercase Vowel (A, E, I, O, U), the canyon repeats the word N times, where N is the length of the word.\nIf the word starts with a lowercase vowel or any consonant, the canyon prints NO.\nInput Format\n\none line of input to read the word\n\nConstraints\n\nWord length L: 1 ≤ L ≤ 20\n\nOutput Format\n\nIf the input word begins with an uppercase vowel (A, E, I, O, U), output the word repeated N times, where N denotes the length of the word.\n\nIf the word begins with a lowercase vowel or any consonant, output NO.",
+    "code_snippets": {
+      "python": "check c code",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    char word[25];\n    scanf(\"%s\", word);\n\n    char first = word[0];\n    int count=0;\n    for (int i=0;word[i]!='\\0';i++){count++;}\n\n    if (first == 'A' || first == 'E' || first == 'I' ||\n        first == 'O' || first == 'U') {\n\n        for (int i = 0; i < count; i++) {\n            printf(\"%s\\n\", word);\n        }\n    } else {\n        printf(\"NO\");\n    }\n\n    return 0;\n}\n"
+    },
+    "explanation": "String are nothing but the array of characters which contains the null value denoted by: '\\0' in the last of the array.",
+    "media_link": "",
+    "created_at": "2026-01-22T08:57:01.425Z"
+  },
+  {
+    "id": 25,
+    "contest_id": 20,
+    "order": 1,
+    "title": "Extended Fibonacci Series",
+    "question": "A number sequence is defined as follows: The first three terms of the sequence are: 0, 1, 1. Every term after that is obtained by adding the previous three terms. You are given an integer n (0-indexed). Your task is to compute and print the value of the n-th term of this sequence.\nInput Format\nA single integer n, representing the index of the term to be found.\nConstraints\n0 ≤ n ≤ 50\nOutput Format\nPrint a single integer — the value of the n-th term of the sequence.\nSample Input 0\n6\n\nSample Output 0\n13\n\nExplanation 0\nThe sequence is:\n0, 1, 1, 2, 4, 7, 13\nThe 6th index term is 13.\nSample Input 1\n2\n\nSample Output 1\n1",
+    "code_snippets": {
+      "python": "def tribo(n):\n    if n == 0:\n        return 0\n    if n == 1 or n == 2:\n        return 1\n    return tribon(n-1) + tribon(n-2) + tribon(n-3)\n\nn = int(input())\nprint(tribo(n))",
+      "c": "#include <stdio.h>\n\nint tribonacci(int n) {\n    if (n == 0)\n        return 0;\n    if (n == 1 || n == 2)\n        return 1;\n\n    return tribonacci(n - 1) +\n           tribonacci(n - 2) +\n           tribonacci(n - 3);\n}\n\nint main() {\n    int n;\n    scanf(\"%d\", &n);\n    printf(\"%d\", tribonacci(n));\n    return 0;\n}",
+      "cpp": "#include <iostream>\nusing namespace std;\n\nint tribonacci(int n) {\n    if (n == 0)\n        return 0;\n    if (n == 1 || n == 2)\n        return 1;\n\n    return tribonacci(n - 1) +\n           tribonacci(n - 2) +\n           tribonacci(n - 3);\n}\n\nint main() {\n    int n;\n    cin >> n;\n    cout << tribonacci(n);\n    return 0;\n}",
+      "java": "import java.util.Scanner;\n\npublic class Main {\n static int tribonacci(int n) {\n        if (n == 0)\n            return 0;\n        if (n == 1 || n == 2)\n            return 1;\n        return tribonacci(n - 1) +\n               tribonacci(n - 2) +\n               tribonacci(n - 3);\n    }\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int n = sc.nextInt();\n        System.out.println(tribonacci(n));\n        sc.close();\n    }\n}"
+    },
+    "explanation": "The sequence starts with:\nT(0) = 0\n\nT(1) = 1\n\nT(2) = 1\n\nEvery number after index ‘2’ is the sum of the previous three numbers\n\nThe function receives an integer n\n\nIt returns the value at index n in the Tribonacci sequence\n🔹 Base Cases (Stopping Condition)\nIf n == 0, return 0\n\nIf n == 1 or n == 2, return 1\n🔹 Recursive Case\nFor n >= 3\n\nCall the function for:\n\nn - 1\n\nn - 2\n\n\nn - 3\n\nAdd the three results\n\nReturn the sum\n",
+    "media_link": "",
+    "created_at": "2026-01-24T05:28:15.481Z"
+  },
+  {
+    "id": 26,
+    "contest_id": 20,
+    "order": 2,
+    "title": "Combine Two Sorted Lists",
+    "question": "You are given the heads of two singly linked lists, list1 and list2. Both linked lists are sorted in non-decreasing order. Your task is to merge the two lists into one sorted linked list. The merged list should be formed by splicing together the nodes of the original lists. Return the head of the merged linked list.\n\nInput Format\nThe first line contains elements of linked list list1\nThe second line contains elements of linked list list2\n\nIf a list is empty, the input will be an empty line.\nConstraints\n0 ≤ number of nodes ≤ 50\n-100 ≤ Node.val ≤ 100\nOutput Format\nprint the merged linked list elements in a single line, space-separated\nSample Input 0\n1 2 4\n1 3 4\n\nSample Output 0\n1 1 2 3 4 4\n\nSample Input 1\n[ ]\n[ ]\n\nSample Output 1\n[ ] ",
+    "code_snippets": {
+      "python": "def merge_lists(l1, l2):\n    if l1 is None:\n        return l2\n    if l2 is None:\n        return l1\n\n    if l1.val <= l2.val:\n        l1.next = merge_lists(l1.next, l2)\n        return l1\n    else:\n        l2.next = merge_lists(l1, l2.next)\n        return l2",
+      "c": "#include <stdio.h>\n#include <stdlib.h>\n\n// Definition of linked list node\nstruct ListNode {\n    int val;\n    struct ListNode* next;\n};\n\n// Function to merge two sorted linked lists\nstruct ListNode* mergeLists(struct ListNode* l1, struct ListNode* l2) {\n\n    // If first list is empty, return second list\n    if (l1 == NULL)\n        return l2;\n\n    // If second list is empty, return first list\n    if (l2 == NULL)\n        return l1;\n\n    // If value of l1 is smaller or equal\n    if (l1->val <= l2->val) {\n        // Connect l1 to the merged rest\n        l1->next = mergeLists(l1->next, l2);\n        return l1;\n    }\n    else {\n        // Connect l2 to the merged rest\n        l2->next = mergeLists(l1, l2->next);\n        return l2;\n    }\n}",
+      "java": "class ListNode {\n    int val;\n    ListNode next;\n\n    ListNode(int val) {\n        this.val = val;\n        this.next = null;\n    }\n}\n\nclass Solution {\n    public ListNode mergeLists(ListNode l1, ListNode l2) {\n\n     \n        if (l1 == null)\n            return l2;\n        if (l2 == null)\n            return l1;\n\n        if (l1.val <= l2.val) {\n            \n            l1.next = mergeLists(l1.next, l2);\n            return l1;\n        }\n\n        else {\n            l2.next = mergeLists(l1, l2.next);\n            return l2;\n        }\n    }\n}",
+      "cpp": "#include <iostream>\nusing namespace std;\n\n// Definition of linked list node\nstruct ListNode {\n    int val;\n    ListNode* next;\n};\n\n// Function to merge two sorted linked lists\nListNode* mergeLists(ListNode* l1, ListNode* l2) {\n\n    // If first list is empty, return second list\n    if (l1 == NULL)\n        return l2;\n\n    // If second list is empty, return first list\n    if (l2 == NULL)\n        return l1;\n\n    // If l1 value is smaller or equal\n    if (l1->val <= l2->val) {\n        // Recursively merge remaining nodes\n        l1->next = mergeLists(l1->next, l2);\n        return l1;\n    }\n    else {\n        // Pick node from second list\n        l2->next = mergeLists(l1, l2->next);\n        return l2;\n    }\n}"
+    },
+    "explanation": "\tLet:\nl1 = head of list1\nl2 = head of list2\nAt each step:\nCompare l1.val and l2.val\nPick the smaller node\nAttach it to the result of merging the remaining lists\nBase cases\nIf list1 is empty, return list2\nIf list2 is empty, return list1\n Because, If one list is empty, the remaining list is already sorted\n\nRecursive Relation\nmerge(l1, l2) =\n                     if l1.val <= l2.val\n\t\tl1.next = merge(l1.next, b)\nreturn l1\n\n                     if l2.val < l1.val\n\t\t l2.next = merge(l1, l2.next)\nreturn l2",
+    "media_link": "",
+    "created_at": "2026-01-24T05:28:15.481Z"
+  },
+  {
+    "id": 27,
+    "contest_id": 20,
+    "order": 3,
+    "title": "Last remaining integer",
+    "question": "You are given an integer n. We write the integers from 1 to n in a sequence from left to right. Then, alternately apply the following two operations until only one integer remains, starting with operation 1:\nOperation 1: Starting from the left, delete every second number.\nOperation 2: Starting from the right, delete every second number. Return the last remaining integer.\nYou have to solve this is logn complexity.\nInput Format\nA single integer n representing the number of integers initially written from 1 to n\nConstraints\n1 <= n <= 10^15\nOutput Format\nA single integer x, which is the last remaining number after performing the alternating deletion operations.\nSample Input 0\n8\n\n\nSample Output 0\n3\n\n\nExplanation 0\nWrite [1, 2, 3, 4, 5, 6, 7, 8] in a sequence.\nStarting from the left, we delete every second number: [1, 2, 3, 4, 5, 6, 7, 8]. The remaining integers are [1, 3, 5, 7].\nStarting from the right, we delete every second number: [1, 3, 5, 7]. The remaining integers are [3, 7].\nStarting from the left, we delete every second number: [3, 7]. The remaining integer is [3]\nSample Input 1\n5\n\n\nSample Output 1\n1\n\n\nExplanation 1\nWrite [1, 2, 3, 4, 5] in a sequence.\nStarting from the left, we delete every second number: [1, 2, 3, 4, 5]. The remaining integers are [1, 3, 5].\nStarting from the right, we delete every second number: [1, 3, 5]. The remaining integers are [1, 5].\nStarting from the left, we delete every second number: [1, 5]. The remaining integer is [1].",
+    "code_snippets": {
+      "python": "def solve(n, head, step, isLeft):\n\n    # BASE CASE:\n    # If only one number is left, that is the answer\n    if n == 1:\n        return head\n\n    # Decide whether head should move forward\n    # head moves when:\n    # 1) deleting from left\n    # 2) deleting from right AND n is even\n    if isLeft or n % 2 == 0:\n        increment = step\n    else:\n        increment = 0\n\n    # Recursive call with updated values\n    return solve(\n        n - n // 2,       # half elements removed\n        head + increment,# new head\n        step * 2,         # gap doubles\n        not isLeft        # direction flips\n    )\n\n\ndef lastInteger(n):\n    return solve(n, 1, 1, True)",
+      "c": "long solve(long n, long head, long step, int isLeft) {\n\n    // Base case\n    if (n == 1)\n        return head;\n\n    long increment;\n\n    // Decide if head should move\n    if (isLeft || n % 2 == 0)\n        increment = step;\n    else\n        increment = 0;\n\n    // Recursive call\n    return solve(\n        n - n / 2,\n        head + increment,\n        step * 2,\n        !isLeft\n    );\n}",
+      "cpp": "long solve(long n, long head, long step, bool isLeft) {\n\n    // Base case\n    if (n == 1)\n        return head;\n\n    long increment;\n\n    // Decide if head should move\n    if (isLeft || n % 2 == 0)\n        increment = step;\n    else\n        increment = 0;\n\n    // Recursive call\n    return solve(\n        n - n / 2,\n        head + increment,\n        step * 2,\n        !isLeft\n    );\n}",
+      "java": "class Solution {\n    long solve(long n, long head, long step, boolean isLeft) {\n        if (n == 1) {\n            return head;\n        }\n        long increment = (isLeft || n % 2 != 0) ? 0 : step;\n        return solve(n - n / 2, head + increment, step * 2, !isLeft);\n    }\n\n    public long lastInteger(long n) {\n        return solve(n, 1, 1, true);\n    }\n}"
+    },
+    "explanation": "By observing the elimination process, we can reduce the problem to tracking only a few variables instead of maintaining the full array of numbers.\nReduction of n\nAt every iteration, half of the numbers are removed: n = n − n/2\n\tSo, the number of remaining elements becomes roughly half in every step.\n \tThis continues until only one element remains.\nStep Size Growth\n\nInitially, the numbers are consecutive.\nExample:\n 1, 2, 3, 4, 5, 6, 7\nAfter each elimination round, every alternate element is removed.\n Because of this, the distance (gap) between remaining elements doubles every time.\nProgression with gap values:\ngap = 1\n 1, 2, 3, 4, 5, 6, 7\ngap = 2\n 1, 3, 5, 7\ngap = 4\n 3, 7\ngap = 8\n 7\nHence, after every round:\n step = step × 2\n \t3. Direction Alternation\n\n\nThe direction of elimination alternates after every round.\nFirst round: Left to Right\n Second round: Right to Left\n Third round: Left to Right\n and so on.\nThis is tracked using a boolean variable:\nleft = !left\nTracking Only the First Element (head)\n\nInstead of tracking all remaining numbers, we only track the first remaining number, called head.\nThis works because:\nAll remaining elements are always equally spaced by the value step.\nOnce head and step are known, the final remaining number can be determined.\n\nExample: n = 8\nRemaining Elements n step left head\n 1 2 3 4 5 6 7 8 8 1 true 1\n 1 3 5 7 4 2 false 1\n 3 7 2 4 true 3\n 3 1 8 false 3\nHead update explanation:\n 3 = 1 + 2",
+    "media_link": "",
+    "created_at": "2026-01-24T05:28:15.481Z"
+  },
+  {
+    "id": 28,
+    "contest_id": 21,
+    "order": 1,
+    "title": "The Royal Inspection",
+    "question": "The King is inspecting his royal guards. The guards are lined up in a long row, numbered sequentially. The King decides to inspect guards within a specific range, from guard A to guard B (inclusive). However, the King is superstitious and refuses to inspect any guard whose sum of digits is a multiple of a specific “bad luck” number K. You must write a program to list all the guard numbers that the King will inspect.\n\nThe Logic Iterate through numbers from A to B. For each number, calculate the sum of its digits.\n\nIf the sum of digits is not divisible by K, print the number.\nIf the sum of digits is divisible by K, skip it.\nInput Format\n\nThree space-separated integers: A (Start), B (End) and K (Bad Luck Number).\n\nConstraints\n\nNone\n\nOutput Format\n\nPrint the valid guard numbers separated by a space. If no guards can be inspected, print 'NOTHING'.",
+    "code_snippets": {
+      "python": "see C code",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    int A, B, K;\n    scanf(\"%d %d %d\", &A, &B, &K);\n\n    int flag = 0;\n\n    for (int i = A; i <= B; i++) {\n        int n = i;\n        int sum = 0;\n\n        // Calculate digit sum\n        while (n > 0) {\n            sum += n % 10;\n            n /= 10;\n        }\n\n        // Check condition\n        if (sum % K != 0) {\n            flag = 1;\n            printf(\"%d \", i);\n        }\n    }\n\n    if (flag == 0)\n        printf(\"NOTHING\");\n\n    return 0;\n}\n"
+    },
+    "explanation": "This program checks guard numbers from A to B one by one.\nFor each number, it calculates the sum of its digits.\nIf the digit sum is not divisible by K, the guard number is printed.\nIf the digit sum is divisible by K, that number is skipped due to bad luck.\nAfter checking all numbers, if no valid guard numbers are found, the program prints NOTHING.",
+    "media_link": "",
+    "created_at": "2026-01-29T08:28:13.607Z"
+  },
+  {
+    "id": 29,
+    "contest_id": 21,
+    "order": 2,
+    "title": "The Prime Harvest",
+    "question": "A farmer in the Digital Valley only harvests crops from fields that have ”pure” soil. A field is considered pure if its identification number is a Prime Number. The farmer wants to know the total sum of the identification numbers of all pure fields within a given range [L,R].\n\nThe Logic\n\nYou are given a range from L to R.\nFor every number in this range, check if it is a Prime Number.\nCalculate the sum of all prime numbers found in the range.\nInput Format\n\nThe Line contains the L(Starting number) and R(Ending number) of the range which is inclusive.\n\nConstraints\n\n1 < L ≤ R ≤ 1000\n\nOutput Format\n\nPrint a single integer—the sum of all prime numbers in the inclusive range [L,R].\n\nIf no prime numbers exist in the range, print 0",
+    "code_snippets": {
+      "python": "see C code",
+      "c": "#include <stdio.h>\n\nint main() {\n    int L, R;\n    int num, i;\n    int sum = 0;\n\n    scanf(\"%d %d\", &L, &R);\n\n    for (num = L; num <= R; num++) {\n        if (num < 2)\n            continue;\n\n        int prime = 1;\n\n        for (i = 2; i < num; i++) {\n            if (num % i == 0) {\n                prime = 0;  \n                break;\n            }\n        }\n\n        if (prime == 1) {\n            sum = sum + num;\n        }\n    }\n\n    printf(\"%d\", sum);\n\n    return 0;\n}\n"
+    },
+    "explanation": "This program reads two integers L and R and calculates the sum of all prime numbers between them (inclusive).\n\nIt uses a loop to check each number from L to R.\nNumbers less than 2 are skipped because they are not prime.\n\nFor every number, the program checks whether it is prime by trying to divide it by all numbers from 2 to (num − 1).\nIf the number is divisible by any of these, it is marked as not prime.\n\nIf a number is found to be prime, it is added to the variable sum.\n\nAfter checking all numbers in the range, the program prints the total sum of prime numbers found between L and R.",
+    "media_link": "",
+    "created_at": "2026-01-29T08:28:13.607Z"
+  },
+  {
+    "id": 30,
+    "contest_id": 21,
+    "order": 3,
+    "title": "The Diamond Crest",
+    "question": "To open the ancient Vault of Geometry, a specific light pattern must be projected onto the door. The door requires a Diamond Shape constructed of stars (*). The size of the diamond is determined by the input number N, which represents the number of rows in the upper half of the diamond (including the middle row).\n\nThe Pattern Logic - The pattern consists of an upper triangle and a lower inverted triangle. - For an input N, the total number of rows is 2N − 1. - Spaces must be printed before stars to center the shape.\n\nInput Format\n\nA single integer N.\n\nConstraints\n\nNone\n\nOutput Format\n\nPrint the diamond pattern",
+    "code_snippets": {
+      "python": "see for C code",
+      "c": "#include <stdio.h>\n#include <string.h>\n#include <math.h>\n#include <stdlib.h>\n\nint main() {\n    int N;\n    scanf(\"%d\", &N);\n\n    // Upper half (including middle row)\n    for (int i = 1; i <= N; i++) {\n        for (int space = 1; space <= N - i; space++) {\n            printf(\" \");\n        }\n        for (int star = 1; star <= 2 * i - 1; star++) {\n            printf(\"*\");\n        }\n        printf(\"\\n\");\n    }\n\n    // Lower half\n    for (int i = N - 1; i >= 1; i--) {\n        for (int space = 1; space <= N - i; space++) {\n            printf(\" \");\n        }\n        for (int star = 1; star <= 2 * i - 1; star++) {\n            printf(\"*\");\n        }\n        printf(\"\\n\");\n    }\n\n    return 0;\n}\n\n"
+    },
+    "explanation": "This program prints a diamond-shaped star pattern based on the input value N.\n\nFirst, the program takes N as input, which represents the number of rows for the upper half of the diamond.\n\nIn the upper half, it prints increasing rows of stars from 1 to N.\nEach row starts with spaces to center the stars, followed by an odd number of stars (2*i - 1).\n\nIn the lower half, it prints decreasing rows of stars from N−1 to 1.\nThe same logic is used for spaces and stars to maintain symmetry.\n\nTogether, both halves form a perfect diamond pattern centered horizontally.",
+    "media_link": "",
+    "created_at": "2026-01-29T08:28:13.607Z"
+  }
+]

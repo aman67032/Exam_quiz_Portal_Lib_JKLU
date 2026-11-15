@@ -1,0 +1,29 @@
+{
+  "name": "learn-jklu-express-backend",
+  "version": "2.0.0",
+  "description": "High-Concurrency Express.js + PostgreSQL + Singleflight LRU Cache Backend for Learn JKLU (1,000+ simultaneous users)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "cluster": "node src/cluster.js",
+    "benchmark": "node src/scripts/benchmark1000.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.7.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "lru-cache": "^11.0.2",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.3",
+    "prisma": "^6.19.3"
+  }
+}
