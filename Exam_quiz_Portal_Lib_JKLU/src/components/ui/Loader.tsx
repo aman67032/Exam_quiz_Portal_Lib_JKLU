@@ -88,13 +88,12 @@ const Loader: React.FC<LoaderProps> = ({
             strokeLinejoin="round"
           />
           <line
-            className="loader-geo-path"
+            className="loader-geo-path dark:stroke-[#F5F4F0]"
             x1="36"
             y1="66"
             x2="84"
             y2="66"
             stroke="#0A0A0C"
-            className="dark:stroke-[#F5F4F0]"
             strokeWidth="1.5"
           />
         </svg>

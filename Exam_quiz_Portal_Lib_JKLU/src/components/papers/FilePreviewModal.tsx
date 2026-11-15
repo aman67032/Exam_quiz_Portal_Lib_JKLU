@@ -49,6 +49,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   const [previewError, setPreviewError] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(true);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [mobileBlobUrl, setMobileBlobUrl] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0); // Force reload on retry
   const [errorMessage, setErrorMessage] = useState<string>(''); // Store specific error message
   const [isMobile, setIsMobile] = useState<boolean>(() => detectMobileDevice());
@@ -358,12 +359,12 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
                   {isMobile ? (
                     // Mobile: Client-side PDF.js canvas preview + Open Full PDF button (no gview)
                     <div className="w-full h-full flex flex-col gap-2.5">
-                      <MobilePdfViewer url={getPreviewUrl(paperId)} token={token} />
+                      <MobilePdfViewer url={getPreviewUrl(paperId)} token={token} onBlobUrl={setMobileBlobUrl} />
                       <p className="text-[11px] text-center text-gray-500 dark:text-gray-400 shrink-0 -mb-1">
                         For better viewing &amp; zoom, open the full PDF:
                       </p>
                       <a
-                        href={getPreviewUrl(paperId)}
+                        href={mobileBlobUrl || getPreviewUrl(paperId)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full shrink-0"

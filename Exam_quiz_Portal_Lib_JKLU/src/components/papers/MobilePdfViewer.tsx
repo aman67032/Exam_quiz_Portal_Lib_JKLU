@@ -4,9 +4,10 @@ import Loader from '@/components/ui/Loader';
 interface MobilePdfViewerProps {
   url: string;
   token?: string;
+  onBlobUrl?: (blobUrl: string | null) => void;
 }
 
-const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
+const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token, onBlobUrl }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -15,11 +16,13 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
+    let createdBlobUrl: string | null = null;
 
     const renderPdf = async () => {
       setLoading(true);
       setError(false);
       setPageCount(0);
+      onBlobUrl?.(null);
 
       if (containerRef.current) {
         containerRef.current.innerHTML = '';
@@ -34,6 +37,9 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
         if (!res.ok) throw new Error('Failed to load PDF');
         const data = await res.arrayBuffer();
         if (cancelled) return;
+
+        createdBlobUrl = URL.createObjectURL(new Blob([data], { type: 'application/pdf' }));
+        onBlobUrl?.(createdBlobUrl);
 
         const pdfjsLib = await import('pdfjs-dist');
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
@@ -91,6 +97,10 @@ const MobilePdfViewer: React.FC<MobilePdfViewerProps> = ({ url, token }) => {
     return () => {
       cancelled = true;
       controller.abort();
+      if (createdBlobUrl) {
+        URL.revokeObjectURL(createdBlobUrl);
+      }
+      onBlobUrl?.(null);
     };
   }, [url, token]);
 

@@ -33,6 +33,20 @@ import {
 const app = express();
 app.set('trust proxy', 1);
 
+// Forward async route/middleware rejections to Express error middleware (Express 4)
+for (const method of ['get', 'post', 'put', 'patch', 'delete']) {
+  const original = app[method].bind(app);
+  app[method] = (routePath, ...handlers) => {
+    if (handlers.length === 0) return original(routePath);
+    const wrapped = handlers.map((fn) =>
+      typeof fn === 'function' && fn.length < 4
+        ? (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next)
+        : fn
+    );
+    return original(routePath, ...wrapped);
+  };
+}
+
 function resolveJwtSecret() {
   if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
   if (process.env.NODE_ENV === 'production') {
