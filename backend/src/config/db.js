@@ -81,29 +81,32 @@ export async function initDatabaseAndSeed() {
   )
     .toLowerCase()
     .trim();
-  const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'change-me-in-env';
-  const hash = await bcrypt.hash(adminPassword, 10);
-
-  await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: {
-      name: 'Council of Technical Affairs',
-      password_hash: hash,
-      is_admin: true,
-      admin_role: 'full_admin',
-      id_verified: true,
-      email_verified: true,
-    },
-    create: {
-      email: adminEmail,
-      name: 'Council of Technical Affairs',
-      password_hash: hash,
-      is_admin: true,
-      admin_role: 'full_admin',
-      id_verified: true,
-      email_verified: true,
-    },
-  });
+  const envAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD;
+  if (envAdminPassword) {
+    const hash = await bcrypt.hash(envAdminPassword, 10);
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {
+        name: 'Council of Technical Affairs',
+        password_hash: hash,
+        is_admin: true,
+        admin_role: 'full_admin',
+        id_verified: true,
+        email_verified: true,
+      },
+      create: {
+        email: adminEmail,
+        name: 'Council of Technical Affairs',
+        password_hash: hash,
+        is_admin: true,
+        admin_role: 'full_admin',
+        id_verified: true,
+        email_verified: true,
+      },
+    });
+  } else {
+    console.warn('⚠️ [Auth] DEFAULT_ADMIN_PASSWORD not set; skipping admin password sync.');
+  }
 
   console.log(`🔐 [Auth] Verified Admin Account in Neon PostgreSQL: ${adminEmail}`);
 }
@@ -163,7 +166,7 @@ export function getLocalPastpaperCatalog() {
       course_name: name,
       uploaded_by: null,
       uploader_name: 'JKLU Examinations Cell (AURA)',
-      uploader_email: 'counciloftechnicalaffairs@jklu.edu.in',
+      uploader_email: null,
       aura_uuid: item.uuid || null,
       title: `${code} - ${name}${item.abstract ? ` (${item.abstract})` : ''}`,
       description: `Programme: ${dept} | Semester: ${sem} | Session: ${item.abstract || item.issued || item.year}`,

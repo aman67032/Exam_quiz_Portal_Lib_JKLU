@@ -22,11 +22,6 @@ async function bootstrap() {
     console.log(`🚀 Learn JKLU 2.0 Express.js Engine listening on http://localhost:${PORT}`);
     console.log(`🐘 Database Engine : ${db.engineName}`);
     console.log(`⚡ Startup Time    : ${Date.now() - startMs} ms`);
-    console.log(
-      `🔐 Default Admin   : ${process.env.DEFAULT_ADMIN_EMAIL || 'admin@jklu.edu.in'} / ${
-        process.env.DEFAULT_ADMIN_PASSWORD || 'Admin@123'
-      }`
-    );
     console.log(`====================================================================\n`);
   });
 }

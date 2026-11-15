@@ -2149,8 +2149,12 @@ app.post('/admin/create-sub-admin', requireFullAdmin, async (req, res) => {
     .toLowerCase()
     .trim();
   const name = String(req.body.name || 'Sub Admin').trim();
-  const password = String(req.body.password || 'Admin@123');
+  const password = String(req.body.password || '');
   const role = String(req.body.admin_role || 'coding_ta');
+  if (!email || password.length < 6) {
+    res.status(400).json({ detail: 'Valid email and password (min 6 chars) are required' });
+    return;
+  }
 
   const db = await getDb();
   const hash = await hashPasswordNonBlocking(password, 10);

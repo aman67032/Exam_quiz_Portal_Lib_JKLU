@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import anime from 'animejs';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
@@ -55,11 +55,6 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillAdminDemo = () => {
-    setEmail('admin@jklu.edu.in');
-    setPassword('Admin@123');
   };
 
   return (
@@ -158,16 +153,7 @@ const Login: React.FC = () => {
           </button>
         </form>
 
-        <div className="pt-4 border-t border-[#E5E2DC] dark:border-[#232329] space-y-3">
-          <button
-            type="button"
-            onClick={fillAdminDemo}
-            className="w-full py-2 px-3 rounded border border-dashed border-[#E5E2DC] dark:border-[#232329] text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E] hover:border-[#E04F33] hover:text-[#0A0A0C] dark:hover:text-white transition-colors flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-[#E04F33]" />
-            <span>Quick Fill Admin Demo (admin@jklu.edu.in)</span>
-          </button>
-
+        <div className="pt-4 border-t border-[#E5E2DC] dark:border-[#232329]">
           <p className="text-center text-xs text-[#5C5B57] dark:text-[#94938E]">
             New student?{' '}
             <Link to="/register" className="text-[#0A0A0C] dark:text-white font-medium underline">
