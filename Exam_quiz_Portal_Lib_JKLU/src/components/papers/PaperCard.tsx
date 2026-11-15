@@ -187,25 +187,25 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, onPreview, onDownload }) =
         <button
           onClick={() => onPreview(paper)}
           title="Instant PDF Preview"
-          className="flex-1 py-2.5 px-3.5 rounded-xl border border-[#E5E2DC] dark:border-white/15 bg-[#FAF9F6]/80 dark:bg-white/[0.05] hover:border-[#896ABD] dark:hover:border-[#A855F7] hover:bg-white dark:hover:bg-white/10 text-[#0A0A0C] dark:text-[#F5F4F0] text-xs sm:text-sm font-medium flex items-center justify-center gap-2 transition-all active:scale-95"
+          className="flex-1 h-11 px-3 rounded-xl border border-[#E5E2DC] dark:border-white/15 bg-[#FAF9F6]/80 dark:bg-white/[0.05] hover:border-[#896ABD] dark:hover:border-[#A855F7] hover:bg-white dark:hover:bg-white/10 text-[#0A0A0C] dark:text-[#F5F4F0] text-xs sm:text-sm font-medium inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all active:scale-95"
         >
-          <Eye className="w-4 h-4 text-[#896ABD] dark:text-[#C084FC]" />
+          <Eye className="w-4 h-4 text-[#896ABD] dark:text-[#C084FC] shrink-0" />
           <span>Preview</span>
         </button>
 
         <button
           onClick={() => onDownload(paper)}
           title="Download Official Question Paper PDF"
-          className="flex-1 py-2.5 px-4 rounded-xl bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] hover:bg-[#E04F33] dark:hover:bg-[#A855F7] dark:hover:text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-sm transition-all active:scale-95"
+          className="flex-1 h-11 px-3 rounded-xl bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] hover:bg-[#E04F33] dark:hover:bg-[#A855F7] dark:hover:text-white text-xs sm:text-sm font-semibold inline-flex items-center justify-center gap-1.5 whitespace-nowrap shadow-sm transition-all active:scale-95"
         >
-          <Download className="w-4 h-4" />
+          <Download className="w-4 h-4 shrink-0" />
           <span>Download PDF</span>
         </button>
 
         <button
           onClick={handleShare}
           title={copied ? 'Link Copied!' : 'Copy Direct Paper Link'}
-          className="p-2.5 rounded-xl border border-[#E5E2DC] dark:border-white/15 bg-[#FAF9F6]/80 dark:bg-white/[0.05] hover:border-[#0A0A0C] dark:hover:border-white/40 text-[#5C5B57] dark:text-[#C4C3BE] transition-all active:scale-95 shrink-0"
+          className="w-11 h-11 rounded-xl border border-[#E5E2DC] dark:border-white/15 bg-[#FAF9F6]/80 dark:bg-white/[0.05] hover:border-[#0A0A0C] dark:hover:border-white/40 text-[#5C5B57] dark:text-[#C4C3BE] inline-flex items-center justify-center transition-all active:scale-95 shrink-0"
         >
           {copied ? (
             <Check className="w-4 h-4 text-emerald-500" />
