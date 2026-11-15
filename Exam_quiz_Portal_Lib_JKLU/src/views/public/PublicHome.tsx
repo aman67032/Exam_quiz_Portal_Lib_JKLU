@@ -261,7 +261,7 @@ const PublicHome: React.FC = () => {
     <div className="relative min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] overflow-x-hidden">
       {/* WebGPU AeroShards Interactive 3D Background Layer */}
       <div
-        className="fixed inset-0 z-0 pointer-events-none"
+        className="fixed inset-0 z-0 pointer-events-none transform-gpu"
         style={{ width: '100%', height: '100vh' }}
       >
         <AeroShards
@@ -270,8 +270,8 @@ const PublicHome: React.FC = () => {
           placement="full"
           material="glass"
           markers="plus"
-          count={1300}
-          depthOfField={0.75}
+          count={900}
+          depthOfField={0.65}
           vignette={0.3}
           mouseInteraction
           pulseOnClick
@@ -285,6 +285,7 @@ const PublicHome: React.FC = () => {
           scale={1}
           glow={0.35}
           grain={0.06}
+          dpr={1.5}
           intro
           mouseStrength={0.6}
           parallax={0.5}
@@ -293,7 +294,7 @@ const PublicHome: React.FC = () => {
       </div>
 
       {/* Sticky Navigation Bar — Mobile Optimized */}
-      <header className="sticky top-0 z-40 border-b border-[#E5E2DC]/80 dark:border-white/10 bg-[#FAF9F6]/85 dark:bg-[#0A0A0C]/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-[#E5E2DC]/80 dark:border-white/10 bg-[#FAF9F6]/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 sm:gap-6 min-w-0">
             <div
@@ -376,7 +377,7 @@ const PublicHome: React.FC = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-7">
         {/* Unified Smart Search & Multi-Faceted Filter Console */}
-        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/78 dark:bg-[#111117]/78 backdrop-blur-xl border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/86 dark:bg-[#111117]/84 backdrop-blur-md border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -684,7 +685,7 @@ const PublicHome: React.FC = () => {
 
             {/* Server-Side Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/85 dark:bg-[#111117]/85 backdrop-blur-xl border border-[#E5E2DC]/80 dark:border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/88 dark:bg-[#111117]/88 backdrop-blur-md border border-[#E5E2DC]/80 dark:border-white/10">
                 <span className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#C4C3BE]">
                   Page {currentPage} of {totalPages} ({totalPapers} total papers)
                 </span>

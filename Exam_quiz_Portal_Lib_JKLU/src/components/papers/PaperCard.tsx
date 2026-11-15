@@ -98,7 +98,7 @@ const PaperCard: React.FC<PaperCardProps> = ({ paper, onPreview, onDownload }) =
     <div
       ref={cardRef}
       onClick={() => onPreview(paper)}
-      className="paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/82 dark:bg-[#111117]/80 backdrop-blur-xl border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-all duration-300 min-h-[268px]"
+      className="paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/88 dark:bg-[#111117]/86 backdrop-blur-sm border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 min-h-[268px] transform-gpu"
     >
       {/* Subtle Top Gradient Accent Line */}
       <div
