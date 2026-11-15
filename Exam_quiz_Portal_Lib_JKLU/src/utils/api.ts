@@ -171,10 +171,18 @@ export const API = {
     });
   },
 
-  adminLogin: (email: string, password: string) => {
+  adminLogin: (
+    email: string,
+    password: string,
+    captcha?: { captcha_token?: string; captcha_challenge?: unknown } | null
+  ) => {
     const params = new URLSearchParams();
     params.append('username', email);
     params.append('password', password);
+    if (captcha?.captcha_token) params.append('captcha_token', captcha.captcha_token);
+    if (captcha?.captcha_challenge) {
+      params.append('captcha_challenge', JSON.stringify(captcha.captcha_challenge));
+    }
     return apiClient.post('/admin-login', params, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
@@ -189,8 +197,11 @@ export const API = {
   },
 
   // Forgot Password
-  forgotPassword: (email: string) => {
-    return apiClient.post('/forgot-password', { email });
+  forgotPassword: (
+    email: string,
+    captcha?: { captcha_token?: string; captcha_challenge?: unknown } | null
+  ) => {
+    return apiClient.post('/forgot-password', { email, ...(captcha || {}) });
   },
 
   resetPassword: (

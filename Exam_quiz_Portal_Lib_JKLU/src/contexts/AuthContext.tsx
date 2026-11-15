@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import axios from 'axios';
 import { buildUploadUrl } from '@/utils/uploads';
 import { wakeUpBackend } from '@/utils/keepAlive';
+import type { CaptchaPayload } from '@/components/auth/RobotCheck';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
 
@@ -19,8 +20,14 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<User>;
-  register: (email: string, name: string, password: string, confirmPassword: string) => Promise<void>;
+  login: (email: string, password: string, captcha?: CaptchaPayload | null) => Promise<User>;
+  register: (
+    email: string,
+    name: string,
+    password: string,
+    confirmPassword: string,
+    captcha?: CaptchaPayload | null
+  ) => Promise<void>;
   logout: () => void;
   loading: boolean;
   token: string | null;
@@ -98,11 +105,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, captcha?: CaptchaPayload | null) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/login`, {
         email,
-        password
+        password,
+        ...(captcha || {}),
       });
 
       const token = response.data.access_token;
@@ -127,13 +135,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (email: string, name: string, password: string, confirmPassword: string) => {
+  const register = async (
+    email: string,
+    name: string,
+    password: string,
+    confirmPassword: string,
+    captcha?: CaptchaPayload | null
+  ) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/register`, {
         email,
         name,
         password,
-        confirm_password: confirmPassword
+        confirm_password: confirmPassword,
+        ...(captcha || {}),
       });
 
       const token = response.data.access_token;

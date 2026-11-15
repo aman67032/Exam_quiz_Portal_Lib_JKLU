@@ -4,6 +4,7 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
+import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -11,6 +12,8 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [captcha, setCaptcha] = useState<CaptchaPayload | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -33,13 +36,18 @@ const Register: React.FC = () => {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (!captcha) {
+      setError('Please complete the "I am not a robot" verification.');
+      return;
+    }
 
     setLoading(true);
     try {
-      await register(email.trim(), name.trim(), password, confirmPassword);
+      await register(email.trim(), name.trim(), password, confirmPassword, captcha);
       navigate('/home');
     } catch (err: any) {
       setError(err.message || 'Registration failed.');
+      setCaptchaResetKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -150,6 +158,8 @@ const Register: React.FC = () => {
               className="input-field text-sm"
             />
           </div>
+
+          <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
 
           <button type="submit" disabled={loading} className="w-full btn-primary text-sm py-3">
             {loading ? 'Creating account...' : 'Create Account'}

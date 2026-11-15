@@ -5,11 +5,14 @@ import { Mail, Lock, Eye, EyeOff, ArrowLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
+import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [captcha, setCaptcha] = useState<CaptchaPayload | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -29,10 +32,14 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!captcha) {
+      setError('Please complete the "I am not a robot" verification.');
+      return;
+    }
     setLoading(true);
 
     try {
-      const user = await login(email.trim(), password);
+      const user = await login(email.trim(), password, captcha);
       if (user.is_admin) {
         navigate('/admin');
       } else if (user.admin_role === 'coding_ta') {
@@ -44,6 +51,7 @@ const Login: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Login failed. Please check your credentials.');
+      setCaptchaResetKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -138,6 +146,8 @@ const Login: React.FC = () => {
               </button>
             </div>
           </div>
+
+          <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
 
           <button
             type="submit"

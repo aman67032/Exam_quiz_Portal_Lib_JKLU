@@ -127,6 +127,71 @@ app.use(apiLimiter);
 let totalRequestsHandled = 0;
 let activeRequests = 0;
 const passwordResetStore = new Map();
+const usedCaptchaIds = new Map();
+
+function signCaptchaPayload(id, answer, expiresAt) {
+  return crypto
+    .createHmac('sha256', JWT_SECRET)
+    .update(`${id}:${answer}:${expiresAt}`)
+    .digest('hex');
+}
+
+async function verifyHumanChallenge(req) {
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const token = String(req.body?.captcha_token || '').trim();
+    if (!token) return { ok: false, detail: 'Please complete the "I am not a robot" check' };
+    try {
+      const form = new URLSearchParams();
+      form.append('secret', process.env.TURNSTILE_SECRET_KEY);
+      form.append('response', token);
+      if (req.ip) form.append('remoteip', req.ip);
+      const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await r.json();
+      return data.success
+        ? { ok: true }
+        : { ok: false, detail: 'Human verification failed. Please try again.' };
+    } catch {
+      return { ok: false, detail: 'Unable to verify human check right now.' };
+    }
+  }
+
+  let challenge = req.body?.captcha_challenge;
+  if (typeof challenge === 'string') {
+    try {
+      challenge = JSON.parse(challenge);
+    } catch {
+      challenge = null;
+    }
+  }
+  if (!challenge || typeof challenge !== 'object') {
+    return { ok: false, detail: 'Please complete the "I am not a robot" verification' };
+  }
+  const { id, answer, expiresAt, signature } = challenge;
+  if (!id || answer === undefined || !expiresAt || !signature) {
+    return { ok: false, detail: 'Please complete the "I am not a robot" verification' };
+  }
+  const now = Date.now();
+  if (now > Number(expiresAt)) {
+    return { ok: false, detail: 'Verification expired. Please refresh the robot check.' };
+  }
+  for (const [k, exp] of usedCaptchaIds.entries()) {
+    if (now > exp) usedCaptchaIds.delete(k);
+  }
+  if (usedCaptchaIds.has(String(id))) {
+    return { ok: false, detail: 'Verification already used. Please check "I am not a robot" again.' };
+  }
+  const expected = signCaptchaPayload(String(id), String(answer).trim(), Number(expiresAt));
+  const sigBuf = Buffer.from(String(signature), 'utf8');
+  const expBuf = Buffer.from(expected, 'utf8');
+  if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+    return { ok: false, detail: 'Incorrect answer for "I am not a robot" check.' };
+  }
+  usedCaptchaIds.set(String(id), Number(expiresAt));
+  return { ok: true };
+}
 
 app.use((req, res, next) => {
   totalRequestsHandled++;
@@ -638,10 +703,34 @@ app.get('/uploads/:filename(*)', async (req, res) => {
 });
 
 // ============================================================================
-// AUTHENTICATION ENDPOINTS
+// AUTHENTICATION ENDPOINTS & HUMAN VERIFICATION
 // ============================================================================
+app.get('/captcha/challenge', apiLimiter, (_req, res) => {
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    res.json({ mode: 'turnstile' });
+    return;
+  }
+  const a = crypto.randomInt(2, 15);
+  const b = crypto.randomInt(2, 15);
+  const id = crypto.randomBytes(12).toString('hex');
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const signature = signCaptchaPayload(id, String(a + b), expiresAt);
+  res.json({
+    mode: 'builtin',
+    id,
+    question: `${a} + ${b} = ?`,
+    expiresAt,
+    signature,
+  });
+});
+
 app.post('/login', authLimiter, async (req, res) => {
   try {
+    const captchaCheck = await verifyHumanChallenge(req);
+    if (!captchaCheck.ok) {
+      res.status(400).json({ detail: captchaCheck.detail });
+      return;
+    }
     const email = String(req.body.email || req.body.username || '')
       .toLowerCase()
       .trim();
@@ -682,6 +771,11 @@ app.post('/login', authLimiter, async (req, res) => {
 
 app.post('/admin-login', authLimiter, async (req, res) => {
   try {
+    const captchaCheck = await verifyHumanChallenge(req);
+    if (!captchaCheck.ok) {
+      res.status(400).json({ detail: captchaCheck.detail });
+      return;
+    }
     const email = String(req.body.username || req.body.email || '')
       .toLowerCase()
       .trim();
@@ -727,6 +821,11 @@ app.post('/admin-login', authLimiter, async (req, res) => {
 
 app.post('/register', authLimiter, async (req, res) => {
   try {
+    const captchaCheck = await verifyHumanChallenge(req);
+    if (!captchaCheck.ok) {
+      res.status(400).json({ detail: captchaCheck.detail });
+      return;
+    }
     const email = String(req.body.email || '')
       .toLowerCase()
       .trim();
@@ -807,6 +906,11 @@ app.get('/me', requireAuth, async (req, res) => {
 });
 
 app.post('/forgot-password', authLimiter, async (req, res) => {
+  const captchaCheck = await verifyHumanChallenge(req);
+  if (!captchaCheck.ok) {
+    res.status(400).json({ detail: captchaCheck.detail });
+    return;
+  }
   const email = String(req.body.email || '')
     .toLowerCase()
     .trim();

@@ -4,11 +4,14 @@ import { Mail, Lock, Eye, EyeOff, Shield, ArrowLeft } from 'lucide-react';
 import { API } from '@/utils/api';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import JKLULogo from '@/components/layout/JKLULogo';
+import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
 
 const AdminLogin: React.FC = () => {
-  const [email, setEmail] = useState('admin@jklu.edu.in');
-  const [password, setPassword] = useState('Admin@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [captcha, setCaptcha] = useState<CaptchaPayload | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,10 +19,14 @@ const AdminLogin: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!captcha) {
+      setError('Please complete the "I am not a robot" verification.');
+      return;
+    }
     setLoading(true);
 
     try {
-      const response = await API.adminLogin(email.trim(), password);
+      const response = await API.adminLogin(email.trim(), password, captcha);
       const token = response.data.access_token;
       localStorage.setItem('token', token);
 
@@ -35,6 +42,7 @@ const AdminLogin: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Invalid admin credentials');
+      setCaptchaResetKey((k) => k + 1);
     } finally {
       setLoading(false);
     }
@@ -117,6 +125,8 @@ const AdminLogin: React.FC = () => {
               </button>
             </div>
           </div>
+
+          <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
 
           <button
             type="submit"

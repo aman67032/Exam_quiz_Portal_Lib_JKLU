@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Shield, ArrowLeft } from 'lucide-react';
 import { API } from '@/utils/api';
 import JKLULogo from '@/components/layout/JKLULogo';
+import RobotCheck, { type CaptchaPayload } from '@/components/auth/RobotCheck';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,8 @@ const ForgotPassword: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState<'email' | 'otp' | 'reset'>('email');
+  const [captcha, setCaptcha] = useState<CaptchaPayload | null>(null);
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
@@ -21,18 +24,24 @@ const ForgotPassword: React.FC = () => {
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (!captcha) {
+      setError('Please complete the "I am not a robot" verification.');
+      return;
+    }
     setLoading(true);
 
     try {
-      const response = await API.forgotPassword(email);
+      const response = await API.forgotPassword(email, captcha);
       // Check if response indicates success
       if (response.data?.success || response.data?.message) {
         setOtpSent(true);
         setStep('otp');
       } else {
         setError('Failed to send OTP. Please try again.');
+        setCaptchaResetKey((k) => k + 1);
       }
     } catch (err: any) {
+      setCaptchaResetKey((k) => k + 1);
       // Check if it's a network error or actual error
       if (err.response?.status === 404) {
         setError('Email not found. Please check your email address.');
@@ -170,6 +179,8 @@ const ForgotPassword: React.FC = () => {
                     </div>
                   </motion.div>
 
+                  <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
+
                   {error && (
                     <motion.div
                       initial={{ opacity: 0, scale: 0.95 }}
@@ -241,6 +252,8 @@ const ForgotPassword: React.FC = () => {
                       OTP sent to {email}
                     </p>
                   </motion.div>
+
+                  <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
 
                   {error && (
                     <motion.div
@@ -320,6 +333,8 @@ const ForgotPassword: React.FC = () => {
                       />
                     </div>
                   </motion.div>
+
+                  <RobotCheck onChange={setCaptcha} resetKey={captchaResetKey} />
 
                   {error && (
                     <motion.div
