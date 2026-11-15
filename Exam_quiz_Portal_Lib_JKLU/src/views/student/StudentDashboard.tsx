@@ -135,7 +135,7 @@ const StudentDashboard: React.FC = () => {
       return;
     }
     if (hasUploadedToday) {
-      showToast('Daily upload limit reached. You can only upload 1 paper per day.', 'error');
+      showToast('Daily limit: 1 paper per day. For more uploads, contact counciloftechnicalaffairs@jklu.edu.in.', 'error');
       return;
     }
     if (!selectedFile) {
@@ -311,6 +311,17 @@ const StudentDashboard: React.FC = () => {
                   PDF · MAX 500 KB · 1 PAPER / DAY
                 </p>
               </div>
+            </div>
+
+            <div className="mb-4 p-3 rounded-xl bg-[#896ABD]/10 border border-[#896ABD]/25 text-xs text-[#0A0A0C] dark:text-[#F5F4F0] leading-relaxed">
+              <span className="font-semibold">Upload Limit:</span> 1 paper per day. For uploading more papers, contact{' '}
+              <a
+                href="mailto:counciloftechnicalaffairs@jklu.edu.in"
+                className="font-semibold text-[#896ABD] dark:text-[#C084FC] underline break-all"
+              >
+                counciloftechnicalaffairs@jklu.edu.in
+              </a>
+              .
             </div>
 
             <form onSubmit={handleUpload} className="space-y-4">
