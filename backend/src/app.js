@@ -1573,6 +1573,24 @@ app.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('file'
     }
 
     const db = await getDb();
+    const isAdmin = Boolean(user?.is_admin || user?.admin_role);
+    if (!isAdmin) {
+      const recentUpload = await db.query(
+        `SELECT id FROM papers
+         WHERE uploaded_by = $1
+           AND uploaded_at >= NOW() - INTERVAL '24 hours'
+         LIMIT 1`,
+        [user.id]
+      );
+      if (recentUpload.rowCount > 0) {
+        if (req.file?.path) fs.unlink(req.file.path, () => {});
+        res.status(429).json({
+          detail: 'Daily upload limit reached. You can only upload 1 paper per day.',
+        });
+        return;
+      }
+    }
+
     let courseId = Number(req.body.course_id || 0);
     if (!courseId && req.body.course_code) {
       const code = String(req.body.course_code)
@@ -1594,7 +1612,6 @@ app.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('file'
     const year = Number(req.body.year || new Date().getFullYear());
     const semester = String(req.body.semester || '1');
     const department = String(req.body.department || 'B.TECH').toUpperCase();
-    const isAdmin = Boolean(user?.is_admin || user?.admin_role);
     const status = isAdmin ? 'APPROVED' : 'PENDING';
     const publicLinkId = crypto.randomBytes(8).toString('hex');
 

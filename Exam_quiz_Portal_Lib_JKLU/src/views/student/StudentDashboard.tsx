@@ -134,6 +134,10 @@ const StudentDashboard: React.FC = () => {
       setShowVerifyPopup(true);
       return;
     }
+    if (hasUploadedToday) {
+      showToast('Daily upload limit reached. You can only upload 1 paper per day.', 'error');
+      return;
+    }
     if (!selectedFile) {
       showToast('Please select a file to upload', 'error');
       return;
@@ -243,6 +247,9 @@ const StudentDashboard: React.FC = () => {
     'w-full px-3.5 py-2.5 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 border border-[#E5E2DC] dark:border-[#232329] rounded-xl text-sm text-[#0A0A0C] dark:text-[#F5F4F0] placeholder-[#5C5B57]/60 dark:placeholder-[#94938E]/60 focus:outline-none focus:border-[#896ABD] dark:focus:border-[#A855F7] transition-colors';
 
   const isVerified = Boolean((user as any)?.id_verified || localStorage.getItem('idVerified') === 'yes');
+  const hasUploadedToday = papers.some(
+    (p) => Date.now() - new Date(p.uploaded_at).getTime() < 24 * 60 * 60 * 1000
+  );
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] pt-[env(safe-area-inset-top)]">
@@ -301,7 +308,7 @@ const StudentDashboard: React.FC = () => {
               <div>
                 <h2 className="text-lg font-bold tracking-tight">Upload Paper</h2>
                 <p className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E]">
-                  PDF · MAX 500 KB
+                  PDF · MAX 500 KB · 1 PAPER / DAY
                 </p>
               </div>
             </div>
