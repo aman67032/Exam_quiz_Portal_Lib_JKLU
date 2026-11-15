@@ -3,8 +3,8 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { User, Mail, IdCard, CheckCircle2, Upload, Edit2, X, AlertCircle } from 'lucide-react';
 import { sanitizeErrorMessage } from '@/utils/errorSanitizer';
+import { API } from '@/utils/api';
 import Toast from '@/components/ui/Toast';
-import { buildUploadUrl } from '@/utils/uploads';
 import Loader from '@/components/ui/Loader';
 import AeroShards from '@/components/layout/AeroShards';
 import StudentNavbar from '@/components/layout/StudentNavbar';
@@ -33,6 +33,7 @@ const Profile: React.FC = () => {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
   const [idFile, setIdFile] = useState<File | null>(null);
+  const [idCardBlobUrl, setIdCardBlobUrl] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [extra, setExtra] = useState({
     rollno: '',
@@ -67,6 +68,31 @@ const Profile: React.FC = () => {
     };
     fetchMe();
   }, [token]);
+
+  useEffect(() => {
+    if (!me?.id_card_path) {
+      setIdCardBlobUrl(null);
+      return;
+    }
+    let active = true;
+    let objectUrl: string | null = null;
+    const base = me.id_card_path.split('/').pop() || me.id_card_path;
+    API.client
+      .get(`/uploads/${encodeURIComponent(base)}`, { responseType: 'blob' })
+      .then((res) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(res.data);
+        setIdCardBlobUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!active) return;
+        setIdCardBlobUrl(null);
+      });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [me?.id_card_path]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -212,13 +238,13 @@ const Profile: React.FC = () => {
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 </div>
 
-                {me.id_card_path ? (
+                {me.id_card_path && idCardBlobUrl ? (
                   me.id_card_path.toLowerCase().endsWith('.pdf') ? (
                     <div className="w-full h-56 rounded-xl bg-[#FAF9F6] dark:bg-[#0A0A0C]/70 border border-[#E5E2DC] dark:border-[#232329] flex flex-col items-center justify-center gap-2">
                       <IdCard className="w-12 h-12 text-[#896ABD]" />
                       <p className="text-xs font-medium text-[#5C5B57] dark:text-[#94938E]">PDF Document</p>
                       <a
-                        href={buildUploadUrl(me.id_card_path)}
+                        href={idCardBlobUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs font-semibold text-[#896ABD] dark:text-[#C084FC] hover:underline"
@@ -228,7 +254,7 @@ const Profile: React.FC = () => {
                     </div>
                   ) : (
                     <img
-                      src={buildUploadUrl(me.id_card_path)}
+                      src={idCardBlobUrl}
                       alt="ID Card"
                       className="w-full rounded-xl object-cover border border-[#E5E2DC] dark:border-[#232329]"
                       onError={(e) => {

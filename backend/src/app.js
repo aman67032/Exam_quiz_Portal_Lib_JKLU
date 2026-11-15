@@ -811,6 +811,34 @@ app.get('/uploads/:filename(*)', async (req, res) => {
     res.sendFile(userFile);
     return;
   }
+
+  // Serverless fallback: load ID card binary from PostgreSQL when /tmp disk is ephemeral
+  try {
+    const user = await getAuthenticatedUser(req);
+    if (user) {
+      const db = await getDb();
+      const rowRes = await db.query(
+        `SELECT id, id_card_path, id_card_data, id_card_mime FROM users WHERE id_card_path = $1 LIMIT 1`,
+        [base]
+      );
+      if (rowRes.rowCount > 0 && rowRes.rows[0].id_card_data) {
+        const record = rowRes.rows[0];
+        const isAdmin = Boolean(user.is_admin || user.admin_role);
+        const isOwner = Number(record.id) === Number(user.id);
+        if (!isAdmin && !isOwner) {
+          res.status(403).json({ detail: 'Authentication required to access user files' });
+          return;
+        }
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Content-Type', record.id_card_mime || 'application/octet-stream');
+        res.send(Buffer.from(record.id_card_data));
+        return;
+      }
+    }
+  } catch {
+    // Column may not exist yet before first upload
+  }
+
   const pdfInfo = resolvePdfDiskInfo(base);
   if (pdfInfo) {
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -1065,6 +1093,8 @@ app.put('/profile', requireAuth, async (req, res) => {
   res.json(formatUserResponse(updated.rows[0]));
 });
 
+let idCardColsEnsured = false;
+
 app.post('/profile/id-card', requireAuth, uploadLimiter, userUpload.single('file'), async (req, res) => {
   const user = req.user;
   const file = req.file;
@@ -1073,9 +1103,14 @@ app.post('/profile/id-card', requireAuth, uploadLimiter, userUpload.single('file
     return;
   }
   const db = await getDb();
+  if (!idCardColsEnsured) {
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS id_card_data BYTEA, ADD COLUMN IF NOT EXISTS id_card_mime TEXT`);
+    idCardColsEnsured = true;
+  }
+  const fileBuffer = await fs.promises.readFile(file.path);
   const updated = await db.query(
-    `UPDATE users SET id_card_path = $1 WHERE id = $2 RETURNING *`,
-    [file.filename, user.id]
+    `UPDATE users SET id_card_path = $1, id_card_data = $2, id_card_mime = $3 WHERE id = $4 RETURNING *`,
+    [file.filename, fileBuffer, file.mimetype || 'application/octet-stream', user.id]
   );
   invalidateCachePrefix('admin:');
   invalidateCachePrefix('auth:');

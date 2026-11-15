@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, Us
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { API } from '@/utils/api';
 import FilePreviewModal from '@/components/papers/FilePreviewModal';
 import { buildUploadUrl } from '@/utils/uploads';
 import JKLULogo from '@/components/layout/JKLULogo';
@@ -11,6 +12,83 @@ import AeroShards from '@/components/layout/AeroShards';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
+
+const AuthenticatedUploadPreview: React.FC<{ filePath: string; alt: string; isPdf?: boolean }> = ({
+  filePath,
+  alt,
+  isPdf,
+}) => {
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl: string | null = null;
+    const base = filePath.split('/').pop() || filePath;
+
+    setBlobUrl(null);
+    setFailed(false);
+
+    API.client
+      .get(`/uploads/${encodeURIComponent(base)}`, { responseType: 'blob' })
+      .then((res) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(res.data);
+        setBlobUrl(objectUrl);
+      })
+      .catch(() => {
+        if (!active) return;
+        setFailed(true);
+      });
+
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [filePath]);
+
+  if (failed) {
+    return (
+      <div className="w-full h-64 bg-red-500/10 rounded-lg flex items-center justify-center border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-medium">
+        Error
+      </div>
+    );
+  }
+
+  if (!blobUrl) {
+    return (
+      <div className="w-full h-64 bg-[#FAF9F6] dark:bg-[#0A0A0C]/60 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329] text-xs text-[#5C5B57] dark:text-[#94938E]">
+        Loading...
+      </div>
+    );
+  }
+
+  if (isPdf) {
+    return (
+      <div className="w-full h-64 bg-[#FAF9F6] dark:bg-[#0A0A0C]/60 rounded-lg flex flex-col items-center justify-center border border-[#E5E2DC] dark:border-[#232329] gap-2">
+        <Eye className="h-12 w-12 text-[#896ABD]" />
+        <p className="text-xs font-medium text-[#5C5B57] dark:text-[#94938E]">PDF Document</p>
+        <a
+          href={blobUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs font-semibold text-[#896ABD] dark:text-[#C084FC] underline"
+        >
+          View PDF
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={blobUrl}
+      alt={alt}
+      className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
+      onError={() => setFailed(true)}
+    />
+  );
+};
 
 interface Stats {
   total_papers: number;
@@ -1980,22 +2058,22 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto"
             onClick={() => setVerificationModal({ isOpen: false, user: null })}
           >
             <motion.div
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-black/95 backdrop-blur-xl border border-[#E5E2DC] dark:border-[#232329] rounded-xl shadow-2xl shadow-green-500/20 p-6 max-w-4xl w-full my-8"
+              className="bg-white dark:bg-[#111117] border border-[#E5E2DC] dark:border-[#232329] rounded-2xl shadow-2xl p-5 sm:p-6 max-w-4xl w-full my-8 text-[#0A0A0C] dark:text-[#F5F4F0]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono">
-                  VERIFICATION_REQUEST: {verificationModal.user.name}
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight">
+                  Verification Request: {verificationModal.user.name}
                 </h2>
                 <motion.button
                   onClick={() => setVerificationModal({ isOpen: false, user: null })}
-                  className="text-red-400 hover:text-red-300 font-mono"
+                  className="text-[#5C5B57] dark:text-[#94938E] hover:text-[#E04F33]"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                 >
@@ -2003,101 +2081,33 @@ const AdminDashboard: React.FC = () => {
                 </motion.button>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                 {/* Profile Photo */}
-                <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
-                  <h3 className="text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">PROFILE_PHOTO</h3>
+                <div className="bg-[#FAF9F6] dark:bg-[#18181F] border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
+                  <h3 className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">Profile Photo</h3>
                   {verificationModal.user.photo_path ? (
-                    <div className="relative">
-                      {(() => {
-                        const photoPath = verificationModal.user.photo_path || '';
-                        const imageUrl = getImageUrl(photoPath);
-                        console.log('Profile photo - Path:', photoPath, 'URL:', imageUrl);
-                        return (
-                          <img
-                            src={imageUrl}
-                            alt="Profile"
-                            className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
-                            onError={(e) => {
-                              const img = e.currentTarget as HTMLImageElement;
-                              img.style.display = 'none';
-                              const errorDiv = document.createElement('div');
-                              errorDiv.className = 'w-full h-64 bg-red-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-red-500/30 text-red-400 font-mono text-xs p-4';
-                              errorDiv.innerHTML = `
-                                <p class="mb-2 font-bold">IMAGE_LOAD_ERROR</p>
-                                <p class="text-red-400/70 break-all text-center text-[10px] mb-1">Path: ${photoPath}</p>
-                                <p class="text-red-400/70 break-all text-center text-[10px] mb-2">URL: ${imageUrl}</p>
-                                <p class="text-yellow-400/70 text-[10px]">Check browser console for details</p>
-                              `;
-                              img.parentElement?.appendChild(errorDiv);
-                              console.error('Failed to load profile photo:', { photoPath, imageUrl });
-                            }}
-                            onLoad={() => {
-                              console.log('Profile photo loaded successfully:', imageUrl);
-                            }}
-                          />
-                        );
-                      })()}
-                    </div>
+                    <AuthenticatedUploadPreview
+                      filePath={verificationModal.user.photo_path}
+                      alt="Profile"
+                    />
                   ) : (
-                    <div className="w-full h-64 bg-gradient-to-br from-green-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
+                    <div className="w-full h-64 bg-white dark:bg-[#111117] rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
                       <User className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E]" />
                     </div>
                   )}
                 </div>
 
                 {/* ID Card */}
-                <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
-                  <h3 className="text-sm font-mono text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">ID_CARD</h3>
+                <div className="bg-[#FAF9F6] dark:bg-[#18181F] border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-4">
+                  <h3 className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#94938E] mb-3 uppercase">ID Card</h3>
                   {verificationModal.user.id_card_path ? (
-                    verificationModal.user.id_card_path.toLowerCase().endsWith('.pdf') ? (
-                      <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex flex-col items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
-                        <Eye className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E] mb-2" />
-                        <p className="text-sm text-[#5C5B57] dark:text-[#94938E] font-mono mb-2">PDF_DOCUMENT</p>
-                        <a
-                          href={getImageUrl(verificationModal.user.id_card_path)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-xs text-[#0A0A0C] dark:text-[#F5F4F0] hover:text-cyan-300 font-mono underline"
-                        >
-                          VIEW_PDF
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="relative">
-                        {(() => {
-                          const idCardPath = verificationModal.user.id_card_path || '';
-                          const imageUrl = getImageUrl(idCardPath);
-                          console.log('ID card - Path:', idCardPath, 'URL:', imageUrl);
-                          return (
-                            <img
-                              src={imageUrl}
-                              alt="ID Card"
-                              className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
-                              onError={(e) => {
-                                const img = e.currentTarget as HTMLImageElement;
-                                img.style.display = 'none';
-                                const errorDiv = document.createElement('div');
-                                errorDiv.className = 'w-full h-64 bg-red-900/20 rounded-lg flex flex-col items-center justify-center border-2 border-red-500/30 text-red-400 font-mono text-xs p-4';
-                                errorDiv.innerHTML = `
-                                  <p class="mb-2 font-bold">IMAGE_LOAD_ERROR</p>
-                                  <p class="text-red-400/70 break-all text-center text-[10px] mb-1">Path: ${idCardPath}</p>
-                                  <p class="text-red-400/70 break-all text-center text-[10px] mb-2">URL: ${imageUrl}</p>
-                                  <p class="text-yellow-400/70 text-[10px]">Check browser console for details</p>
-                                `;
-                                img.parentElement?.appendChild(errorDiv);
-                                console.error('Failed to load ID card:', { idCardPath, imageUrl });
-                              }}
-                              onLoad={() => {
-                                console.log('ID card loaded successfully:', imageUrl);
-                              }}
-                            />
-                          );
-                        })()}
-                      </div>
-                    )
+                    <AuthenticatedUploadPreview
+                      filePath={verificationModal.user.id_card_path}
+                      alt="ID Card"
+                      isPdf={verificationModal.user.id_card_path.toLowerCase().endsWith('.pdf')}
+                    />
                   ) : (
-                    <div className="w-full h-64 bg-gradient-to-br from-emerald-900/20 to-cyan-900/20 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
+                    <div className="w-full h-64 bg-white dark:bg-[#111117] rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329]">
                       <Eye className="h-16 w-16 text-[#5C5B57] dark:text-[#94938E]" />
                     </div>
                   )}
@@ -2105,8 +2115,8 @@ const AdminDashboard: React.FC = () => {
               </div>
 
               {/* User Information */}
-              <div className="bg-black/60 border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-6 mb-6">
-                <h3 className="text-lg font-bold text-[#0A0A0C] dark:text-[#F5F4F0] font-mono mb-4">USER_INFORMATION</h3>
+              <div className="bg-[#FAF9F6] dark:bg-[#18181F] border border-[#E5E2DC] dark:border-[#232329] rounded-xl p-5 mb-6">
+                <h3 className="text-sm font-bold uppercase tracking-wide mb-4">User Information</h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="flex items-center gap-3 p-3 bg-[#FAF9F6] dark:bg-[#0A0A0C]/80 rounded-lg border border-[#E5E2DC] dark:border-[#232329]">
                     <User className="h-5 w-5 text-[#0A0A0C] dark:text-[#F5F4F0] flex-shrink-0" />
