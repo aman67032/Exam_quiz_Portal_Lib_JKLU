@@ -17,7 +17,12 @@ import {
   syncAuraRepository,
   getLocalPastpaperCatalog,
 } from './config/db.js';
-import { getOrSetCache, invalidateCachePrefix, getCacheMetrics } from './config/cache.js';
+import {
+  getOrSetCache,
+  invalidateCachePrefix,
+  getCacheMetrics,
+  checkRateLimitWindow,
+} from './config/cache.js';
 import { verifyPasswordNonBlocking, hashPasswordNonBlocking } from './config/cryptoPool.js';
 import {
   analyzeSearchQuery,
@@ -140,6 +145,10 @@ const batchDownloadLimiter = rateLimit({
 });
 
 const MAX_CONCURRENT_STREAMS_PER_IP = 5;
+const MAX_GLOBAL_CONCURRENT_STREAMS = 60;
+const MAX_ACTIVE_BATCH_ZIPS = 5;
+let globalActiveStreams = 0;
+let activeBatchZips = 0;
 const activeStreamsByIp = new Map();
 const recentDownloadByIpPaper = new Map();
 
@@ -148,6 +157,12 @@ function getClientIp(req) {
 }
 
 function acquireIpStreamSlot(req, res) {
+  if (globalActiveStreams >= MAX_GLOBAL_CONCURRENT_STREAMS) {
+    res.status(503).json({
+      detail: 'Server is handling peak download traffic. Please retry in a few seconds.',
+    });
+    return false;
+  }
   const ip = getClientIp(req);
   const current = activeStreamsByIp.get(ip) || 0;
   if (current >= MAX_CONCURRENT_STREAMS_PER_IP) {
@@ -156,11 +171,13 @@ function acquireIpStreamSlot(req, res) {
     });
     return false;
   }
+  globalActiveStreams += 1;
   activeStreamsByIp.set(ip, current + 1);
   let released = false;
   const release = () => {
     if (released) return;
     released = true;
+    globalActiveStreams = Math.max(0, globalActiveStreams - 1);
     const nextCount = (activeStreamsByIp.get(ip) || 1) - 1;
     if (nextCount <= 0) activeStreamsByIp.delete(ip);
     else activeStreamsByIp.set(ip, nextCount);
@@ -808,6 +825,10 @@ app.post('/login', authLimiter, async (req, res) => {
       res.status(400).json({ detail: 'Email and password are required' });
       return;
     }
+    if (!(await checkRateLimitWindow(`login:email:${email}`, 10, 900))) {
+      res.status(429).json({ detail: 'Too many login attempts for this account. Try again in 15 minutes.' });
+      return;
+    }
 
     const user = await getOrSetCache(`auth:user:${email}`, 30000, async () => {
       const db = await getDb();
@@ -851,6 +872,10 @@ app.post('/admin-login', authLimiter, async (req, res) => {
     const password = String(req.body.password || '');
     if (!email || !password) {
       res.status(400).json({ detail: 'Email and password are required' });
+      return;
+    }
+    if (!(await checkRateLimitWindow(`admin:email:${email}`, 8, 900))) {
+      res.status(429).json({ detail: 'Too many admin login attempts for this account. Try again in 15 minutes.' });
       return;
     }
 
@@ -985,6 +1010,10 @@ app.post('/forgot-password', authLimiter, async (req, res) => {
     .trim();
   if (!email) {
     res.status(400).json({ detail: 'Email is required' });
+    return;
+  }
+  if (!(await checkRateLimitWindow(`otp:email:${email}`, 3, 900))) {
+    res.status(429).json({ detail: 'Too many reset requests for this email. Try again in 15 minutes.' });
     return;
   }
   const now = Date.now();
@@ -1493,6 +1522,11 @@ app.get('/papers/:paper_id', async (req, res) => {
 app.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('file'), async (req, res) => {
   try {
     const user = req.user;
+    if (!(await checkRateLimitWindow(`upload:user:${user.id}`, 20, 900))) {
+      if (req.file?.path) fs.unlink(req.file.path, () => {});
+      res.status(429).json({ detail: 'Account upload limit reached. Please wait 15 minutes.' });
+      return;
+    }
     const file = req.file;
     if (!file) {
       res.status(400).json({ detail: 'PDF file is required' });
@@ -1642,6 +1676,15 @@ app.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUpload.
 
 app.post('/papers/batch-download', batchDownloadLimiter, async (req, res) => {
   if (!acquireIpStreamSlot(req, res)) return;
+  if (activeBatchZips >= MAX_ACTIVE_BATCH_ZIPS) {
+    res.status(503).json({ detail: 'Batch ZIP builder is busy. Please retry in a few seconds.' });
+    return;
+  }
+  if (!(await checkRateLimitWindow('batch:global', 60, 60))) {
+    res.status(429).json({ detail: 'Global batch download limit reached. Please retry in a minute.' });
+    return;
+  }
+  activeBatchZips += 1;
   try {
     const rawIds = Array.isArray(req.body?.ids) ? req.body.ids : [];
     const uniqueIds = Array.from(
@@ -1702,6 +1745,8 @@ app.post('/papers/batch-download', batchDownloadLimiter, async (req, res) => {
     res.send(zipBuffer);
   } catch (err) {
     res.status(500).json({ detail: err.message || 'Batch download failed' });
+  } finally {
+    activeBatchZips = Math.max(0, activeBatchZips - 1);
   }
 });
 

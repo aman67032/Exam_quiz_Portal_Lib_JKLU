@@ -150,3 +150,34 @@ export function getCacheMetrics() {
     inFlightCount: inFlightRequests.size,
   };
 }
+
+const localRateCounters = new Map();
+
+export async function checkRateLimitWindow(key, maxCount, windowSec) {
+  const fullKey = `jklu:rl:${key}`;
+  if (redisClient && redisConnected) {
+    try {
+      const count = await redisClient.incr(fullKey);
+      if (count === 1) {
+        await redisClient.expire(fullKey, windowSec);
+      }
+      return count <= maxCount;
+    } catch {
+      // Fall back to in-memory counter if Redis temporarily errors
+    }
+  }
+
+  const now = Date.now();
+  if (localRateCounters.size > 5000) {
+    for (const [k, entry] of localRateCounters.entries()) {
+      if (now >= entry.expiresAt) localRateCounters.delete(k);
+    }
+  }
+  const existing = localRateCounters.get(fullKey);
+  if (!existing || now >= existing.expiresAt) {
+    localRateCounters.set(fullKey, { count: 1, expiresAt: now + windowSec * 1000 });
+    return true;
+  }
+  existing.count += 1;
+  return existing.count <= maxCount;
+}
