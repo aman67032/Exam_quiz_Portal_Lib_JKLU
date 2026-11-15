@@ -94,11 +94,13 @@ app.use(
       const normalized = origin.replace(/\/$/, '');
       if (
         ALLOWED_ORIGINS.has(normalized) ||
-        /^https:\/\/exam-quiz-portal-lib-jklu(-[a-z0-9-]+)?\.vercel\.app$/i.test(normalized)
+        /^https:\/\/(exam-quiz-portal|paper-portal)[a-z0-9-]*\.vercel\.app$/i.test(normalized) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(normalized)
       ) {
         return callback(null, true);
       }
-      return callback(new Error('Not allowed by CORS'));
+      console.warn('⚠️ [CORS] Blocked origin:', normalized);
+      return callback(null, false);
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Range'],
