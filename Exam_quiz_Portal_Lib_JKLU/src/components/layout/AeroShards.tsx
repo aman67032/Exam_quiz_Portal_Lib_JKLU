@@ -1234,29 +1234,33 @@ export default function AeroShards({
 
         // Flowing 3D-projected glass shards along the diagonal ribbon
         const aspect = width / Math.max(height, 1);
-        const focal = Math.min(width, height) * 0.62 * cfg.scale;
+        const isPortrait = aspect < 1;
+        const focal = (isPortrait ? Math.max(width, height) * 0.65 : Math.min(width, height) * 0.72) * cfg.scale;
+        const spreadMult = isPortrait ? 0.62 : 0.36;
+        const billowMult = isPortrait ? 0.22 : 0.11;
+        const sizeMult = isPortrait ? 0.14 : 0.105;
         const pt = [0, 0, 0];
 
         for (let i = shards2d.length - 1; i >= 0; i -= 1) {
           const sh = shards2d[i];
           const s0 = (sh.phase + clock * 0.025 * (1 - sh.level * 0.12)) % 1;
-          ribbonPoint(cfg.placement, sh.level, s0, Math.max(aspect, 0.85), pt);
+          ribbonPoint(cfg.placement, sh.level, s0, Math.max(aspect, 0.95), pt);
 
           const depth = Math.max(1.2, CAMERA - pt[2]);
           const px =
             width * 0.5 +
-            ((pt[0] + sh.lane * 0.32 * cfg.spread + Math.sin(clock * sh.rate[0] + sh.drift[0]) * 0.04) *
+            ((pt[0] + sh.lane * spreadMult * cfg.spread + Math.sin(clock * sh.rate[0] + sh.drift[0]) * 0.05) *
               focal) /
               depth +
             (pointerX - 0.5) * (36 / depth) * cfg.parallax;
           const py =
             height * 0.5 -
-            ((pt[1] + sh.layer * 0.09 * cfg.billow + Math.cos(clock * sh.rate[1] + sh.drift[1]) * 0.04) *
+            ((pt[1] + sh.layer * billowMult * cfg.billow + Math.cos(clock * sh.rate[1] + sh.drift[1]) * 0.05) *
               focal) /
               depth +
             (pointerY - 0.5) * (28 / depth) * cfg.parallax;
 
-          const r = (0.085 * cfg.shardSize * sh.size * GROWTH[sh.level] * focal) / depth;
+          const r = (sizeMult * cfg.shardSize * sh.size * GROWTH[sh.level] * focal) / depth;
           if (px < -r * 2 || px > width + r * 2 || py < -r * 2 || py > height + r * 2) continue;
 
           const rot = sh.yaw + clock * 0.35 * sh.sign + s0 * Math.PI * cfg.twist;

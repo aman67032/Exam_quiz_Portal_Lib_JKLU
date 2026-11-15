@@ -251,11 +251,11 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-2xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-2xl max-w-4xl w-full h-[92dvh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-5 md:p-6 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-3 sm:p-5 md:p-6 border-b border-gray-200 dark:border-gray-700 shrink-0">
               <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                 {isImage ? (
                   <Image className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" />
@@ -282,7 +282,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             </div>
 
             {/* Preview Content */}
-            <div className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2 sm:p-4 md:p-6 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900">
               {previewError ? (
                 <div className="text-center p-8">
                   <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
@@ -355,34 +355,24 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               ) : isPdf ? (
                 <>
                   {isMobile ? (
-                    // Mobile: Direct native PDF link + embedded viewer fallback (avoids blob/fetch issues on mobile browsers)
-                    <div className="w-full flex flex-col items-center gap-4 p-2 sm:p-4">
-                      <div className="w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+                    // Mobile: Full-height embedded viewer + single Open Full PDF link (Download & Close live in the footer)
+                    <div className="w-full h-full flex flex-col gap-2.5">
+                      <div className="flex-1 min-h-0 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                         <iframe
                           src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(getPreviewUrl(paperId))}`}
-                          className="w-full h-[52vh] min-h-[320px] border-0"
+                          className="w-full h-full border-0"
                           title={fileName}
                         />
                       </div>
-                      <div className="flex flex-col sm:flex-row gap-2.5 w-full max-w-md">
-                        <a
-                          href={getPreviewUrl(paperId)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-5 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full"
-                        >
-                          <FileText className="w-5 h-5" />
-                          <span>Open Full PDF</span>
-                        </a>
-                        <a
-                          href={getDownloadUrl(paperId)}
-                          download={fileName}
-                          className="px-5 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors inline-flex items-center justify-center space-x-2 font-medium min-h-[44px] touch-manipulation w-full"
-                        >
-                          <Download className="w-5 h-5" />
-                          <span>Download PDF</span>
-                        </a>
-                      </div>
+                      <a
+                        href={getPreviewUrl(paperId)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full shrink-0"
+                      >
+                        <FileText className="w-4 h-4" />
+                        <span>Open Full PDF</span>
+                      </a>
                     </div>
                   ) : (
                     // Desktop: Use iframe for preview
@@ -459,21 +449,21 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0 p-4 sm:p-5 md:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0 p-3 sm:p-5 md:p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 shrink-0">
+              <p className="hidden sm:block text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 {isImage ? 'Image files support: JPG, PNG, GIF' : 'PDF and document files'}
               </p>
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 sm:space-x-3 w-full sm:w-auto">
+              <div className="flex flex-row gap-2.5 sm:gap-3 w-full sm:w-auto">
                 <button
                   onClick={onClose}
-                  className="px-4 py-2.5 sm:py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400 dark:active:bg-gray-500 transition-colors font-medium min-h-[44px] sm:min-h-0 touch-manipulation"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 active:bg-gray-400 dark:active:bg-gray-500 transition-colors font-medium text-sm min-h-[42px] sm:min-h-0 touch-manipulation"
                   type="button"
                 >
                   Close
                 </button>
                 <button
                   onClick={handleDownload}
-                  className="px-4 py-2.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium flex items-center justify-center space-x-2 min-h-[44px] sm:min-h-0 touch-manipulation"
+                  className="flex-1 sm:flex-initial px-4 py-2.5 sm:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm flex items-center justify-center space-x-2 min-h-[42px] sm:min-h-0 touch-manipulation"
                   type="button"
                 >
                   <Download className="w-4 h-4" />
