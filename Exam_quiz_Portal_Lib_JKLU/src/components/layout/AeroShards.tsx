@@ -1232,41 +1232,51 @@ export default function AeroShards({
           ctx.globalAlpha = 1;
         }
 
-        // Flowing 3D-projected glass shards along the diagonal ribbon
+        // Flowing 3D-projected beveled glass shards along diagonal ribbons
         const aspect = width / Math.max(height, 1);
         const isPortrait = aspect < 1;
-        const focal = (isPortrait ? Math.max(width, height) * 0.65 : Math.min(width, height) * 0.72) * cfg.scale;
-        const spreadMult = isPortrait ? 0.62 : 0.36;
-        const billowMult = isPortrait ? 0.22 : 0.11;
-        const sizeMult = isPortrait ? 0.14 : 0.105;
+        const focal = (isPortrait ? Math.max(width, height) * 0.72 : Math.min(width, height) * 0.75) * cfg.scale;
+        const spreadMult = isPortrait ? 0.45 : 0.36;
+        const billowMult = isPortrait ? 0.16 : 0.11;
+        const sizeMult = isPortrait ? 0.115 : 0.105;
         const pt = [0, 0, 0];
+        // On portrait mobile, use placement=1/2 style vertical-diagonal ribbons so shards sweep top-to-bottom
+        const activePlacement = isPortrait && cfg.placement === 0 ? 1 : cfg.placement;
 
         for (let i = shards2d.length - 1; i >= 0; i -= 1) {
           const sh = shards2d[i];
-          const s0 = (sh.phase + clock * 0.025 * (1 - sh.level * 0.12)) % 1;
-          ribbonPoint(cfg.placement, sh.level, s0, Math.max(aspect, 0.95), pt);
+          const s0 = (sh.phase + clock * 0.022 * (1 - sh.level * 0.12)) % 1;
+          const levelPlacement =
+            isPortrait && cfg.placement === 0 ? (sh.level % 2 === 0 ? 1 : 2) : activePlacement;
+          ribbonPoint(levelPlacement, sh.level, s0, Math.max(aspect, 0.9), pt);
+
+          // In portrait mode, fan the diagonal ribbons across the full width
+          const ribbonX = isPortrait
+            ? pt[0] * 0.75 + (sh.level - 2) * 0.28 + Math.sin(s0 * Math.PI * 2 + sh.level) * 0.35
+            : pt[0];
+          const ribbonY = isPortrait ? pt[1] * 1.15 : pt[1];
 
           const depth = Math.max(1.2, CAMERA - pt[2]);
           const px =
             width * 0.5 +
-            ((pt[0] + sh.lane * spreadMult * cfg.spread + Math.sin(clock * sh.rate[0] + sh.drift[0]) * 0.05) *
+            ((ribbonX + sh.lane * spreadMult * cfg.spread + Math.sin(clock * sh.rate[0] + sh.drift[0]) * 0.05) *
               focal) /
               depth +
             (pointerX - 0.5) * (36 / depth) * cfg.parallax;
           const py =
             height * 0.5 -
-            ((pt[1] + sh.layer * billowMult * cfg.billow + Math.cos(clock * sh.rate[1] + sh.drift[1]) * 0.05) *
+            ((ribbonY + sh.layer * billowMult * cfg.billow + Math.cos(clock * sh.rate[1] + sh.drift[1]) * 0.05) *
               focal) /
               depth +
             (pointerY - 0.5) * (28 / depth) * cfg.parallax;
 
           const r = (sizeMult * cfg.shardSize * sh.size * GROWTH[sh.level] * focal) / depth;
-          if (px < -r * 2 || px > width + r * 2 || py < -r * 2 || py > height + r * 2) continue;
+          if (px < -r * 2.5 || px > width + r * 2.5 || py < -r * 2.5 || py > height + r * 2.5) continue;
 
-          const rot = sh.yaw + clock * 0.35 * sh.sign + s0 * Math.PI * cfg.twist;
+          const rot = sh.yaw + clock * 0.32 * sh.sign + s0 * Math.PI * cfg.twist;
           const cosR = Math.cos(rot);
           const sinR = Math.sin(rot);
-          const bankScale = 0.55 + 0.45 * Math.abs(Math.cos(clock * 0.6 + sh.bank * 4));
+          const bankScale = 0.48 + 0.52 * Math.abs(Math.cos(clock * 0.55 + sh.bank * 4));
 
           const mixT = sh.tint;
           const col: RGB = [
@@ -1274,23 +1284,51 @@ export default function AeroShards({
             cfg.shard[1] * (1 - mixT) + cfg.accent[1] * mixT,
             cfg.shard[2] * (1 - mixT) + cfg.accent[2] * mixT,
           ];
-          const alpha = FADE[sh.level] * (cfg.lightMode ? 0.38 : 0.48);
+          const fade = FADE[sh.level];
+          const baseAlpha = fade * (cfg.lightMode ? 0.52 : 0.65);
 
-          ctx.beginPath();
+          // Project polygon corners
+          const ptsX: number[] = [];
+          const ptsY: number[] = [];
           for (let k = 0; k < sh.sides; k += 1) {
             const lx = sh.shape[k * 2] * r;
             const ly = sh.shape[k * 2 + 1] * r * bankScale;
-            const sx = px + lx * cosR - ly * sinR;
-            const sy = py + lx * sinR + ly * cosR;
-            if (k === 0) ctx.moveTo(sx, sy);
-            else ctx.lineTo(sx, sy);
+            ptsX.push(px + lx * cosR - ly * sinR);
+            ptsY.push(py + lx * sinR + ly * cosR);
+          }
+
+          // 1. 3D Prism Thickness / Bevel Back-Face
+          const bevelDx = 2.2 * fade;
+          const bevelDy = 3.2 * fade;
+          ctx.beginPath();
+          for (let k = 0; k < sh.sides; k += 1) {
+            if (k === 0) ctx.moveTo(ptsX[k] + bevelDx, ptsY[k] + bevelDy);
+            else ctx.lineTo(ptsX[k] + bevelDx, ptsY[k] + bevelDy);
+          }
+          ctx.closePath();
+          ctx.fillStyle = toRgb([col[0] * 0.35, col[1] * 0.32, col[2] * 0.55], baseAlpha * 0.6);
+          ctx.fill();
+
+          // 2. Front Glass Face with Specular Studio Gradient
+          ctx.beginPath();
+          for (let k = 0; k < sh.sides; k += 1) {
+            if (k === 0) ctx.moveTo(ptsX[k], ptsY[k]);
+            else ctx.lineTo(ptsX[k], ptsY[k]);
           }
           ctx.closePath();
 
-          ctx.fillStyle = toRgb(col, alpha);
+          const g = ctx.createLinearGradient(px - r * 0.7, py - r * 0.7, px + r * 0.7, py + r * 0.7);
+          const specular = 0.45 + 0.45 * Math.sin(clock * 0.9 + sh.phase * 12);
+          g.addColorStop(0, toRgb([1, 0.96, 1], baseAlpha * (0.55 + 0.3 * specular)));
+          g.addColorStop(0.38, toRgb(col, baseAlpha * 0.85));
+          g.addColorStop(1, toRgb([col[0] * 0.45, col[1] * 0.4, col[2] * 0.7], baseAlpha * 0.45));
+
+          ctx.fillStyle = g;
           ctx.fill();
-          ctx.strokeStyle = toRgb([1, 1, 1], alpha * 0.65);
-          ctx.lineWidth = Math.max(0.6, 1.1 - sh.level * 0.15);
+
+          // 3. Crisp Fresnel Rim Highlight
+          ctx.strokeStyle = toRgb([1, 0.95, 1], baseAlpha * (0.55 + 0.35 * specular));
+          ctx.lineWidth = Math.max(0.7, 1.35 * fade);
           ctx.stroke();
         }
       };
