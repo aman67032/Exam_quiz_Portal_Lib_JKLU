@@ -27,7 +27,12 @@ const app = express();
 
 const JWT_SECRET =
   process.env.JWT_SECRET || 'jklu-portal-v2-change-this-secret-in-prod-9f8a7b6c5d4e';
-const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+const PUBLIC_BASE_URL = (
+  process.env.PUBLIC_BASE_URL ||
+  (process.env.VERCEL
+    ? 'https://paper-portal-588554backend-2nhi.vercel.app'
+    : 'http://localhost:8000')
+).replace(/\/$/, '');
 const CDN_BASE_URL = (process.env.CDN_BASE_URL || '').replace(/\/$/, '');
 
 function resolveWritableStorageBase() {

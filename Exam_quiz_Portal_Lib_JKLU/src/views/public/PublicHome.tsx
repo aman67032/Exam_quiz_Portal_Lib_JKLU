@@ -80,6 +80,7 @@ const PublicHome: React.FC = () => {
   // Preview Modal
   const [previewPaper, setPreviewPaper] = useState<any | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const autoOpenedPaperRef = useRef<string | null>(null);
 
   // Load lightweight course list once
   useEffect(() => {
@@ -148,8 +149,20 @@ const PublicHome: React.FC = () => {
       .then((res) => {
         if (!active) return;
         const data = res.data;
-        setPapers(Array.isArray(data?.items) ? data.items : []);
+        const loadedItems = Array.isArray(data?.items) ? data.items : [];
+        setPapers(loadedItems);
         setTotalPapers(Number(data?.total || 0));
+
+        // Auto-open preview if ?paper=<id> was shared
+        const sharedPaperId = searchParams.get('paper');
+        if (sharedPaperId && autoOpenedPaperRef.current !== sharedPaperId) {
+          const match = loadedItems.find((p: any) => String(p.id) === sharedPaperId);
+          if (match) {
+            autoOpenedPaperRef.current = sharedPaperId;
+            setPreviewPaper(match);
+            setPreviewUrl(`${API.baseURL}/papers/${match.id}/preview`);
+          }
+        }
         setTotalPages(Number(data?.pages || 1));
         setMatchedAcronyms(Array.isArray(data?.matched_acronyms) ? data.matched_acronyms : []);
         if (data?.facets?.availableYears?.length) {
