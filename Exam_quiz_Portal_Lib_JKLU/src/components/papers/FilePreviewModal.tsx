@@ -355,20 +355,24 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
               ) : isPdf ? (
                 <>
                   {isMobile ? (
-                    // Mobile: Full-height embedded viewer + single Open Full PDF link (Download & Close live in the footer)
-                    <div className="w-full h-full flex flex-col gap-2.5">
-                      <div className="flex-1 min-h-0 w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                        <iframe
-                          src={`https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(getPreviewUrl(paperId))}`}
-                          className="w-full h-full border-0"
-                          title={fileName}
-                        />
+                    // Mobile: Direct PDF card (avoids broken gview downloads on mobile Chrome)
+                    <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center gap-4">
+                      <div className="w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-red-500" />
+                      </div>
+                      <div className="space-y-1 max-w-xs">
+                        <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 break-words">
+                          {fileName}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Tap below to open the PDF in your device viewer or download it.
+                        </p>
                       </div>
                       <a
                         href={getPreviewUrl(paperId)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full shrink-0"
+                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 active:bg-blue-800 transition-colors inline-flex items-center justify-center space-x-2 text-sm font-medium min-h-[42px] touch-manipulation w-full max-w-xs"
                       >
                         <FileText className="w-4 h-4" />
                         <span>Open Full PDF</span>
