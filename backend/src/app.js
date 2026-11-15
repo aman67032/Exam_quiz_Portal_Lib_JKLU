@@ -33,12 +33,25 @@ import {
 const app = express();
 app.set('trust proxy', 1);
 
-if (!process.env.JWT_SECRET) {
+function resolveJwtSecret() {
+  if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
+  const envSeed =
+    process.env.DATABASE_URL ||
+    process.env.REDIS_URL ||
+    process.env.RECAPTCHA_SECRET_KEY ||
+    process.env.DEFAULT_ADMIN_PASSWORD;
+  if (envSeed) {
+    console.warn(
+      '⚠️ [Security] JWT_SECRET env var is not set; deriving deterministic secret from deployment env.'
+    );
+    return crypto.createHash('sha256').update(`learn-jklu:${envSeed}`).digest('hex');
+  }
   console.warn(
     '⚠️ [Security] JWT_SECRET env var is not set; using an ephemeral per-process secret.'
   );
+  return crypto.randomBytes(32).toString('hex');
 }
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
+const JWT_SECRET = resolveJwtSecret();
 const PUBLIC_BASE_URL = (
   process.env.PUBLIC_BASE_URL ||
   (process.env.VERCEL
