@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import compression from 'compression';
 import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import path from 'node:path';
@@ -24,9 +25,14 @@ import {
 } from './config/searchEngine.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
-const JWT_SECRET =
-  process.env.JWT_SECRET || 'jklu-portal-v2-change-this-secret-in-prod-9f8a7b6c5d4e';
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    '⚠️ [Security] JWT_SECRET env var is not set; using an ephemeral per-process secret.'
+  );
+}
+const JWT_SECRET = process.env.JWT_SECRET || crypto.randomBytes(32).toString('hex');
 const PUBLIC_BASE_URL = (
   process.env.PUBLIC_BASE_URL ||
   (process.env.VERCEL
@@ -58,6 +64,17 @@ const STORAGE_BASE_DIR = resolveWritableStorageBase();
 const STORAGE_PAPERS_DIR = path.join(STORAGE_BASE_DIR, 'papers');
 const STORAGE_USERS_DIR = path.join(STORAGE_BASE_DIR, 'users');
 
+const ALLOWED_ORIGINS = new Set(
+  [
+    'https://exam-quiz-portal-lib-jklu.vercel.app',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : []),
+  ]
+    .map((o) => o.trim().replace(/\/$/, ''))
+    .filter(Boolean)
+);
+
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
@@ -66,7 +83,12 @@ app.use(
 );
 app.use(
   cors({
-    origin: '*',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const normalized = origin.replace(/\/$/, '');
+      if (ALLOWED_ORIGINS.has(normalized)) return callback(null, true);
+      return callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Range'],
     exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length', 'Content-Disposition'],
@@ -76,13 +98,46 @@ app.use(compression());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Too many requests, please slow down.' },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Too many authentication attempts. Please try again in 15 minutes.' },
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 25,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { detail: 'Upload rate limit exceeded. Please wait before uploading again.' },
+});
+
+app.use(apiLimiter);
+
 let totalRequestsHandled = 0;
 let activeRequests = 0;
 const passwordResetStore = new Map();
 
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   totalRequestsHandled++;
   activeRequests++;
+  const isLongRoute =
+    req.path.startsWith('/papers/bulk-upload') || req.path.startsWith('/admin/papers/sync');
+  res.setTimeout(isLongRoute ? 55000 : 30000, () => {
+    if (!res.headersSent) {
+      res.status(504).json({ detail: 'Request timed out' });
+    }
+  });
   res.on('finish', () => {
     activeRequests = Math.max(0, activeRequests - 1);
   });
@@ -98,6 +153,12 @@ const paperUpload = multer({
     },
   }),
   limits: { fileSize: 30 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const okMime = file.mimetype === 'application/pdf' || file.mimetype === 'application/octet-stream';
+    if (ext === '.pdf' && okMime) return cb(null, true);
+    cb(new Error('Only PDF files are allowed'));
+  },
 });
 
 const userUpload = multer({
@@ -105,10 +166,17 @@ const userUpload = multer({
     destination: (_req, _file, cb) => cb(null, STORAGE_USERS_DIR),
     filename: (_req, file, cb) => {
       const clean = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-      cb(null, `${Date.now()}_${clean}`);
+      cb(null, `${Date.now()}_${crypto.randomBytes(4).toString('hex')}_${clean}`);
     },
   }),
   limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    const allowedExt = ['.jpg', '.jpeg', '.png', '.webp', '.pdf'];
+    const allowedMime = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (allowedExt.includes(ext) && allowedMime.includes(file.mimetype)) return cb(null, true);
+    cb(new Error('Only JPG, PNG, WEBP, or PDF files are allowed'));
+  },
 });
 
 // ============================================================================
@@ -154,7 +222,7 @@ function formatUserResponse(u) {
   };
 }
 
-function formatPaperResponse(r) {
+function formatPaperResponse(r, includeSensitive = false) {
   const pubId = r.public_link_id;
   return {
     id: Number(r.id),
@@ -163,7 +231,7 @@ function formatPaperResponse(r) {
     course_name: r.course_name || 'General Course',
     uploaded_by: r.uploaded_by ? Number(r.uploaded_by) : null,
     uploader_name: r.uploader_name || 'Archive Admin',
-    uploader_email: r.uploader_email || null,
+    uploader_email: includeSensitive ? r.uploader_email || null : null,
     title: r.title,
     description: r.description || null,
     paper_type: (r.paper_type || 'endterm').toLowerCase(),
@@ -225,6 +293,16 @@ async function requireAdminOrStaff(req, res, next) {
   const user = await getAuthenticatedUser(req);
   if (!user || (!user.is_admin && !user.admin_role)) {
     res.status(403).json({ detail: 'Admin or staff privileges required' });
+    return;
+  }
+  req.user = user;
+  next();
+}
+
+async function requireFullAdmin(req, res, next) {
+  const user = await getAuthenticatedUser(req);
+  if (!user || (!user.is_admin && user.admin_role !== 'full_admin')) {
+    res.status(403).json({ detail: 'Full admin privileges required' });
     return;
   }
   req.user = user;
@@ -534,16 +612,25 @@ app.get('/metrics', async (_req, res) => {
   });
 });
 
-app.get('/uploads/:filename(*)', (req, res) => {
+app.get('/uploads/:filename(*)', async (req, res) => {
   const filename = req.params.filename || '';
   const base = path.basename(filename);
   const userFile = path.join(STORAGE_USERS_DIR, base);
   if (fs.existsSync(userFile)) {
+    const user = await getAuthenticatedUser(req);
+    const isAdmin = Boolean(user && (user.is_admin || user.admin_role));
+    const isOwner = Boolean(user && user.id_card_path && path.basename(user.id_card_path) === base);
+    if (!user || (!isAdmin && !isOwner)) {
+      res.status(403).json({ detail: 'Authentication required to access user files' });
+      return;
+    }
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.sendFile(userFile);
     return;
   }
   const pdfInfo = resolvePdfDiskInfo(base);
   if (pdfInfo) {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     streamPdfWithByteRange(req, res, pdfInfo, base, 'inline');
     return;
   }
@@ -553,7 +640,7 @@ app.get('/uploads/:filename(*)', (req, res) => {
 // ============================================================================
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
-app.post('/login', async (req, res) => {
+app.post('/login', authLimiter, async (req, res) => {
   try {
     const email = String(req.body.email || req.body.username || '')
       .toLowerCase()
@@ -593,7 +680,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/admin-login', async (req, res) => {
+app.post('/admin-login', authLimiter, async (req, res) => {
   try {
     const email = String(req.body.username || req.body.email || '')
       .toLowerCase()
@@ -638,7 +725,7 @@ app.post('/admin-login', async (req, res) => {
   }
 });
 
-app.post('/register', async (req, res) => {
+app.post('/register', authLimiter, async (req, res) => {
   try {
     const email = String(req.body.email || '')
       .toLowerCase()
@@ -688,7 +775,7 @@ app.post('/register', async (req, res) => {
   }
 });
 
-app.post('/create-admin', async (req, res) => {
+app.post('/create-admin', requireFullAdmin, async (req, res) => {
   try {
     const email = String(req.body.email || '')
       .toLowerCase()
@@ -719,27 +806,45 @@ app.get('/me', requireAuth, async (req, res) => {
   res.json(formatUserResponse(req.user));
 });
 
-app.post('/forgot-password', async (req, res) => {
+app.post('/forgot-password', authLimiter, async (req, res) => {
   const email = String(req.body.email || '')
     .toLowerCase()
     .trim();
-  const otp = String(Math.floor(100000 + Math.random() * 900000));
-  passwordResetStore.set(email, { otp, expiresAt: Date.now() + 10 * 60 * 1000 });
-  console.log(`🔑 [OTP] Password reset OTP for ${email}: ${otp}`);
+  if (!email) {
+    res.status(400).json({ detail: 'Email is required' });
+    return;
+  }
+  const now = Date.now();
+  for (const [key, val] of passwordResetStore.entries()) {
+    if (now > val.expiresAt) passwordResetStore.delete(key);
+  }
+  const otp = String(crypto.randomInt(100000, 1000000));
+  passwordResetStore.set(email, { otp, attempts: 0, expiresAt: now + 10 * 60 * 1000 });
+  console.log(`🔑 [OTP] Password reset OTP generated for ${email}`);
   res.json({
-    message: 'OTP generated (check server console if SMTP is not configured)',
-    demo_otp: otp,
+    message: 'If the account exists, an OTP has been generated (check server logs/SMTP).',
   });
 });
 
-app.post('/reset-password', async (req, res) => {
+app.post('/reset-password', authLimiter, async (req, res) => {
   const email = String(req.body.email || '')
     .toLowerCase()
     .trim();
   const otp = String(req.body.otp || '').trim();
   const newPassword = String(req.body.new_password || '');
+  if (!email || !otp || newPassword.length < 6) {
+    res.status(400).json({ detail: 'Valid email, OTP, and password (min 6 chars) are required' });
+    return;
+  }
   const entry = passwordResetStore.get(email);
-  if (!entry || entry.otp !== otp || Date.now() > entry.expiresAt) {
+  if (!entry || Date.now() > entry.expiresAt) {
+    passwordResetStore.delete(email);
+    res.status(400).json({ detail: 'Invalid or expired OTP' });
+    return;
+  }
+  if (entry.otp !== otp) {
+    entry.attempts = (entry.attempts || 0) + 1;
+    if (entry.attempts >= 5) passwordResetStore.delete(email);
     res.status(400).json({ detail: 'Invalid or expired OTP' });
     return;
   }
@@ -777,7 +882,7 @@ app.put('/profile', requireAuth, async (req, res) => {
   res.json(formatUserResponse(updated.rows[0]));
 });
 
-app.post('/profile/id-card', requireAuth, userUpload.single('file'), async (req, res) => {
+app.post('/profile/id-card', requireAuth, uploadLimiter, userUpload.single('file'), async (req, res) => {
   const user = req.user;
   const file = req.file;
   if (!file) {
@@ -848,7 +953,7 @@ app.post('/courses', requireAdminOrStaff, async (req, res) => {
   res.json(inserted.rows[0]);
 });
 
-app.post('/courses/check-or-create', async (req, res) => {
+app.post('/courses/check-or-create', requireAuth, async (req, res) => {
   const code = String(req.query.code || req.body.code || '')
     .trim()
     .toUpperCase();
@@ -1150,11 +1255,29 @@ app.get('/papers/pending', requireAdminOrStaff, async (_req, res) => {
   res.json(result.rows.map(formatPaperResponse));
 });
 
+function isValidPdfFile(filePath) {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buf = Buffer.alloc(5);
+    const bytesRead = fs.readSync(fd, buf, 0, 5, 0);
+    fs.closeSync(fd);
+    return bytesRead === 5 && buf.toString('ascii') === '%PDF-';
+  } catch {
+    return false;
+  }
+}
+
 app.get('/papers', async (req, res) => {
   const user = await getAuthenticatedUser(req);
-  const { whereClause, params } = buildPaperFilterWhere(req.query, false);
+  const isStaff = Boolean(user && (user.is_admin || user.admin_role));
+  const forceApproved = !isStaff && req.query.my_papers_only !== 'true';
+  const { whereClause, params } = buildPaperFilterWhere(req.query, forceApproved);
   let finalWhere = whereClause;
-  if (req.query.my_papers_only === 'true' && user) {
+  if (req.query.my_papers_only === 'true') {
+    if (!user) {
+      res.status(401).json({ detail: 'Authentication required' });
+      return;
+    }
     params.push(user.id);
     finalWhere = finalWhere
       ? `${finalWhere} AND p.uploaded_by = $${params.length}`
@@ -1166,10 +1289,10 @@ app.get('/papers', async (req, res) => {
     params
   );
   if (result.rowCount > 0 || req.query.my_papers_only === 'true') {
-    res.json(result.rows.map(formatPaperResponse));
+    res.json(result.rows.map((r) => formatPaperResponse(r, isStaff)));
     return;
   }
-  res.json(filterLocalCatalogPapers(req.query, false).map(formatPaperResponse));
+  res.json(filterLocalCatalogPapers(req.query, forceApproved).map((r) => formatPaperResponse(r, isStaff)));
 });
 
 app.get('/papers/:paper_id', async (req, res) => {
@@ -1188,12 +1311,17 @@ app.get('/papers/:paper_id', async (req, res) => {
   res.json(formatPaperResponse(localPaper));
 });
 
-app.post('/papers/upload', paperUpload.single('file'), async (req, res) => {
+app.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('file'), async (req, res) => {
   try {
-    const user = await getAuthenticatedUser(req);
+    const user = req.user;
     const file = req.file;
     if (!file) {
       res.status(400).json({ detail: 'PDF file is required' });
+      return;
+    }
+    if (!isValidPdfFile(file.path)) {
+      fs.unlink(file.path, () => {});
+      res.status(400).json({ detail: 'Uploaded file is not a valid PDF document' });
       return;
     }
 
@@ -1257,11 +1385,17 @@ app.post('/papers/upload', paperUpload.single('file'), async (req, res) => {
   }
 });
 
-app.post('/papers/bulk-upload', paperUpload.array('files', 100), async (req, res) => {
+app.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUpload.array('files', 100), async (req, res) => {
   try {
     const files = req.files || [];
     if (files.length === 0) {
       res.status(400).json({ detail: 'No PDF files provided' });
+      return;
+    }
+    const invalidFiles = files.filter((f) => !isValidPdfFile(f.path));
+    if (invalidFiles.length > 0) {
+      for (const f of files) fs.unlink(f.path, () => {});
+      res.status(400).json({ detail: 'All uploaded files must be valid PDF documents' });
       return;
     }
 
@@ -1560,7 +1694,7 @@ app.post('/admin/papers/approve-all', requireAdminOrStaff, async (_req, res) => 
   });
 });
 
-app.post('/admin/papers/sync-folder', requireAdminOrStaff, async (req, res) => {
+app.post('/admin/papers/sync-folder', requireFullAdmin, async (req, res) => {
   try {
     const purgeExisting = Boolean(req.body.purge_existing);
     if (purgeExisting) resolvedPathCache.clear();
@@ -1575,7 +1709,7 @@ app.post('/admin/papers/sync-folder', requireAdminOrStaff, async (req, res) => {
   }
 });
 
-app.post('/admin/papers/sync-aura', requireAdminOrStaff, async (req, res) => {
+app.post('/admin/papers/sync-aura', requireFullAdmin, async (req, res) => {
   try {
     const purgeExisting = req.body.purge_existing !== false;
     if (purgeExisting) resolvedPathCache.clear();
@@ -1590,7 +1724,7 @@ app.post('/admin/papers/sync-aura', requireAdminOrStaff, async (req, res) => {
   }
 });
 
-app.post('/admin/papers/purge-old', requireAdminOrStaff, async (_req, res) => {
+app.post('/admin/papers/purge-old', requireFullAdmin, async (_req, res) => {
   const db = await getDb();
   await db.exec('DELETE FROM papers');
   for (const f of fs.readdirSync(STORAGE_PAPERS_DIR)) {
@@ -1666,13 +1800,13 @@ app.post('/admin/verify-user/:user_id', requireAdminOrStaff, async (req, res) =>
   res.json(formatUserResponse(updated.rows[0]));
 });
 
-app.get('/admin/users', requireAdminOrStaff, async (_req, res) => {
+app.get('/admin/users', requireFullAdmin, async (_req, res) => {
   const db = await getDb();
   const result = await db.query('SELECT * FROM users ORDER BY created_at DESC');
   res.json(result.rows.map(formatUserResponse));
 });
 
-app.post('/admin/create-sub-admin', requireAdminOrStaff, async (req, res) => {
+app.post('/admin/create-sub-admin', requireFullAdmin, async (req, res) => {
   const email = String(req.body.email || '')
     .toLowerCase()
     .trim();
@@ -1693,7 +1827,7 @@ app.post('/admin/create-sub-admin', requireAdminOrStaff, async (req, res) => {
   res.json(formatUserResponse(inserted.rows[0]));
 });
 
-app.put('/admin/users/:user_id', requireAdminOrStaff, async (req, res) => {
+app.put('/admin/users/:user_id', requireFullAdmin, async (req, res) => {
   const userId = Number(req.params.user_id);
   const { name, email, is_admin, admin_role, id_verified } = req.body;
   const db = await getDb();
@@ -1719,7 +1853,7 @@ app.put('/admin/users/:user_id', requireAdminOrStaff, async (req, res) => {
   res.json(formatUserResponse(updated.rows[0]));
 });
 
-app.delete('/admin/users/:user_id', requireAdminOrStaff, async (req, res) => {
+app.delete('/admin/users/:user_id', requireFullAdmin, async (req, res) => {
   const userId = Number(req.params.user_id);
   const db = await getDb();
   await db.query('DELETE FROM users WHERE id = $1', [userId]);
@@ -1752,7 +1886,7 @@ async function enrichContestsWithQuestions(contests) {
   }));
 }
 
-app.get('/admin/contests', async (_req, res) => {
+app.get('/admin/contests', requireAdminOrStaff, async (_req, res) => {
   const data = await getOrSetCache('contests:all', 30 * 1000, async () => {
     const db = await getDb();
     const cRes = await db.query('SELECT * FROM daily_contests ORDER BY date DESC, id DESC');
