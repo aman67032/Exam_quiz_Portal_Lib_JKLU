@@ -1525,7 +1525,7 @@ app.get('/papers', async (req, res) => {
 
 async function canAccessPaper(req, paper) {
   if (!paper) return false;
-  if (!paper.status || paper.status === 'approved') return true;
+  if (!paper.status || String(paper.status).toLowerCase() === 'approved') return true;
   const user = await getAuthenticatedUser(req);
   if (!user) return false;
   if (user.is_admin || user.admin_role) return true;
