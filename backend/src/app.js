@@ -6,6 +6,7 @@ import multer from 'multer';
 import jwt from 'jsonwebtoken';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import {
@@ -29,10 +30,28 @@ const JWT_SECRET =
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
 const CDN_BASE_URL = (process.env.CDN_BASE_URL || '').replace(/\/$/, '');
 
-const STORAGE_PAPERS_DIR = path.resolve(process.cwd(), 'storage/papers');
-const STORAGE_USERS_DIR = path.resolve(process.cwd(), 'storage/users');
-fs.mkdirSync(STORAGE_PAPERS_DIR, { recursive: true });
-fs.mkdirSync(STORAGE_USERS_DIR, { recursive: true });
+function resolveWritableStorageBase() {
+  const isServerless = Boolean(
+    process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NOW_REGION
+  );
+  const preferred = isServerless
+    ? path.join(os.tmpdir(), 'learn-jklu-storage')
+    : path.resolve(process.cwd(), 'storage');
+  try {
+    fs.mkdirSync(path.join(preferred, 'papers'), { recursive: true });
+    fs.mkdirSync(path.join(preferred, 'users'), { recursive: true });
+    return preferred;
+  } catch {
+    const fallback = path.join(os.tmpdir(), 'learn-jklu-storage');
+    fs.mkdirSync(path.join(fallback, 'papers'), { recursive: true });
+    fs.mkdirSync(path.join(fallback, 'users'), { recursive: true });
+    return fallback;
+  }
+}
+
+const STORAGE_BASE_DIR = resolveWritableStorageBase();
+const STORAGE_PAPERS_DIR = path.join(STORAGE_BASE_DIR, 'papers');
+const STORAGE_USERS_DIR = path.join(STORAGE_BASE_DIR, 'users');
 
 app.use(
   helmet({
