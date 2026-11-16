@@ -17,7 +17,20 @@ app.set('trust proxy', 1);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: false,
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'none'"],
+        objectSrc: ["'self'"],
+        styleSrc: ["'unsafe-inline'"],
+        frameAncestors: [
+          "'self'",
+          'https://exam-quiz-portal-lib-jklu.vercel.app',
+          'https://*.vercel.app',
+          'http://localhost:*',
+          'http://127.0.0.1:*',
+        ],
+      },
+    },
   })
 );
 app.use(
