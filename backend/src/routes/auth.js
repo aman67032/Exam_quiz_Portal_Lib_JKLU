@@ -244,6 +244,10 @@ router.post('/register', authLimiter, async (req, res) => {
       res.status(400).json({ detail: 'Name, email, and password are required' });
       return;
     }
+    if (password.length < 6) {
+      res.status(400).json({ detail: 'Password must be at least 6 characters' });
+      return;
+    }
     if (password !== confirmPassword) {
       res.status(400).json({ detail: 'Passwords do not match' });
       return;

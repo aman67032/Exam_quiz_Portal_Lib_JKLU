@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import JSZip from 'jszip';
 import { getDb, getLocalPastpaperCatalog } from '../config/db.js';
 import { getOrSetCache, invalidateCachePrefix, checkRateLimitWindow } from '../config/cache.js';
@@ -35,6 +36,7 @@ import {
 import { createAsyncRouter } from '../utils/routerHelper.js';
 
 const router = createAsyncRouter();
+let paperBlobColEnsured = false;
 
 function isValidPdfFile(filePath) {
   try {
@@ -205,11 +207,18 @@ router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('fi
     const status = isAdmin ? 'APPROVED' : 'PENDING';
     const publicLinkId = crypto.randomBytes(8).toString('hex');
 
+    if (!paperBlobColEnsured) {
+      await db.query('ALTER TABLE papers ADD COLUMN IF NOT EXISTS file_blob BYTEA');
+      paperBlobColEnsured = true;
+    }
+    const rawPdfBuf = await fs.promises.readFile(file.path);
+    const compressedBlob = zlib.deflateSync(rawPdfBuf);
+
     const inserted = await db.query(
       `INSERT INTO papers (
         course_id, uploaded_by, title, description, paper_type, year, semester,
-        department, file_path, file_name, file_size, status, public_link_id
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        department, file_path, file_name, file_size, file_blob, status, public_link_id
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
       RETURNING id`,
       [
         courseId || 1,
@@ -223,6 +232,7 @@ router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('fi
         file.filename,
         file.originalname,
         file.size,
+        compressedBlob,
         status,
         publicLinkId,
       ]
