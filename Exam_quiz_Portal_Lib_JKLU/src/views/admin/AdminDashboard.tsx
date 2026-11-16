@@ -10,142 +10,18 @@ import { buildUploadUrl } from '@/utils/uploads';
 import JKLULogo from '@/components/layout/JKLULogo';
 import AeroShards from '@/components/layout/AeroShards';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
+import AuthenticatedUploadPreview from './components/AuthenticatedUploadPreview';
+import ConfirmDialogModal from './components/ConfirmDialogModal';
+import type {
+  Stats,
+  Paper,
+  Course,
+  AdminUser,
+  VerificationRequest,
+  ConfirmDialogState,
+} from './types';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/+$/, '');
-
-const AuthenticatedUploadPreview: React.FC<{ filePath: string; alt: string; isPdf?: boolean }> = ({
-  filePath,
-  alt,
-  isPdf,
-}) => {
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-    let objectUrl: string | null = null;
-    const base = filePath.split('/').pop() || filePath;
-
-    setBlobUrl(null);
-    setFailed(false);
-
-    API.client
-      .get(`/uploads/${encodeURIComponent(base)}`, { responseType: 'blob' })
-      .then((res) => {
-        if (!active) return;
-        objectUrl = URL.createObjectURL(res.data);
-        setBlobUrl(objectUrl);
-      })
-      .catch(() => {
-        if (!active) return;
-        setFailed(true);
-      });
-
-    return () => {
-      active = false;
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [filePath]);
-
-  if (failed) {
-    return (
-      <div className="w-full h-64 bg-red-500/10 rounded-lg flex items-center justify-center border border-red-500/30 text-red-600 dark:text-red-400 text-xs font-medium">
-        Error
-      </div>
-    );
-  }
-
-  if (!blobUrl) {
-    return (
-      <div className="w-full h-64 bg-[#FAF9F6] dark:bg-[#0A0A0C]/60 rounded-lg flex items-center justify-center border border-[#E5E2DC] dark:border-[#232329] text-xs text-[#5C5B57] dark:text-[#94938E]">
-        Loading...
-      </div>
-    );
-  }
-
-  if (isPdf) {
-    return (
-      <div className="w-full h-64 bg-[#FAF9F6] dark:bg-[#0A0A0C]/60 rounded-lg flex flex-col items-center justify-center border border-[#E5E2DC] dark:border-[#232329] gap-2">
-        <Eye className="h-12 w-12 text-[#896ABD]" />
-        <p className="text-xs font-medium text-[#5C5B57] dark:text-[#94938E]">PDF Document</p>
-        <a
-          href={blobUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs font-semibold text-[#896ABD] dark:text-[#C084FC] underline"
-        >
-          View PDF
-        </a>
-      </div>
-    );
-  }
-
-  return (
-    <img
-      src={blobUrl}
-      alt={alt}
-      className="w-full h-auto rounded-lg object-cover border border-[#E5E2DC] dark:border-[#232329] max-h-96"
-      onError={() => setFailed(true)}
-    />
-  );
-};
-
-interface Stats {
-  total_papers: number;
-  pending_papers: number;
-  approved_papers: number;
-  rejected_papers: number;
-  total_courses: number;
-  total_users: number;
-}
-
-interface Paper {
-  id: number;
-  title: string;
-  description?: string;
-  paper_type: string;
-  year?: number;
-  semester?: string;
-  file_name: string;
-  file_path?: string;
-  course_code?: string;
-  course_name?: string;
-  uploader_name?: string;
-  uploader_email?: string;
-  status?: string;
-}
-
-interface Course {
-  id: number;
-  code: string;
-  name: string;
-  description?: string;
-}
-
-interface AdminUser {
-  id: number;
-  email: string;
-  name: string;
-  is_admin: boolean;
-  admin_role: string | null;
-  is_sub_admin: boolean;
-  created_at: string;
-}
-
-interface VerificationRequest {
-  id: number;
-  name: string;
-  email: string;
-  photo_path?: string;
-  id_card_path?: string;
-  age?: number;
-  year?: string;
-  university?: string;
-  department?: string;
-  roll_no?: string;
-  student_id?: string;
-  id_verified: boolean;
-}
 
 // Helper function to construct image URL from path
 const getImageUrl = (filePath: string | undefined): string => {
@@ -210,13 +86,7 @@ const AdminDashboard: React.FC = () => {
   const [courseForm, setCourseForm] = useState({ code: '', name: '', description: '' });
 
   // In-app confirmation modal state (replaces native browser confirm())
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    confirmLabel: string;
-    tone: 'danger' | 'primary';
-  }>({
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState>({
     isOpen: false,
     title: '',
     message: '',
@@ -2496,44 +2366,7 @@ const AdminDashboard: React.FC = () => {
       }
 
       {/* In-app Confirmation Modal */}
-      {confirmDialog.isOpen && (
-        <div
-          className="fixed inset-0 bg-black/65 backdrop-blur-sm flex items-center justify-center p-4 z-[60]"
-          onClick={() => resolveConfirm(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-2xl border border-[#E6E4DD] dark:border-white/10 bg-[#FFFFFF] dark:bg-[#111115] p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold text-[#0A0A0C] dark:text-[#F5F4F0] mb-2">
-              {confirmDialog.title}
-            </h3>
-            <p className="text-sm text-[#5C5B57] dark:text-[#94938E] mb-6 leading-relaxed">
-              {confirmDialog.message}
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => resolveConfirm(false)}
-                className="px-4 py-2 rounded-lg border border-[#E6E4DD] dark:border-white/10 text-sm font-medium text-[#5C5B57] dark:text-[#94938E] hover:bg-[#F3F1EA] dark:hover:bg-white/5 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => resolveConfirm(true)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors ${
-                  confirmDialog.tone === 'danger'
-                    ? 'bg-[#E04F33] hover:bg-[#c94127]'
-                    : 'bg-[#4F46E5] hover:bg-[#4338CA]'
-                }`}
-              >
-                {confirmDialog.confirmLabel}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialogModal dialog={confirmDialog} onResolve={resolveConfirm} />
 
       {/* Add CSS for glitch animation */}
       <style>{`
