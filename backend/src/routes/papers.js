@@ -537,6 +537,10 @@ router.get('/public/papers/:public_link_id', previewDownloadLimiter, async (req,
 router.patch('/papers/:paper_id/review', requireAdminOrStaff, async (req, res) => {
   const paperId = Number(req.params.paper_id);
   const status = String(req.body.status || 'APPROVED').toUpperCase();
+  if (!['APPROVED', 'REJECTED', 'PENDING'].includes(status)) {
+    res.status(400).json({ detail: 'Status must be APPROVED, REJECTED, or PENDING' });
+    return;
+  }
   const rejectionReason = req.body.rejection_reason || null;
   const adminFeedback = req.body.admin_feedback ? JSON.stringify(req.body.admin_feedback) : null;
   const user = req.user;

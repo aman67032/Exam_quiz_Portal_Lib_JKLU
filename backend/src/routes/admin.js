@@ -9,7 +9,7 @@ import {
 import { getOrSetCache, invalidateCachePrefix } from '../config/cache.js';
 import { STORAGE_PAPERS_DIR } from '../config/env.js';
 import { hashPasswordNonBlocking } from '../config/cryptoPool.js';
-import { formatUserResponse, requireAdminOrStaff, requireFullAdmin } from '../middleware/auth.js';
+import { formatUserResponse, requireAdminOrStaff, requireFullAdmin, USER_COLS } from '../middleware/auth.js';
 import { clearResolvedPathCache } from '../utils/pdfStorage.js';
 import { PAPER_SELECT_SQL, formatPaperResponse } from '../utils/paperHelpers.js';
 import { createAsyncRouter } from '../utils/routerHelper.js';
@@ -154,7 +154,7 @@ router.get('/diagnose/files', requireAdminOrStaff, async (_req, res) => {
 router.get('/verification-requests', requireAdminOrStaff, async (_req, res) => {
   const db = await getDb();
   const result = await db.query(
-    'SELECT * FROM users WHERE is_admin = FALSE AND id_card_path IS NOT NULL ORDER BY created_at DESC'
+    `SELECT ${USER_COLS} FROM users WHERE is_admin = FALSE AND id_card_path IS NOT NULL ORDER BY created_at DESC`
   );
   res.json(result.rows.map(formatUserResponse));
 });
@@ -173,7 +173,7 @@ router.post('/verify-user/:user_id', requireAdminOrStaff, async (req, res) => {
          verified_at = NOW(),
          admin_feedback = COALESCE($3::jsonb, admin_feedback)
      WHERE id = $4
-     RETURNING *`,
+     RETURNING ${USER_COLS}`,
     [approve, admin.id, feedback, userId]
   );
   invalidateCachePrefix('admin:');
@@ -183,7 +183,7 @@ router.post('/verify-user/:user_id', requireAdminOrStaff, async (req, res) => {
 
 router.get('/users', requireFullAdmin, async (_req, res) => {
   const db = await getDb();
-  const result = await db.query('SELECT * FROM users ORDER BY created_at DESC');
+  const result = await db.query(`SELECT ${USER_COLS} FROM users ORDER BY created_at DESC`);
   res.json(result.rows.map(formatUserResponse));
 });
 
@@ -205,7 +205,7 @@ router.post('/create-sub-admin', requireFullAdmin, async (req, res) => {
     `INSERT INTO users (email, name, password_hash, is_admin, admin_role, id_verified, email_verified)
      VALUES ($1, $2, $3, FALSE, $4, TRUE, TRUE)
      ON CONFLICT (email) DO UPDATE SET admin_role = EXCLUDED.admin_role
-     RETURNING *`,
+     RETURNING ${USER_COLS}`,
     [email, name, hash, role]
   );
   invalidateCachePrefix('auth:');
@@ -224,7 +224,7 @@ router.put('/users/:user_id', requireFullAdmin, async (req, res) => {
          admin_role = $4,
          id_verified = COALESCE($5, id_verified)
      WHERE id = $6
-     RETURNING *`,
+     RETURNING ${USER_COLS}`,
     [
       name ?? null,
       email ?? null,
@@ -240,6 +240,10 @@ router.put('/users/:user_id', requireFullAdmin, async (req, res) => {
 
 router.delete('/users/:user_id', requireFullAdmin, async (req, res) => {
   const userId = Number(req.params.user_id);
+  if (userId === Number(req.user.id)) {
+    res.status(400).json({ detail: 'You cannot delete your own admin account' });
+    return;
+  }
   const db = await getDb();
   await db.query('DELETE FROM users WHERE id = $1', [userId]);
   invalidateCachePrefix('auth:');

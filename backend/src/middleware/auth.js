@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import { getDb } from '../config/db.js';
 import { JWT_SECRET } from '../config/env.js';
 
+export const USER_COLS = `id, email, name, password_hash, is_admin, admin_role, age, year, university, department, roll_no, student_id, photo_path, id_card_path, id_verified, verified_by, verified_at, email_verified, admin_feedback, created_at`;
+
 export function signUserToken(user) {
   return jwt.sign(
     {
@@ -50,11 +52,11 @@ export async function getAuthenticatedUser(req) {
     const decoded = jwt.verify(token, JWT_SECRET);
     const db = await getDb();
     if (decoded.id) {
-      const res = await db.query('SELECT * FROM users WHERE id = $1 LIMIT 1', [decoded.id]);
+      const res = await db.query(`SELECT ${USER_COLS} FROM users WHERE id = $1 LIMIT 1`, [decoded.id]);
       if (res.rowCount > 0) return res.rows[0];
     }
     if (decoded.sub) {
-      const res = await db.query('SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1', [
+      const res = await db.query(`SELECT ${USER_COLS} FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1`, [
         decoded.sub,
       ]);
       if (res.rowCount > 0) return res.rows[0];

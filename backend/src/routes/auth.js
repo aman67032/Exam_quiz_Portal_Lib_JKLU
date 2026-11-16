@@ -4,7 +4,7 @@ import { getDb } from '../config/db.js';
 import { getOrSetCache, invalidateCachePrefix, checkRateLimitWindow } from '../config/cache.js';
 import { JWT_SECRET } from '../config/env.js';
 import { verifyPasswordNonBlocking, hashPasswordNonBlocking } from '../config/cryptoPool.js';
-import { signUserToken, formatUserResponse, requireAuth, requireFullAdmin } from '../middleware/auth.js';
+import { signUserToken, formatUserResponse, requireAuth, requireFullAdmin, USER_COLS } from '../middleware/auth.js';
 import { apiLimiter, authLimiter, uploadLimiter } from '../middleware/rateLimiters.js';
 import { userUpload } from '../middleware/uploads.js';
 import { createAsyncRouter } from '../utils/routerHelper.js';
@@ -143,7 +143,7 @@ router.post('/login', authLimiter, async (req, res) => {
 
     const user = await getOrSetCache(`auth:user:${email}`, 30000, async () => {
       const db = await getDb();
-      const userRes = await db.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [
+      const userRes = await db.query(`SELECT ${USER_COLS} FROM users WHERE LOWER(email) = $1 LIMIT 1`, [
         email,
       ]);
       return userRes.rowCount > 0 ? userRes.rows[0] : null;
@@ -193,7 +193,7 @@ router.post('/admin-login', authLimiter, async (req, res) => {
 
     const user = await getOrSetCache(`auth:user:${email}`, 30000, async () => {
       const db = await getDb();
-      const userRes = await db.query('SELECT * FROM users WHERE LOWER(email) = $1 LIMIT 1', [
+      const userRes = await db.query(`SELECT ${USER_COLS} FROM users WHERE LOWER(email) = $1 LIMIT 1`, [
         email,
       ]);
       return userRes.rowCount > 0 ? userRes.rows[0] : null;
@@ -266,7 +266,7 @@ router.post('/register', authLimiter, async (req, res) => {
     const inserted = await db.query(
       `INSERT INTO users (email, name, password_hash, is_admin, email_verified, id_verified)
        VALUES ($1, $2, $3, FALSE, TRUE, FALSE)
-       RETURNING *`,
+       RETURNING ${USER_COLS}`,
       [email, name, hash]
     );
     const newUser = inserted.rows[0];
@@ -303,7 +303,7 @@ router.post('/create-admin', requireFullAdmin, async (req, res) => {
       `INSERT INTO users (email, name, password_hash, is_admin, admin_role, id_verified, email_verified)
        VALUES ($1, $2, $3, TRUE, 'full_admin', TRUE, TRUE)
        ON CONFLICT (email) DO UPDATE SET is_admin = TRUE, admin_role = 'full_admin', password_hash = EXCLUDED.password_hash
-       RETURNING *`,
+       RETURNING ${USER_COLS}`,
       [email, name, hash]
     );
     invalidateCachePrefix('auth:');
@@ -330,7 +330,7 @@ router.put('/profile', requireAuth, async (req, res) => {
          department = COALESCE($4, department),
          year = COALESCE($5, year)
      WHERE id = $6
-     RETURNING *`,
+     RETURNING ${USER_COLS}`,
     [
       roll_no ?? null,
       student_id ?? null,
@@ -358,7 +358,7 @@ router.post('/profile/id-card', requireAuth, uploadLimiter, userUpload.single('f
   }
   const fileBuffer = await fs.promises.readFile(file.path);
   const updated = await db.query(
-    `UPDATE users SET id_card_path = $1, id_card_data = $2, id_card_mime = $3 WHERE id = $4 RETURNING *`,
+    `UPDATE users SET id_card_path = $1, id_card_data = $2, id_card_mime = $3 WHERE id = $4 RETURNING ${USER_COLS}`,
     [file.filename, fileBuffer, file.mimetype || 'application/octet-stream', user.id]
   );
   invalidateCachePrefix('admin:');

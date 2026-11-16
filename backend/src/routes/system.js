@@ -2,10 +2,11 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { getDb, getLocalPastpaperCatalog } from '../config/db.js';
 import { getOrSetCache, getCacheMetrics } from '../config/cache.js';
-import { STORAGE_USERS_DIR } from '../config/env.js';
+import { STORAGE_USERS_DIR, STORAGE_PAPERS_DIR } from '../config/env.js';
 import { getAuthenticatedUser, requireAdminOrStaff } from '../middleware/auth.js';
 import { getRequestStats } from '../middleware/rateLimiters.js';
-import { resolvePdfDiskInfo, streamPdfWithByteRange } from '../utils/pdfStorage.js';
+import { streamPdfWithByteRange } from '../utils/pdfStorage.js';
+import { canAccessPaper } from '../utils/paperHelpers.js';
 import { createAsyncRouter } from '../utils/routerHelper.js';
 
 const router = createAsyncRouter();
@@ -69,8 +70,12 @@ router.get('/metrics', requireAdminOrStaff, async (_req, res) => {
 router.get('/uploads/:filename(*)', async (req, res) => {
   const filename = req.params.filename || '';
   const base = path.basename(filename);
+  if (!base || base === '.' || base === '..') {
+    res.status(404).json({ detail: 'File not found' });
+    return;
+  }
   const userFile = path.join(STORAGE_USERS_DIR, base);
-  if (fs.existsSync(userFile)) {
+  if (fs.existsSync(userFile) && fs.statSync(userFile).isFile()) {
     const user = await getAuthenticatedUser(req);
     const isAdmin = Boolean(user && (user.is_admin || user.admin_role));
     const isOwner = Boolean(user && user.id_card_path && path.basename(user.id_card_path) === base);
@@ -110,13 +115,30 @@ router.get('/uploads/:filename(*)', async (req, res) => {
     // Column may not exist yet before first upload
   }
 
-  const pdfInfo = resolvePdfDiskInfo(base);
-  if (pdfInfo) {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    streamPdfWithByteRange(req, res, pdfInfo, base, 'inline');
+  // Exact-match only (no fuzzy matching, no placeholder generation) inside the papers store.
+  const paperFile = path.join(STORAGE_PAPERS_DIR, base);
+  if (!base || !fs.existsSync(paperFile) || !fs.statSync(paperFile).isFile()) {
+    res.status(404).json({ detail: 'File not found' });
     return;
   }
-  res.status(404).json({ detail: 'File not found' });
+  // If this file belongs to a paper record, enforce the same access rules as /papers/:id/preview.
+  const db = await getDb();
+  const owner = await db.query(
+    'SELECT id, status, uploaded_by FROM papers WHERE file_path = $1 LIMIT 1',
+    [base]
+  );
+  if (owner.rowCount > 0 && !(await canAccessPaper(req, owner.rows[0]))) {
+    res.status(404).json({ detail: 'File not found' });
+    return;
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  streamPdfWithByteRange(
+    req,
+    res,
+    { diskPath: paperFile, fileSize: fs.statSync(paperFile).size },
+    base,
+    'inline'
+  );
 });
 
 export default router;
