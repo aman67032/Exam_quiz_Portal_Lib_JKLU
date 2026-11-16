@@ -141,6 +141,12 @@ router.get('/papers/:paper_id', async (req, res) => {
 router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('file'), async (req, res) => {
   try {
     const user = req.user;
+    const isAdmin = Boolean(user?.is_admin || user?.admin_role);
+    if (!isAdmin && !user?.id_verified) {
+      if (req.file?.path) fs.unlink(req.file.path, () => {});
+      res.status(403).json({ detail: 'ID verification required to upload papers.' });
+      return;
+    }
     if (!(await checkRateLimitWindow(`upload:user:${user.id}`, 20, 900))) {
       if (req.file?.path) fs.unlink(req.file.path, () => {});
       res.status(429).json({ detail: 'Account upload limit reached. Please wait 15 minutes.' });
@@ -158,7 +164,6 @@ router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('fi
     }
 
     const db = await getDb();
-    const isAdmin = Boolean(user?.is_admin || user?.admin_role);
     if (!isAdmin) {
       const recentUpload = await db.query(
         `SELECT id FROM papers
