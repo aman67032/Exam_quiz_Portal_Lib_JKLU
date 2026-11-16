@@ -38,6 +38,12 @@ import { createAsyncRouter } from '../utils/routerHelper.js';
 const router = createAsyncRouter();
 let paperBlobColEnsured = false;
 
+async function ensurePaperBlobCol(db) {
+  if (paperBlobColEnsured) return;
+  await db.query('ALTER TABLE papers ADD COLUMN IF NOT EXISTS file_blob BYTEA');
+  paperBlobColEnsured = true;
+}
+
 function isValidPdfFile(filePath) {
   try {
     const fd = fs.openSync(filePath, 'r');
@@ -207,10 +213,7 @@ router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('fi
     const status = isAdmin ? 'APPROVED' : 'PENDING';
     const publicLinkId = crypto.randomBytes(8).toString('hex');
 
-    if (!paperBlobColEnsured) {
-      await db.query('ALTER TABLE papers ADD COLUMN IF NOT EXISTS file_blob BYTEA');
-      paperBlobColEnsured = true;
-    }
+    await ensurePaperBlobCol(db);
     const rawPdfBuf = await fs.promises.readFile(file.path);
     const compressedBlob = zlib.deflateSync(rawPdfBuf);
 
@@ -245,7 +248,9 @@ router.post('/papers/upload', requireAuth, uploadLimiter, paperUpload.single('fi
     const fullPaper = await db.query(`${PAPER_SELECT_SQL} WHERE p.id = $1`, [inserted.rows[0].id]);
     res.json(formatPaperResponse(fullPaper.rows[0]));
   } catch (err) {
-    res.status(500).json({ detail: err.message || 'Failed to upload paper' });
+    if (req.file?.path) fs.unlink(req.file.path, () => {});
+    console.error('[Paper Upload Error]', err);
+    res.status(500).json({ detail: 'Failed to upload paper' });
   }
 });
 
@@ -264,6 +269,7 @@ router.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUplo
     }
 
     const db = await getDb();
+    await ensurePaperBlobCol(db);
     const year = Number(req.body.year || new Date().getFullYear());
     const semester = String(req.body.semester || '1');
     const department = String(req.body.department || 'B.TECH').toUpperCase();
@@ -287,12 +293,13 @@ router.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUplo
       const title = `${rawCode} - ${rawCourseName} - ${paperType} - Sem ${semester} - ${year}`;
       const description = `Programme: ${department} | Year: ${year} | Semester: ${semester}`;
       const pubId = crypto.randomBytes(8).toString('hex');
+      const compressedBlob = zlib.deflateSync(await fs.promises.readFile(file.path));
 
       const ins = await db.query(
         `INSERT INTO papers (
           course_id, title, description, paper_type, year, semester, department,
-          file_path, file_name, file_size, status, public_link_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'APPROVED', $11)
+          file_path, file_name, file_size, file_blob, status, public_link_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'APPROVED', $12)
         RETURNING id`,
         [
           courseId,
@@ -305,6 +312,7 @@ router.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUplo
           file.filename,
           file.originalname,
           file.size,
+          compressedBlob,
           pubId,
         ]
       );
@@ -321,7 +329,9 @@ router.post('/papers/bulk-upload', requireAdminOrStaff, uploadLimiter, paperUplo
       ids: createdIds,
     });
   } catch (err) {
-    res.status(500).json({ detail: err.message || 'Bulk upload failed' });
+    for (const f of req.files || []) fs.unlink(f.path, () => {});
+    console.error('[Bulk Upload Error]', err);
+    res.status(500).json({ detail: 'Bulk upload failed' });
   }
 });
 
