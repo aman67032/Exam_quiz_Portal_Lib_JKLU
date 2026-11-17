@@ -4,6 +4,7 @@ import { Mail, Lock, Sparkles } from 'lucide-react';
 import JKLULogo from '@/components/layout/JKLULogo';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import AeroShards from '@/components/layout/AeroShards';
+import Topography from '@/components/layout/Topography';
 import { BackgroundBeams } from '@/components/aceternity/background-beams';
 import { SpotlightCard } from '@/components/aceternity/spotlight-card';
 import { Badge } from '@/components/ui/badge';
@@ -124,8 +125,42 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
 
   return (
     <div className="relative min-h-[100dvh] flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] overflow-x-hidden">
-      {/* Exclusive 3D Shard + Beams Backdrop */}
-      <div className="absolute inset-0 z-0 opacity-65 dark:opacity-85 pointer-events-none">
+      {/* Interactive WebGL2 Topography Backdrop */}
+      <div className="absolute inset-0 z-0 opacity-75 dark:opacity-90">
+        <Topography
+          color="#4f7cff"
+          lineCount={22}
+          lineWidth={1.2}
+          elevation={1}
+          foreground={0.2}
+          tilt={32}
+          speed={0.25}
+          direction="forward"
+          glow={0.6}
+          depthOfField={0.4}
+          fog={0.35}
+          hoverEffect="lift"
+          clickEffect="pulse"
+          majorLines
+          scale={1}
+          detail={0.35}
+          morph={0.2}
+          brightness={1}
+          markers="none"
+          glitch={0}
+          opacity={1}
+          mouseInteraction
+          mouseRadius={1}
+          mouseStrength={0.6}
+          trail={0.3}
+          parallax={0.5}
+          intro
+          lightMode={theme === 'light'}
+        />
+      </div>
+
+      {/* Crystal Shards Layered Over Topography */}
+      <div className="absolute inset-0 z-[1] opacity-55 dark:opacity-75 pointer-events-none">
         <AeroShards
           shardColor="#896ABD"
           accentColor="#E04F33"
@@ -141,7 +176,7 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
           grain={0.04}
         />
       </div>
-      <BackgroundBeams className="z-[1] opacity-75" />
+      <BackgroundBeams className="z-[2] opacity-65" />
 
       {/* Mobile-friendly Compact Header */}
       <header className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 pt-4 pb-2 flex items-center justify-between gap-3">
