@@ -9,6 +9,7 @@ import { BackgroundBeams } from '@/components/aceternity/background-beams';
 import { SpotlightCard } from '@/components/aceternity/spotlight-card';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from '@/contexts/ThemeContext';
+import techAffairsLogo from '@/assets/technical-affairs-logo.png';
 
 interface MaintenanceModeProps {
   message?: string;
@@ -180,8 +181,18 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
 
       {/* Mobile-friendly Compact Header */}
       <header className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-8 pt-4 pb-2 flex items-center justify-between gap-3">
-        <JKLULogo size="xs" className="sm:hidden shrink-0" />
-        <JKLULogo size="sm" className="hidden sm:block shrink-0" />
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <JKLULogo size="xs" className="sm:hidden shrink-0" />
+          <JKLULogo size="sm" className="hidden sm:block shrink-0" />
+          <img
+            src={(techAffairsLogo as any)?.src || techAffairsLogo}
+            alt="Council of Technical Affairs"
+            className="h-7 w-7 sm:h-8 sm:w-8 rounded-md object-cover border border-[#E5E2DC] dark:border-[#232329] shrink-0"
+          />
+          <span className="hidden sm:inline-block font-mono-tabular text-[11px] uppercase tracking-wider text-[#5C5B57] dark:text-[#94938E] truncate">
+            Council of Technical Affairs
+          </span>
+        </div>
         <ThemeSwitcher />
       </header>
 
