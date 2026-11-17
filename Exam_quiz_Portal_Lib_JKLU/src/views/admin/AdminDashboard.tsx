@@ -4,6 +4,7 @@ import { AlertCircle, CheckCircle, XCircle, Edit2, Trash2, LogOut, BarChart3, Us
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { API } from '@/utils/api';
 import FilePreviewModal from '@/components/papers/FilePreviewModal';
 import { buildUploadUrl } from '@/utils/uploads';
@@ -30,6 +31,7 @@ const getImageUrl = (filePath: string | undefined): string => {
 
 const AdminDashboard: React.FC = () => {
   const { user, logout, loading: authLoading } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -725,7 +727,7 @@ const AdminDashboard: React.FC = () => {
           mouseInteraction
           pulseOnClick
           holdToGather
-          lightMode={false}
+          lightMode={theme === 'light'}
           dpr={1.5}
           intro
           mouseStrength={0.5}

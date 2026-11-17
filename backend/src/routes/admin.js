@@ -121,17 +121,31 @@ router.post('/papers/purge-old', requireFullAdmin, async (_req, res) => {
 
 router.get('/diagnose/files', requireAdminOrStaff, async (_req, res) => {
   const db = await getDb();
-  const papersRes = await db.query('SELECT id, title, file_path, file_name FROM papers ORDER BY id ASC');
+  let papersRes;
+  try {
+    papersRes = await db.query(
+      'SELECT id, title, file_path, file_name, (file_blob IS NOT NULL) AS has_db_blob FROM papers ORDER BY id ASC'
+    );
+  } catch {
+    papersRes = await db.query(
+      'SELECT id, title, file_path, file_name, FALSE AS has_db_blob FROM papers ORDER BY id ASC'
+    );
+  }
   const diskFiles = fs.existsSync(STORAGE_PAPERS_DIR) ? fs.readdirSync(STORAGE_PAPERS_DIR) : [];
   const diskSet = new Set(diskFiles.map((f) => f.toLowerCase()));
 
   let missingCount = 0;
+  let dbBlobCount = 0;
   const papers = papersRes.rows.map((p) => {
     const storedPath = p.file_path || p.file_name || '';
     const extractedFilename = path.basename(storedPath);
-    const exists =
+    const hasDbBlob = Boolean(p.has_db_blob);
+    if (hasDbBlob) dbBlobCount++;
+    const onDisk =
       diskSet.has(extractedFilename.toLowerCase()) ||
       diskFiles.some((f) => f.toLowerCase().endsWith(extractedFilename.toLowerCase()));
+    const isRemote = /^https?:\/\//i.test(storedPath);
+    const exists = hasDbBlob || onDisk || isRemote;
     if (!exists) missingCount++;
     return {
       paper_id: Number(p.id),
@@ -139,15 +153,16 @@ router.get('/diagnose/files', requireAdminOrStaff, async (_req, res) => {
       stored_path: storedPath,
       extracted_filename: extractedFilename,
       file_exists: exists,
+      storage_type: hasDbBlob ? 'postgresql_blob' : onDisk ? 'local_disk' : isRemote ? 'remote_url' : 'missing',
     };
   });
 
   res.json({
     total_papers: papers.length,
-    files_on_disk_count: diskFiles.length,
+    files_on_disk_count: diskFiles.length + dbBlobCount,
     papers_with_existing_files: papers.length - missingCount,
     papers_with_missing_files: missingCount,
-    uploads_directory: STORAGE_PAPERS_DIR,
+    uploads_directory: dbBlobCount > 0 ? 'PostgreSQL BYTEA + /tmp cache' : STORAGE_PAPERS_DIR,
     papers,
   });
 });
