@@ -13,6 +13,14 @@ import JKLULogo from '@/components/layout/JKLULogo';
 import Footer from '@/components/layout/Footer';
 import HeroBackgroundAnimation from '@/components/layout/HeroBackgroundAnimation';
 import AeroShards from '@/components/layout/AeroShards';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { BackgroundBeams } from '@/components/aceternity/background-beams';
+import { SpotlightCard } from '@/components/aceternity/spotlight-card';
+import { TextGenerateEffect } from '@/components/aceternity/text-generate-effect';
+import { BentoGrid, BentoGridItem } from '@/components/aceternity/bento-grid';
+import { ScrollProgressBar, MotionReveal } from '@/components/animations/MotionPrimitives';
+import { ScrollCanvasShowcase } from '@/components/animations/ScrollCanvasShowcase';
 import { API } from '@/utils/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -131,6 +139,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] selection:bg-[#E04F33] selection:text-white overflow-x-hidden">
+      <ScrollProgressBar />
       {/* Top Navigation Bar — Mobile Optimized */}
       <header className="sticky top-0 z-40 border-b border-[#E5E2DC] dark:border-[#232329] bg-[#FAF9F6]/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-3 sm:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
@@ -223,6 +232,7 @@ const LandingPage: React.FC = () => {
           />
         </div>
         <HeroBackgroundAnimation />
+        <BackgroundBeams className="z-[1] opacity-80" />
 
         <div className="relative z-10 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-12 lg:py-16">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 sm:gap-10 lg:gap-12 items-center">
@@ -243,15 +253,12 @@ const LandingPage: React.FC = () => {
               </h1>
 
               <p className="anim-hero-line text-sm sm:text-lg text-[#5C5B57] dark:text-[#94938E] max-w-2xl leading-relaxed font-normal">
-                Access{' '}
+                <TextGenerateEffect words="Access verified Mid-Term & End-Term question papers across B.Tech, BBA, BCA, M.Tech, MBA, and B.Des (2020–2026)." />{' '}
+                Preview{' '}
                 <strong className="text-[#0A0A0C] dark:text-[#F5F4F0] font-medium">
-                  {metrics.approvedPapers.toLocaleString()}+ verified Mid-Term &amp; End-Term question papers
+                  {metrics.approvedPapers.toLocaleString()}+ papers
                 </strong>{' '}
-                across{' '}
-                <strong className="text-[#0A0A0C] dark:text-[#F5F4F0] font-medium">
-                  B.Tech, BBA, BCA, M.Tech, MBA, and B.Des
-                </strong>{' '}
-                (2020–2026). Preview papers directly in your browser or download clean PDFs for offline exam preparation.
+                directly in your browser or download clean PDFs for offline exam preparation.
               </p>
 
               {/* Quick Search Bar Trigger */}
@@ -271,13 +278,14 @@ const LandingPage: React.FC = () => {
                   </span>
                 </button>
 
-                <button
+                <Button
                   onClick={() => navigate('/home')}
-                  className="w-full sm:w-auto px-6 py-3 sm:py-3.5 rounded-md bg-[#0A0A0C] dark:bg-[#F5F4F0] text-[#FAF9F6] dark:text-[#0A0A0C] font-medium text-sm hover:bg-[#E04F33] dark:hover:bg-[#E04F33] dark:hover:text-white transition-colors flex items-center justify-center gap-2 whitespace-nowrap shadow-sm active:scale-[0.99]"
+                  size="lg"
+                  className="w-full sm:w-auto h-auto py-3 sm:py-3.5 px-6 whitespace-nowrap"
                 >
                   <span>Explore Papers</span>
                   <ArrowUpRight className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
 
               {/* Key University Portal Stats */}
@@ -395,10 +403,12 @@ const LandingPage: React.FC = () => {
                 popular: ['AS1106', 'CS1116', 'CS1105', 'CC1105'],
               },
             ].map((prog) => (
-              <div
+              <SpotlightCard
                 key={prog.dept}
-                className="editorial-card rounded-xl p-6 flex flex-col justify-between space-y-6"
+                spotlightColor={`${prog.accent}22`}
+                className="p-6"
               >
+                <div className="flex flex-col justify-between space-y-6 h-full">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="font-mono-tabular text-[11px] uppercase tracking-wider text-[#5C5B57] dark:text-[#94938E]">
@@ -468,87 +478,63 @@ const LandingPage: React.FC = () => {
                     <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </button>
                 </div>
-              </div>
+                </div>
+              </SpotlightCard>
             ))}
           </div>
         </section>
 
-        {/* Section 2: Portal Features */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-[#E5E2DC] dark:border-[#232329] pt-12">
-          {/* Card 1: Past Paper Archive */}
-          <div
-            onClick={() => navigate('/home')}
-            className="anim-hero-card editorial-card rounded-lg p-6 cursor-pointer flex flex-col justify-between group"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-mono-tabular text-xs uppercase px-2 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#0A0A0C] border border-[#E5E2DC] dark:border-[#232329]">
-                  01 / QUESTION BANK
-                </span>
-                <BookOpen className="w-4 h-4 text-[#5C5B57] group-hover:text-[#E04F33] transition-colors" />
-              </div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                Past Exam Paper Archive
-              </h2>
-              <p className="text-sm text-[#5C5B57] dark:text-[#94938E] leading-relaxed">
-                Filter papers across B.Tech, BBA, and BCA by semester, academic year, and exam type (Mid-Term, End-Term, Quiz). Preview PDFs instantly or download for offline revision.
-              </p>
-            </div>
-            <div className="pt-6 mt-6 border-t border-[#E5E2DC] dark:border-[#232329] flex items-center justify-between text-xs font-medium">
-              <span>Browse {metrics.approvedPapers}+ Question Papers</span>
-              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </div>
-          </div>
+        {/* Section 1.5: GSAP ScrollTrigger + Canvas Frame-Scrubbing Interactive Showcase */}
+        <MotionReveal>
+          <ScrollCanvasShowcase papersCount={metrics.approvedPapers} />
+        </MotionReveal>
 
-          {/* Card 2: Course & Semester Filtering */}
-          <div
-            onClick={() => navigate('/home?focus=search')}
-            className="anim-hero-card editorial-card rounded-lg p-6 cursor-pointer flex flex-col justify-between group"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-mono-tabular text-xs uppercase px-2 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#0A0A0C] border border-[#E5E2DC] dark:border-[#232329]">
-                  02 / COURSE INDEX
-                </span>
-                <FileCheck2 className="w-4 h-4 text-[#5C5B57] group-hover:text-[#4F46E5] transition-colors" />
-              </div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                Course-Wise &amp; Semester Lookup
-              </h2>
-              <p className="text-sm text-[#5C5B57] dark:text-[#94938E] leading-relaxed">
-                Search across {metrics.courses}+ JKLU courses by course code (e.g., CS1102, MA1101) or subject title, and compare Mid-Sem and End-Sem papers across years.
-              </p>
-            </div>
-            <div className="pt-6 mt-6 border-t border-[#E5E2DC] dark:border-[#232329] flex items-center justify-between text-xs font-medium text-[#4F46E5] dark:text-[#6366F1]">
-              <span>Search {metrics.courses} University Courses</span>
-              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </div>
-          </div>
-
-          {/* Card 3: Contribute Papers */}
-          <div
-            onClick={() => navigate('/login')}
-            className="anim-hero-card editorial-card rounded-lg p-6 cursor-pointer flex flex-col justify-between group"
-          >
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="font-mono-tabular text-xs uppercase px-2 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#0A0A0C] border border-[#E5E2DC] dark:border-[#232329]">
-                  03 / CONTRIBUTE
-                </span>
-                <Layers className="w-4 h-4 text-[#5C5B57] group-hover:text-[#E04F33] transition-colors" />
-              </div>
-              <h2 className="text-xl font-semibold tracking-tight">
-                Submit Question Papers
-              </h2>
-              <p className="text-sm text-[#5C5B57] dark:text-[#94938E] leading-relaxed">
-                Help juniors and classmates prepare better by uploading recent Mid-Term or End-Term papers from your courses.
-              </p>
-            </div>
-            <div className="pt-6 mt-6 border-t border-[#E5E2DC] dark:border-[#232329] flex items-center justify-between text-xs font-medium">
-              <span>Sign In to Upload Papers</span>
-              <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </div>
-          </div>
+        {/* Section 2: Aceternity BentoGrid Portal Features */}
+        <section className="border-t border-[#E5E2DC] dark:border-[#232329] pt-12">
+          <BentoGrid>
+            <BentoGridItem
+              onClick={() => navigate('/home')}
+              badge="01 / QUESTION BANK"
+              icon={<BookOpen className="w-4 h-4 text-[#5C5B57] group-hover/spotlight:text-[#E04F33] transition-colors" />}
+              title="Past Exam Paper Archive"
+              description="Filter papers across B.Tech, BBA, and BCA by semester, academic year, and exam type (Mid-Term, End-Term, Quiz). Preview PDFs instantly or download for offline revision."
+              spotlightColor="rgba(224, 79, 51, 0.14)"
+              footer={
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span>Browse {metrics.approvedPapers}+ Question Papers</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover/spotlight:translate-x-0.5 group-hover/spotlight:-translate-y-0.5 transition-transform" />
+                </div>
+              }
+            />
+            <BentoGridItem
+              onClick={() => navigate('/home?focus=search')}
+              badge="02 / COURSE INDEX"
+              icon={<FileCheck2 className="w-4 h-4 text-[#5C5B57] group-hover/spotlight:text-[#4F46E5] transition-colors" />}
+              title="Course-Wise & Semester Lookup"
+              description={`Search across ${metrics.courses}+ JKLU courses by course code (e.g., CS1102, MA1101) or subject title, and compare Mid-Sem and End-Sem papers across years.`}
+              spotlightColor="rgba(79, 70, 229, 0.15)"
+              footer={
+                <div className="flex items-center justify-between text-xs font-medium text-[#4F46E5] dark:text-[#818CF8]">
+                  <span>Search {metrics.courses} University Courses</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover/spotlight:translate-x-0.5 group-hover/spotlight:-translate-y-0.5 transition-transform" />
+                </div>
+              }
+            />
+            <BentoGridItem
+              onClick={() => navigate('/login')}
+              badge="03 / CONTRIBUTE"
+              icon={<Layers className="w-4 h-4 text-[#5C5B57] group-hover/spotlight:text-[#E04F33] transition-colors" />}
+              title="Submit Question Papers"
+              description="Help juniors and classmates prepare better by uploading recent Mid-Term or End-Term papers from your courses."
+              spotlightColor="rgba(21, 128, 61, 0.14)"
+              footer={
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span>Sign In to Upload Papers</span>
+                  <ArrowUpRight className="w-4 h-4 group-hover/spotlight:translate-x-0.5 group-hover/spotlight:-translate-y-0.5 transition-transform" />
+                </div>
+              }
+            />
+          </BentoGrid>
         </section>
       </main>
 
