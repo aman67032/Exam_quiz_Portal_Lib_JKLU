@@ -7,6 +7,7 @@ import { getAuthenticatedUser } from '../middleware/auth.js';
 import { getRequestStats } from '../middleware/rateLimiters.js';
 import { streamPdfWithByteRange } from '../utils/pdfStorage.js';
 import { canAccessPaper } from '../utils/paperHelpers.js';
+import { getMaintenanceStatus } from '../utils/maintenance.js';
 import { createAsyncRouter } from '../utils/routerHelper.js';
 
 const router = createAsyncRouter();
@@ -21,6 +22,12 @@ router.get('/', (_req, res) => {
 
 router.get('/wake', (_req, res) => {
   res.json({ status: 'awake', timestamp: new Date().toISOString() });
+});
+
+router.get('/maintenance-status', async (_req, res) => {
+  const status = await getMaintenanceStatus();
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(status);
 });
 
 router.get('/health', async (_req, res) => {

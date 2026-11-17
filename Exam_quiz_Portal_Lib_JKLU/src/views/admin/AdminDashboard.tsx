@@ -165,13 +165,65 @@ const AdminDashboard: React.FC = () => {
   // Host creation state
   const [hostForm, setHostForm] = useState({ email: '', name: '', password: '' });
 
+  // Maintenance Mode state
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState(
+    'We are performing scheduled maintenance on Learn JKLU. The archive will be back online shortly.'
+  );
+  const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+
   const token = localStorage.getItem('token');
 
   useEffect(() => {
     if (token) {
       fetchDashboardData();
+      axios
+        .get(`${API_BASE_URL}/maintenance-status`)
+        .then((res) => {
+          setMaintenanceEnabled(Boolean(res.data?.maintenance_mode));
+          if (res.data?.message) setMaintenanceMessage(String(res.data.message));
+        })
+        .catch(() => {});
     }
   }, [token]);
+
+  const handleToggleMaintenance = async () => {
+    const nextEnabled = !maintenanceEnabled;
+    const confirmed = await requestConfirm({
+      title: nextEnabled ? 'Enable Maintenance Mode' : 'Disable Maintenance Mode',
+      message: nextEnabled
+        ? 'Students and public visitors will be locked to the Maintenance page until you turn this off.'
+        : 'The portal will immediately become accessible to all students and visitors again.',
+      confirmLabel: nextEnabled ? 'Enable Maintenance' : 'Restore Site',
+      tone: nextEnabled ? 'danger' : 'primary',
+    });
+    if (!confirmed) return;
+
+    setMaintenanceLoading(true);
+    try {
+      const res = await axios.post(
+        `${API_BASE_URL}/admin/maintenance`,
+        { enabled: nextEnabled, message: maintenanceMessage },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const enabled = Boolean(res.data?.maintenance_mode);
+      setMaintenanceEnabled(enabled);
+      if (res.data?.message) setMaintenanceMessage(String(res.data.message));
+      window.dispatchEvent(
+        new CustomEvent('maintenance-status-changed', {
+          detail: { enabled, message: res.data?.message },
+        })
+      );
+      showMessage(
+        'success',
+        enabled ? 'Maintenance Mode is now ON for all visitors.' : 'Maintenance Mode turned OFF — site is live!'
+      );
+    } catch (e: any) {
+      showMessage('error', e.response?.data?.detail || 'Failed to update maintenance mode');
+    } finally {
+      setMaintenanceLoading(false);
+    }
+  };
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -760,6 +812,55 @@ const AdminDashboard: React.FC = () => {
         )}
 
         <div className="max-w-7xl mx-auto px-4 mt-6">
+          {/* Site Maintenance Mode Control */}
+          {user?.is_admin && (
+            <div
+              className={`mb-5 p-4 rounded-2xl backdrop-blur-md border shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs ${
+                maintenanceEnabled
+                  ? 'bg-[#E04F33]/10 border-[#E04F33]/40'
+                  : 'bg-white/85 dark:bg-[#111117]/86 border-[#E5E2DC] dark:border-white/10'
+              }`}
+            >
+              <div className="space-y-1 flex-1 min-w-0">
+                <div className="flex items-center gap-2 font-mono-tabular font-semibold">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      maintenanceEnabled ? 'bg-[#E04F33] animate-pulse' : 'bg-emerald-500'
+                    }`}
+                  />
+                  <span className={maintenanceEnabled ? 'text-[#E04F33]' : 'text-emerald-600 dark:text-emerald-400'}>
+                    {maintenanceEnabled ? 'MAINTENANCE MODE ACTIVE · VISITORS LOCKED' : 'SITE STATUS · LIVE'}
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  value={maintenanceMessage}
+                  onChange={(e) => setMaintenanceMessage(e.target.value)}
+                  placeholder="Custom maintenance message for students..."
+                  className="w-full max-w-xl px-3 py-1.5 rounded-lg border border-[#E5E2DC] dark:border-white/10 bg-white dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  disabled={maintenanceLoading}
+                  onClick={handleToggleMaintenance}
+                  className={`px-4 py-2 rounded-lg font-mono-tabular font-semibold transition disabled:opacity-50 ${
+                    maintenanceEnabled
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                      : 'bg-[#E04F33] hover:bg-[#c94127] text-white'
+                  }`}
+                >
+                  {maintenanceLoading
+                    ? 'Updating...'
+                    : maintenanceEnabled
+                      ? 'Turn Maintenance OFF'
+                      : 'Turn Maintenance ON'}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Bulk PDF Sync & Purge Bar */}
           <div className="mb-5 p-4 rounded-2xl bg-white/85 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 shadow-sm flex flex-wrap items-center justify-between gap-4 font-mono-tabular text-xs">
             <div className="space-y-1">

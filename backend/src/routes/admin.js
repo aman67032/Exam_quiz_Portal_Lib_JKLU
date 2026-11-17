@@ -12,6 +12,7 @@ import { hashPasswordNonBlocking } from '../config/cryptoPool.js';
 import { formatUserResponse, requireAdminOrStaff, requireFullAdmin, USER_COLS } from '../middleware/auth.js';
 import { clearResolvedPathCache } from '../utils/pdfStorage.js';
 import { PAPER_SELECT_SQL, formatPaperResponse } from '../utils/paperHelpers.js';
+import { getMaintenanceStatus, setMaintenanceStatus } from '../utils/maintenance.js';
 import { createAsyncRouter } from '../utils/routerHelper.js';
 
 const router = createAsyncRouter();
@@ -248,6 +249,22 @@ router.delete('/users/:user_id', requireFullAdmin, async (req, res) => {
   await db.query('DELETE FROM users WHERE id = $1', [userId]);
   invalidateCachePrefix('auth:');
   res.json({ message: 'User deleted' });
+});
+
+router.get('/maintenance', requireFullAdmin, async (_req, res) => {
+  const status = await getMaintenanceStatus();
+  res.json(status);
+});
+
+router.post('/maintenance', requireFullAdmin, async (req, res) => {
+  const enabled = Boolean(req.body?.enabled);
+  const message = typeof req.body?.message === 'string' ? req.body.message : undefined;
+  const status = await setMaintenanceStatus({
+    enabled,
+    message,
+    updatedBy: req.user?.email || req.user?.id,
+  });
+  res.json(status);
 });
 
 export default router;
