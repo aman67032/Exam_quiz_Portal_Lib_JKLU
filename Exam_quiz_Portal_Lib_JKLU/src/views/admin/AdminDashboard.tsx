@@ -742,7 +742,7 @@ const AdminDashboard: React.FC = () => {
         <motion.header
           initial={{ y: -24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-40 bg-[#FAF9F6]/88 dark:bg-[#0A0A0C]/88 backdrop-blur-md border-b border-[#E5E2DC]/80 dark:border-white/10"
+          className="sticky top-0 z-40 bg-[#FAF9F6]/90 dark:bg-[#0A0A0C]/90 backdrop-blur-md border-b border-[#E5E2DC]/80 dark:border-white/10"
         >
           <div className="max-w-7xl mx-auto px-4 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
@@ -820,7 +820,7 @@ const AdminDashboard: React.FC = () => {
               className={`mb-5 p-4 rounded-2xl backdrop-blur-md border shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 text-xs ${
                 maintenanceEnabled
                   ? 'bg-[#E04F33]/10 border-[#E04F33]/40'
-                  : 'bg-white/85 dark:bg-[#111117]/86 border-[#E5E2DC] dark:border-white/10'
+                  : 'bg-white/85 dark:bg-[#111117]/90 border-[#E5E2DC] dark:border-white/10'
               }`}
             >
               <div className="space-y-1 flex-1 min-w-0">
@@ -864,7 +864,7 @@ const AdminDashboard: React.FC = () => {
           )}
 
           {/* Bulk PDF Sync & Purge Bar */}
-          <div className="mb-5 p-4 rounded-2xl bg-white/85 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 shadow-sm flex flex-wrap items-center justify-between gap-4 font-mono-tabular text-xs">
+          <div className="mb-5 p-4 rounded-2xl bg-white/85 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 shadow-sm flex flex-wrap items-center justify-between gap-4 font-mono-tabular text-xs">
             <div className="space-y-1">
               <div className="text-[#896ABD] dark:text-[#C4B5FD] font-semibold">
                 BULK PAPER ENGINE · EXPRESS.JS + POSTGRESQL
@@ -920,7 +920,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Glassmorphic Tabs */}
-          <div className="bg-white/85 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 rounded-2xl p-2 flex gap-1.5 overflow-x-auto shadow-sm custom-scrollbar">
+          <div className="bg-white/85 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 rounded-2xl p-2 flex gap-1.5 overflow-x-auto shadow-sm custom-scrollbar">
             {['dashboard', 'upload', 'all-papers', 'pending', 'courses', 'hosts', 'users'].map(tab => (
               <button
                 key={tab}
@@ -962,7 +962,7 @@ const AdminDashboard: React.FC = () => {
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="relative overflow-hidden rounded-2xl bg-white/88 dark:bg-[#111117]/86 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 p-6 shadow-sm hover:border-[#896ABD]/60 transition-all"
+                    className="relative overflow-hidden rounded-2xl bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC] dark:border-white/10 p-6 shadow-sm hover:border-[#896ABD]/60 transition-all"
                   >
                     <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${stat.color}`} />
                     <div className="flex items-center justify-between mb-3">

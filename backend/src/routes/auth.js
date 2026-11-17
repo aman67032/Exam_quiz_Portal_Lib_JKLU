@@ -358,7 +358,7 @@ router.post('/profile/id-card', requireAuth, uploadLimiter, userUpload.single('f
   }
   const fileBuffer = await fs.promises.readFile(file.path);
   const updated = await db.query(
-    `UPDATE users SET id_card_path = $1, id_card_data = $2, id_card_mime = $3 WHERE id = $4 RETURNING ${USER_COLS}`,
+    `UPDATE users SET id_card_path = $1, id_card_data = $2, id_card_mime = $3, id_verified = FALSE, verified_by = NULL, verified_at = NULL WHERE id = $4 RETURNING ${USER_COLS}`,
     [file.filename, fileBuffer, file.mimetype || 'application/octet-stream', user.id]
   );
   invalidateCachePrefix('admin:');

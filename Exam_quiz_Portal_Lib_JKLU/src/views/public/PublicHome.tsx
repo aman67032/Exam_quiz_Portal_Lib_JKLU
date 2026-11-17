@@ -454,7 +454,7 @@ const PublicHome: React.FC = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-7">
         {/* Unified Smart Search & Multi-Faceted Filter Console */}
-        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/86 dark:bg-[#111117]/84 backdrop-blur-md border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/90 dark:bg-[#111117]/84 backdrop-blur-md border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -738,7 +738,7 @@ const PublicHome: React.FC = () => {
             ))}
           </div>
         ) : papers.length === 0 ? (
-          <div className="rounded-2xl p-12 text-center space-y-3 bg-white/90 dark:bg-[#111117]/88 backdrop-blur-xl border border-[#E5E2DC] dark:border-white/10">
+          <div className="rounded-2xl p-12 text-center space-y-3 bg-white/90 dark:bg-[#111117]/90 backdrop-blur-xl border border-[#E5E2DC] dark:border-white/10">
             <p className="text-base font-medium">No question papers match your current filter.</p>
             <p className="text-xs text-[#5C5B57] dark:text-[#94938E]">
               Try searching with a short-form (e.g., DSA, RL, OS, DBMS, FA) or resetting filters.
@@ -764,7 +764,7 @@ const PublicHome: React.FC = () => {
 
             {/* Server-Side Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/88 dark:bg-[#111117]/88 backdrop-blur-md border border-[#E5E2DC]/80 dark:border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-white/90 dark:bg-[#111117]/90 backdrop-blur-md border border-[#E5E2DC]/80 dark:border-white/10">
                 <span className="text-xs font-mono-tabular text-[#5C5B57] dark:text-[#C4C3BE]">
                   Page {currentPage} of {totalPages} ({totalPapers} total papers)
                 </span>

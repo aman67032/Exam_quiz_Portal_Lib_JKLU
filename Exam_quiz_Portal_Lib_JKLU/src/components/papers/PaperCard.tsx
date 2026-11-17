@@ -158,7 +158,7 @@ const PaperCard: React.FC<PaperCardProps> = ({
     <div
       ref={cardRef}
       onClick={() => onPreview(paper)}
-      className={`paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/88 dark:bg-[#111117]/86 backdrop-blur-sm border shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 min-h-[268px] transform-gpu ${
+      className={`paper-card-anim relative overflow-hidden rounded-2xl p-6 sm:p-7 flex flex-col justify-between cursor-pointer group bg-white/90 dark:bg-[#111117]/90 backdrop-blur-sm border shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_12px_36px_rgb(0,0,0,0.35)] hover:shadow-[0_16px_44px_rgba(137,106,189,0.18)] hover:border-[#896ABD]/60 dark:hover:border-[#A855F7]/50 hover:-translate-y-1 transition-[transform,box-shadow,border-color] duration-200 min-h-[268px] transform-gpu ${
         isSelected
           ? 'border-[#896ABD] ring-2 ring-[#896ABD]/40 dark:border-[#A855F7] dark:ring-[#A855F7]/40'
           : 'border-[#E5E2DC]/90 dark:border-white/10'

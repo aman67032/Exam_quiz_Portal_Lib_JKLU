@@ -170,7 +170,7 @@ router.get('/diagnose/files', requireAdminOrStaff, async (_req, res) => {
 router.get('/verification-requests', requireAdminOrStaff, async (_req, res) => {
   const db = await getDb();
   const result = await db.query(
-    `SELECT ${USER_COLS} FROM users WHERE is_admin = FALSE AND id_card_path IS NOT NULL ORDER BY created_at DESC`
+    `SELECT ${USER_COLS} FROM users WHERE is_admin = FALSE AND id_card_path IS NOT NULL AND COALESCE(id_verified, FALSE) = FALSE AND verified_at IS NULL ORDER BY created_at DESC`
   );
   res.json(result.rows.map(formatUserResponse));
 });
