@@ -44,7 +44,7 @@ const ExclusiveVaultGraphic: React.FC = () => {
           strokeOpacity="0.65"
           animate={{ rotate: 360 }}
           transition={{ duration: 24, repeat: Infinity, ease: 'linear' }}
-          style={{ originX: '70px', originY: '70px' }}
+          style={{ transformOrigin: '70px 70px', transformBox: 'view-box' }}
         />
 
         {/* Inner counter-rotating arc */}
@@ -58,14 +58,14 @@ const ExclusiveVaultGraphic: React.FC = () => {
           strokeDasharray="48 180"
           animate={{ rotate: -360 }}
           transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-          style={{ originX: '70px', originY: '70px' }}
+          style={{ transformOrigin: '70px 70px', transformBox: 'view-box' }}
         />
 
         {/* Orbiting accent node */}
         <motion.g
           animate={{ rotate: 360 }}
           transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
-          style={{ originX: '70px', originY: '70px' }}
+          style={{ transformOrigin: '70px 70px', transformBox: 'view-box' }}
         >
           <circle cx="70" cy="10" r="4" fill="#E04F33" />
           <circle cx="130" cy="70" r="3" fill="#4F46E5" />
@@ -152,12 +152,7 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
 
       {/* Main Centered Card */}
       <main className="relative z-10 flex-1 flex items-center justify-center px-4 py-6 sm:p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 18, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 160, damping: 22 }}
-          className="w-full max-w-md sm:max-w-lg"
-        >
+        <div className="w-full max-w-md sm:max-w-lg">
           <SpotlightCard
             spotlightColor="rgba(224, 79, 51, 0.16)"
             className="p-5 sm:p-8 backdrop-blur-xl bg-white/90 dark:bg-[#121216]/90 shadow-2xl"
@@ -208,7 +203,7 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
               </div>
             </div>
           </SpotlightCard>
-        </motion.div>
+        </div>
       </main>
     </div>
   );
