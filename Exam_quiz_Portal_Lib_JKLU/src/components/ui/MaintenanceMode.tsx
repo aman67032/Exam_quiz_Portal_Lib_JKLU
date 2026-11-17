@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Mail, Lock, Sparkles } from 'lucide-react';
+import { Mail, Lock, Sparkles } from 'lucide-react';
 import JKLULogo from '@/components/layout/JKLULogo';
 import ThemeSwitcher from '@/components/layout/ThemeSwitcher';
 import AeroShards from '@/components/layout/AeroShards';
@@ -197,8 +196,8 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
                 </span>
               </div>
 
-              {/* Mobile-stacked / Desktop-inline Footer Actions */}
-              <div className="pt-4 border-t border-[#E5E2DC] dark:border-[#232329] flex flex-col sm:flex-row items-center justify-between gap-3">
+              {/* Clean Centered Contact Footer */}
+              <div className="pt-4 border-t border-[#E5E2DC] dark:border-[#232329] flex items-center justify-center">
                 <a
                   href="mailto:counciloftechnicalaffairs@jklu.edu.in"
                   className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs text-[#5C5B57] dark:text-[#94938E] hover:text-[#E04F33] transition-colors truncate max-w-full"
@@ -206,14 +205,6 @@ const MaintenanceMode: React.FC<MaintenanceModeProps> = ({ message }) => {
                   <Mail className="w-3.5 h-3.5 shrink-0" />
                   <span className="truncate">counciloftechnicalaffairs@jklu.edu.in</span>
                 </a>
-
-                <Link
-                  to="/admin-login"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 font-mono-tabular text-xs font-medium px-3.5 py-2 sm:py-1.5 rounded-lg border border-[#E5E2DC] dark:border-[#232329] bg-[#FAF9F6] dark:bg-[#0A0A0C] hover:border-[#0A0A0C] dark:hover:border-[#F5F4F0] transition-colors shrink-0 active:scale-[0.98]"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#E04F33]" />
-                  <span>Admin Access</span>
-                </Link>
               </div>
             </div>
           </SpotlightCard>

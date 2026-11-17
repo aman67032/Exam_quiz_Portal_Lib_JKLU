@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
@@ -31,9 +31,11 @@ const LoadingFallback = () => {
 
 // Manual code override: set to true only if you want to lock the entire frontend manually in code
 const MANUAL_MAINTENANCE_MODE = false;
+const MAINTENANCE_ADMIN_ACCESS_ID = 'cota-jklu';
 
 function AppContent() {
   const { user, loading } = useAuth();
+  const location = useLocation();
   const [maintenanceState, setMaintenanceState] = useState<{
     checked: boolean;
     enabled: boolean;
@@ -90,18 +92,23 @@ function AppContent() {
   const isMaintenanceActive = MANUAL_MAINTENANCE_MODE || maintenanceState.enabled;
 
   if (isMaintenanceActive) {
+    const accessId = new URLSearchParams(location.search).get('id');
+    const hasAdminAccessId = accessId === MAINTENANCE_ADMIN_ACCESS_ID;
+
     return (
       <div className="min-h-screen bg-[#FAF9F6] dark:bg-[#0A0A0C] text-[#0A0A0C] dark:text-[#F5F4F0] transition-colors duration-300">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
-            {/* Admin login remains reachable so admin can turn maintenance off */}
+            {/* Admin login during maintenance requires the special ?id=cota-jklu parameter */}
             <Route
               path="/admin-login"
               element={
                 user?.is_admin ? (
                   <Navigate to="/admin" replace />
-                ) : (
+                ) : hasAdminAccessId ? (
                   <AdminLogin />
+                ) : (
+                  <MaintenanceMode message={maintenanceState.message} />
                 )
               }
             />
