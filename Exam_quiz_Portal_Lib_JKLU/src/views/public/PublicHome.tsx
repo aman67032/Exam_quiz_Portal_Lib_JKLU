@@ -454,7 +454,7 @@ const PublicHome: React.FC = () => {
       {/* Main Content */}
       <main className="relative z-10 flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-7">
         {/* Unified Smart Search & Multi-Faceted Filter Console */}
-        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/90 dark:bg-[#111117]/84 backdrop-blur-md border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
+        <section className="rounded-2xl p-5 sm:p-7 space-y-5 bg-white/90 dark:bg-[#111117]/85 backdrop-blur-md border border-[#E5E2DC]/90 dark:border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)]">
           {/* Header Row */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
@@ -502,7 +502,7 @@ const PublicHome: React.FC = () => {
 
           {/* Smart Acronym Expansion Feedback Banner */}
           {matchedAcronyms.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#896ABD]/12 border border-[#896ABD]/30 text-xs">
+            <div className="flex flex-wrap items-center gap-2 px-3.5 py-2.5 rounded-xl bg-[#896ABD]/15 border border-[#896ABD]/30 text-xs">
               <span className="inline-flex items-center gap-1 font-mono-tabular font-semibold text-[#896ABD] dark:text-[#C084FC]">
                 <Sparkles className="w-3.5 h-3.5" />
                 Smart Acronym Connected:

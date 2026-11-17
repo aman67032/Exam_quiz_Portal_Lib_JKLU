@@ -67,10 +67,10 @@ const PaperCard: React.FC<PaperCardProps> = ({
 
   const typeBadgeStyle =
     typeUpper === 'ENDTERM'
-      ? 'bg-[#E04F33]/12 text-[#E04F33] dark:text-[#FF6B4A] border-[#E04F33]/30'
+      ? 'bg-[#E04F33]/15 text-[#E04F33] dark:text-[#FF6B4A] border-[#E04F33]/30'
       : typeUpper === 'MIDTERM'
       ? 'bg-[#896ABD]/15 text-[#6D4AFF] dark:text-[#C4B5FD] border-[#896ABD]/35'
-      : 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+      : 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
 
   const accentBarClass =
     typeUpper === 'ENDTERM'

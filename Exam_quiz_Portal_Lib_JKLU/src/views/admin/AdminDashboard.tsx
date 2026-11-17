@@ -783,7 +783,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <button
                 onClick={logout}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E04F33]/12 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 text-xs font-mono-tabular transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E04F33]/15 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 text-xs font-mono-tabular transition-colors"
               >
                 <LogOut size={15} />
                 <span>Logout</span>
@@ -801,8 +801,8 @@ const AdminDashboard: React.FC = () => {
             className="max-w-7xl mx-auto px-4 mt-4"
           >
             <div className={`p-3.5 rounded-xl border backdrop-blur-md text-xs font-mono-tabular ${message.type === 'success'
-              ? 'bg-emerald-500/12 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
-              : 'bg-[#E04F33]/12 border-[#E04F33]/40 text-[#E04F33]'
+              ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+              : 'bg-[#E04F33]/15 border-[#E04F33]/40 text-[#E04F33]'
               }`}>
               <div className="flex items-center gap-2">
                 {message.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
@@ -893,7 +893,7 @@ const AdminDashboard: React.FC = () => {
                     showMessage('error', e.response?.data?.detail || 'Failed to purge old papers');
                   }
                 }}
-                className="px-3 py-2 rounded-lg bg-[#E04F33]/12 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 transition"
+                className="px-3 py-2 rounded-lg bg-[#E04F33]/15 border border-[#E04F33]/35 text-[#E04F33] hover:bg-[#E04F33]/20 transition"
               >
                 1. Purge Old PDFs
               </button>
