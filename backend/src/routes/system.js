@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { getDb, getLocalPastpaperCatalog } from '../config/db.js';
 import { getOrSetCache, getCacheMetrics } from '../config/cache.js';
 import { STORAGE_USERS_DIR, STORAGE_PAPERS_DIR } from '../config/env.js';
-import { getAuthenticatedUser, requireAdminOrStaff } from '../middleware/auth.js';
+import { getAuthenticatedUser } from '../middleware/auth.js';
 import { getRequestStats } from '../middleware/rateLimiters.js';
 import { streamPdfWithByteRange } from '../utils/pdfStorage.js';
 import { canAccessPaper } from '../utils/paperHelpers.js';
@@ -37,9 +37,10 @@ router.get('/health', async (_req, res) => {
   });
 });
 
-router.get('/metrics', requireAdminOrStaff, async (_req, res) => {
+router.get('/metrics', async (req, res) => {
+  const user = await getAuthenticatedUser(req);
+  const isStaff = Boolean(user && (user.is_admin || user.admin_role));
   const db = await getDb();
-  const { activeRequests, totalRequestsHandled } = getRequestStats();
   const counts = await getOrSetCache('metrics:counts', 15000, async () => {
     const [u, c, p] = await Promise.all([
       db.query('SELECT COUNT(*)::text as count FROM users'),
@@ -58,6 +59,21 @@ router.get('/metrics', requireAdminOrStaff, async (_req, res) => {
       byDepartment: localStats.byDept || {},
     };
   });
+
+  if (!isStaff) {
+    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+    res.json({
+      counts: {
+        courses: counts.courses,
+        approvedPapers: counts.approvedPapers,
+        programmes: counts.programmes,
+        byDepartment: counts.byDepartment,
+      },
+    });
+    return;
+  }
+
+  const { activeRequests, totalRequestsHandled } = getRequestStats();
   res.json({
     engine: db.engineName,
     counts,
