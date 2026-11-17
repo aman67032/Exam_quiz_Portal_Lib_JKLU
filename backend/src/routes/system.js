@@ -68,7 +68,8 @@ router.get('/metrics', async (req, res) => {
   });
 
   if (!isStaff) {
-    res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+    res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=300, stale-while-revalidate=3600');
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
     res.json({
       counts: {
         courses: counts.courses,

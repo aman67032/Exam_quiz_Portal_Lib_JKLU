@@ -59,7 +59,8 @@ function isValidPdfFile(filePath) {
 router.get('/papers/public/all', async (req, res) => {
   const allPapers = await getApprovedCatalogIndex();
   const { items } = executeSmartCatalogSearch(allPapers, req.query);
-  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+  res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
   res.json(items);
 });
 
@@ -77,7 +78,8 @@ router.get('/papers/public', async (req, res) => {
   const total = matchedItems.length;
   const paginatedItems = matchedItems.slice(offset, offset + size);
 
-  res.setHeader('Cache-Control', 'public, max-age=15, stale-while-revalidate=60');
+  res.setHeader('Cache-Control', 'public, max-age=30, s-maxage=300, stale-while-revalidate=3600');
+  res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
   res.json({
     items: paginatedItems,
     total,
@@ -441,12 +443,14 @@ router.get('/papers/:paper_id/preview', previewDownloadLimiter, async (req, res)
     res.status(404).json({ detail: 'PDF file not found on storage' });
     return;
   }
+  const isPublicApproved = !paper.status || String(paper.status).toLowerCase() === 'approved';
   streamPdfWithByteRange(
     req,
     res,
     diskInfo,
     paper.file_name || `paper_${paper.id}.pdf`,
-    'inline'
+    'inline',
+    isPublicApproved
   );
 });
 
@@ -487,12 +491,14 @@ router.get('/papers/:paper_id/download', previewDownloadLimiter, async (req, res
     res.status(404).json({ detail: 'PDF file not found on storage' });
     return;
   }
+  const isPublicApproved = !paper.status || String(paper.status).toLowerCase() === 'approved';
   streamPdfWithByteRange(
     req,
     res,
     diskInfo,
     paper.file_name || `paper_${paper.id}.pdf`,
-    'attachment'
+    'attachment',
+    isPublicApproved
   );
 });
 
@@ -525,12 +531,14 @@ router.get('/public/papers/:public_link_id', previewDownloadLimiter, async (req,
     res.status(404).json({ detail: 'PDF file not found on storage' });
     return;
   }
+  const isPublicApproved = !paper.status || String(paper.status).toLowerCase() === 'approved';
   streamPdfWithByteRange(
     req,
     res,
     diskInfo,
     paper.file_name || `paper_${paper.id}.pdf`,
-    'inline'
+    'inline',
+    isPublicApproved
   );
 });
 

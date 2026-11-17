@@ -19,7 +19,8 @@ router.get('/', async (_req, res) => {
     if (result.rowCount > 0) return result.rows;
     return getLocalPastpaperCatalog().courses;
   });
-  res.setHeader('Cache-Control', 'public, max-age=30, stale-while-revalidate=120');
+  res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600');
+  res.setHeader('CDN-Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
   res.json(courses);
 });
 

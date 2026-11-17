@@ -239,14 +239,26 @@ startxref
   return info;
 }
 
-export function streamPdfWithByteRange(req, res, diskInfo, downloadName, disposition) {
+export function streamPdfWithByteRange(req, res, diskInfo, downloadName, disposition, isPublic = true) {
   const { diskPath, fileSize } = diskInfo;
   const safeName = downloadName.replace(/[^a-zA-Z0-9._ -]/g, '_');
 
   res.setHeader('Accept-Ranges', 'bytes');
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `${disposition}; filename="${safeName}"`);
-  res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  if (isPublic) {
+    res.setHeader(
+      'Cache-Control',
+      'public, max-age=86400, s-maxage=604800, stale-while-revalidate=2592000'
+    );
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=604800, stale-while-revalidate=2592000');
+    res.setHeader(
+      'Vercel-CDN-Cache-Control',
+      'public, s-maxage=604800, stale-while-revalidate=2592000'
+    );
+  } else {
+    res.setHeader('Cache-Control', 'private, no-store');
+  }
 
   const range = req.headers.range;
   if (range) {
