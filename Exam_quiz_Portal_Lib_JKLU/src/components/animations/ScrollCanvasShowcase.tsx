@@ -25,23 +25,23 @@ interface ScrollCanvasShowcaseProps {
 const STEPS = [
   {
     id: 'search',
-    label: '01 / INSTANT INDEX',
-    title: 'Smart Acronym & Course Lookup',
-    desc: 'Query by code (CS1102, ID1114), semester, or acronym across 306+ JKLU courses.',
+    label: '01 / FIND',
+    title: 'Search by Course or Subject',
+    desc: 'Look up any paper by course code (CS1102, ID1114), semester, or subject name across 306+ courses.',
     icon: Search,
   },
   {
     id: 'preview',
-    label: '02 / WASM PDF ENGINE',
-    title: 'Inline High-DPI Canvas Preview',
-    desc: 'Client-side PDF.js + JBIG2/OpenJPEG WASM renders scanned exam sheets crisply on mobile.',
+    label: '02 / PREVIEW',
+    title: 'Instant Mobile & Desktop Preview',
+    desc: 'Read scanned Mid-Term and End-Term question papers clearly right in your browser before downloading.',
     icon: FileText,
   },
   {
     id: 'export',
-    label: '03 / OFFLINE READY',
-    title: 'Clean PDF & Batch ZIP Export',
-    desc: 'Download verified Mid-Term & End-Term papers with zero watermarks or broken links.',
+    label: '03 / DOWNLOAD',
+    title: 'Save Clean PDFs Offline',
+    desc: 'Download individual papers or bundle multiple subjects into a single ZIP for last-minute revision.',
     icon: CheckCircle2,
   },
 ];
@@ -289,18 +289,18 @@ export const ScrollCanvasShowcase: React.FC<ScrollCanvasShowcaseProps> = ({
         <div className="space-y-1">
           <Badge variant="indigo">
             <Sparkles className="w-3 h-3" />
-            <span>GSAP SCROLLTRIGGER · CANVAS PIPELINE</span>
+            <span>HOW IT WORKS</span>
           </Badge>
           <h2 className="text-xl sm:text-3xl font-light tracking-tight">
-            How the{' '}
+            Find, preview &amp;{' '}
             <span className="font-serif-editorial italic font-normal text-[#4F46E5] dark:text-[#818CF8]">
-              exam vault
+              prepare
             </span>{' '}
-            works as you scroll
+            in three steps
           </h2>
         </div>
         <div className="font-mono-tabular text-xs text-[#5C5B57] dark:text-[#94938E] flex items-center gap-2">
-          <span>FRAME SCRUB</span>
+          <span>STEP {activeStep + 1} OF 3</span>
           <span className="px-2 py-0.5 rounded bg-[#FAF9F6] dark:bg-[#0A0A0C] border border-[#E5E2DC] dark:border-[#232329] text-[#0A0A0C] dark:text-[#F5F4F0]">
             {scrollPct}%
           </span>
