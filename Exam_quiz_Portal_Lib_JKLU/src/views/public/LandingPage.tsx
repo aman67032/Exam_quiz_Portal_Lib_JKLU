@@ -19,6 +19,7 @@ import { BackgroundBeams } from '@/components/aceternity/background-beams';
 import { SpotlightCard } from '@/components/aceternity/spotlight-card';
 import { TextGenerateEffect } from '@/components/aceternity/text-generate-effect';
 import { BentoGrid, BentoGridItem } from '@/components/aceternity/bento-grid';
+import { HeroPaperDeck } from '@/components/aceternity/hero-paper-deck';
 import { ScrollProgressBar, MotionReveal } from '@/components/animations/MotionPrimitives';
 import { ScrollCanvasShowcase } from '@/components/animations/ScrollCanvasShowcase';
 import { API } from '@/utils/api';
@@ -288,6 +289,22 @@ const LandingPage: React.FC = () => {
                 </Button>
               </div>
 
+              {/* 1-Tap Trending Course Shortcuts */}
+              <div className="anim-hero-line flex flex-wrap items-center gap-2 text-xs">
+                <span className="font-mono-tabular text-[11px] uppercase tracking-wider text-[#5C5B57] dark:text-[#94938E]">
+                  Trending:
+                </span>
+                {['CS1102', 'ID1114', 'MA1121', 'FA1108'].map((code) => (
+                  <button
+                    key={code}
+                    onClick={() => navigate(`/home?q=${encodeURIComponent(code)}`)}
+                    className="font-mono-tabular text-[11px] px-2.5 py-1 rounded-full border border-[#E5E2DC] dark:border-[#232329] bg-white/80 dark:bg-[#121216]/80 hover:border-[#E04F33] hover:text-[#E04F33] transition-colors"
+                  >
+                    {code}
+                  </button>
+                ))}
+              </div>
+
               {/* Key University Portal Stats */}
               <div className="anim-hero-line pt-4 sm:pt-5 grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4 border-t border-[#E5E2DC] dark:border-[#232329]">
                 <div>
@@ -325,26 +342,13 @@ const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right 5 Columns: JKLU Campus Exam Holograms Hero Showcase */}
+            {/* Right 5 Columns: Interactive 3D-Tilt Paper Deck Showcase */}
             <div className="lg:col-span-5 anim-hero-card">
-              <div className="anim-hero-float relative rounded-xl overflow-hidden border border-[#E5E2DC] dark:border-[#232329] bg-white/90 dark:bg-[#121216]/90 backdrop-blur-md p-2 sm:p-3 shadow-lg group">
-                <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-[#FAF9F6] dark:bg-[#0A0A0C]">
-                  <img
-                    src={(jkluCampusHeroImg as any)?.src || jkluCampusHeroImg}
-                    alt="JKLU Campus Exam Portal Showcase"
-                    className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="pt-2.5 sm:pt-3 px-1 flex items-center justify-between text-[10px] sm:text-xs text-[#5C5B57] dark:text-[#94938E] font-mono-tabular">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#15803D]" />
-                    <span>JKLU EXAM ARCHIVE · {metrics.approvedPapers} PAPERS (2020–2026)</span>
-                  </div>
-                  <span className="text-[#0A0A0C] dark:text-[#F5F4F0] font-medium">
-                    B.TECH · BBA · BCA
-                  </span>
-                </div>
-              </div>
+              <HeroPaperDeck
+                heroImageSrc={(jkluCampusHeroImg as any)?.src || jkluCampusHeroImg}
+                papersCount={metrics.approvedPapers}
+                onSelectCourse={(code) => navigate(`/home?q=${encodeURIComponent(code)}`)}
+              />
             </div>
           </div>
         </div>
