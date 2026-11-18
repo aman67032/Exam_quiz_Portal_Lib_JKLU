@@ -223,8 +223,7 @@ const LandingPage: React.FC = () => {
             placement="full"
             material="glass"
             markers="plus"
-            count={typeof window !== 'undefined' && window.innerWidth < 768 ? 420 : 700}
-            dpr={typeof window !== 'undefined' && window.innerWidth < 768 ? 1.25 : 1.5}
+            count={700}
             depthOfField={0.65}
             vignette={0.25}
             lightMode={theme === 'light'}
