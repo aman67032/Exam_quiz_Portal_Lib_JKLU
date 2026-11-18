@@ -931,9 +931,6 @@ const detectDeviceTier = (): 'static' | 'lite' | 'full' => {
   }
   if (typeof nav.deviceMemory === 'number' && nav.deviceMemory <= 2) return 'static';
   if (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 2) return 'static';
-  if (window.innerWidth < 768 || (typeof nav.hardwareConcurrency === 'number' && nav.hardwareConcurrency <= 4)) {
-    return 'lite';
-  }
   return 'full';
 };
 
@@ -1265,21 +1262,15 @@ export default function AeroShards({
         const billowMult = isPortrait ? 0.16 : 0.11;
         const sizeMult = isPortrait ? 0.115 : 0.105;
         const pt = [0, 0, 0];
-        // On portrait mobile, use placement=1/2 style vertical-diagonal ribbons so shards sweep top-to-bottom
-        const activePlacement = isPortrait && cfg.placement === 0 ? 1 : cfg.placement;
+        const activePlacement = cfg.placement;
 
         for (let i = shards2d.length - 1; i >= 0; i -= 1) {
           const sh = shards2d[i];
           const s0 = (sh.phase + clock * 0.022 * (1 - sh.level * 0.12)) % 1;
-          const levelPlacement =
-            isPortrait && cfg.placement === 0 ? (sh.level % 2 === 0 ? 1 : 2) : activePlacement;
-          ribbonPoint(levelPlacement, sh.level, s0, Math.max(aspect, 0.9), pt);
+          ribbonPoint(activePlacement, sh.level, s0, Math.max(aspect, 0.9), pt);
 
-          // In portrait mode, fan the diagonal ribbons across the full width
-          const ribbonX = isPortrait
-            ? pt[0] * 0.75 + (sh.level - 2) * 0.28 + Math.sin(s0 * Math.PI * 2 + sh.level) * 0.35
-            : pt[0];
-          const ribbonY = isPortrait ? pt[1] * 1.15 : pt[1];
+          const ribbonX = pt[0];
+          const ribbonY = pt[1];
 
           const depth = Math.max(1.2, CAMERA - pt[2]);
           const px =
